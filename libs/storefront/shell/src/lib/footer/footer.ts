@@ -9,7 +9,7 @@ import { ButtonComponent, FormFieldComponent, InputDirective } from '@ecom/share
   selector: 'app-footer',
   imports: [RouterLink, ReactiveFormsModule, ButtonComponent, FormFieldComponent, InputDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'mt-12 block border-t border-border bg-surface-alt' },
+  host: { class: 'mt-12 block print:hidden border-t border-border bg-surface-alt' },
   template: `
     <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-4 md:px-6">
       <section aria-labelledby="f-about">

@@ -22,3 +22,4 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 |---|---|
 | [01-shell-design-system](01-shell-design-system.md) | Implemented (storefront shell) |
 | [02-catalog](02-catalog.md) | Implemented (mock data) |
+| [04-cart-checkout](04-cart-checkout.md) | Implemented (mock adapters) |

@@ -3,6 +3,7 @@ import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from 
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideCore } from '@ecom/shared/core';
 import { provideDataAccess } from '@ecom/shared/data-access';
+import { provideCartFacade } from '@ecom/shared/state';
 import { APP_CONFIG_VALUES } from './app-config.values';
 import { appRoutes } from './app.routes';
 
@@ -17,5 +18,6 @@ export const appConfig: ApplicationConfig = {
     ),
     provideCore(APP_CONFIG_VALUES),
     provideDataAccess({ useMocks: APP_CONFIG_VALUES.useMocks }),
+    provideCartFacade(),
   ],
 };

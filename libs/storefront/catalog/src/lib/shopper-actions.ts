@@ -28,6 +28,6 @@ export class ShopperActions {
 
   quickAdd(product: ProductSummary): void {
     if (!product.quickAddVariantId) return;
-    this.cart.add({ productId: product.id, variantId: product.quickAddVariantId, quantity: 1, title: product.title });
+    void this.cart.add({ productId: product.id, variantId: product.quickAddVariantId, quantity: 1, title: product.title });
   }
 }

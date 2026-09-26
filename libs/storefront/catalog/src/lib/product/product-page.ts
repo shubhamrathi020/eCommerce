@@ -103,7 +103,7 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
           <div class="flex flex-wrap items-center gap-3">
             <ui-quantity-stepper [(value)]="quantity" [max]="maxQuantity()" />
             <button uiButton type="button" class="flex-1 md:flex-none" [disabled]="!canBuy()" (click)="addToCart(p)">Add to cart</button>
-            <button uiButton variant="secondary" type="button" [disabled]="!canBuy()" (click)="addToCart(p)">Buy now</button>
+            <button uiButton variant="secondary" type="button" [disabled]="!canBuy()" (click)="buyNow(p)">Buy now</button>
           </div>
           <div class="flex flex-wrap gap-3">
             <button uiButton variant="ghost" type="button" [attr.aria-pressed]="wishlisted()" (click)="toggleWishlist(p)">{{ wishlisted() ? 'Saved to wishlist' : 'Add to wishlist' }}</button>
@@ -367,7 +367,15 @@ export class ProductPageComponent {
   protected addToCart(p: Product): void {
     const v = this.variant();
     if (!v || v.stock === 0) return;
-    this.cart.add({ productId: p.id, variantId: v.id, quantity: this.quantity(), title: p.title });
+    void this.cart.add({ productId: p.id, variantId: v.id, quantity: this.quantity(), title: p.title });
+  }
+
+  /** Adds the item, then goes straight to checkout. */
+  protected async buyNow(p: Product): Promise<void> {
+    const v = this.variant();
+    if (!v || v.stock === 0) return;
+    const added = await this.cart.add({ productId: p.id, variantId: v.id, quantity: this.quantity(), title: p.title, openMiniCart: false });
+    if (added) await this.router.navigate(['/checkout']);
   }
 
   protected toggleWishlist(p: Product): void {

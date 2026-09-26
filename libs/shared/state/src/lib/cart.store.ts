@@ -1,0 +1,92 @@
+import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { firstValueFrom, type Observable } from 'rxjs';
+import { type AddToCartRequest, type CartFacade, ToastService } from '@ecom/shared/core';
+import { CartApi } from '@ecom/shared/data-access';
+import type { Cart, ShippingMethodId } from '@ecom/shared/models';
+import { ApiException } from '@ecom/shared/models';
+
+export interface CartResult {
+  ok: boolean;
+  /** User-readable failure message. */
+  message?: string;
+}
+
+/**
+ * App-wide cart state. The cart itself is owned by `CartApi` (server-side); this store holds the latest
+ * priced snapshot and exposes signals. It never computes money.
+ */
+@Injectable({ providedIn: 'root' })
+export class CartStore implements CartFacade {
+  private readonly api = inject(CartApi);
+  private readonly toast = inject(ToastService);
+  private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  private readonly _cart = signal<Cart | null>(null);
+  private readonly _busy = signal(false);
+  private readonly _loaded = signal(false);
+
+  readonly cart = this._cart.asReadonly();
+  readonly busy = this._busy.asReadonly();
+  readonly loaded = this._loaded.asReadonly();
+  readonly lines = computed(() => this._cart()?.lines ?? []);
+  readonly count = computed(() => this._cart()?.totals.itemCount ?? 0);
+  readonly isEmpty = computed(() => this.lines().length === 0);
+  /** Bound to the mini-cart drawer. */
+  readonly miniCartOpen = signal(false);
+
+  constructor() {
+    // The cart lives in the browser session; the server renders an empty header badge.
+    if (this.browser) void this.refresh();
+  }
+
+  async refresh(): Promise<void> {
+    await this.run(this.api.get());
+    this._loaded.set(true);
+  }
+
+  async add(request: AddToCartRequest): Promise<boolean> {
+    const result = await this.run(this.api.add(request.variantId, request.quantity));
+    if (!result.ok) {
+      this.toast.error(result.message ?? 'Could not add to cart.');
+      return false;
+    }
+    if (request.openMiniCart !== false) this.miniCartOpen.set(true);
+    else this.toast.success('Added to cart');
+    return true;
+  }
+
+  setQuantity(variantId: string, quantity: number): Promise<CartResult> {
+    return this.run(this.api.setQuantity(variantId, quantity));
+  }
+
+  async remove(variantId: string, title?: string): Promise<CartResult> {
+    const result = await this.run(this.api.remove(variantId));
+    if (result.ok && title) this.toast.info(`Removed "${title}" from your cart`);
+    return result;
+  }
+
+  applyCoupon(code: string): Promise<CartResult> {
+    return this.run(this.api.applyCoupon(code));
+  }
+
+  removeCoupon(): Promise<CartResult> {
+    return this.run(this.api.removeCoupon());
+  }
+
+  setShippingMethod(method: ShippingMethodId): Promise<CartResult> {
+    return this.run(this.api.setShippingMethod(method));
+  }
+
+  private async run(request: Observable<Cart>): Promise<CartResult> {
+    this._busy.set(true);
+    try {
+      this._cart.set(await firstValueFrom(request));
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, message: error instanceof ApiException ? error.message : 'Something went wrong. Please try again.' };
+    } finally {
+      this._busy.set(false);
+    }
+  }
+}

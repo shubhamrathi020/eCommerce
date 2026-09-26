@@ -3,51 +3,18 @@ import { Observable, defer, delay, from, of, throwError } from 'rxjs';
 import { PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { APP_CONFIG } from '@ecom/shared/core';
-import type {
-  Banner,
-  Brand,
-  Category,
-  Collection,
-  HomeData,
-  ListingQuery,
-  Product,
-  ProductSummary,
-  Review,
-  ReviewPage,
-  ReviewQuery,
-  Serviceability,
-} from '@ecom/shared/models';
+import type { HomeData, ListingQuery, Product, ProductSummary, Review, ReviewPage, ReviewQuery } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
 import { CatalogApi, type ProductLookup } from '../lib/catalog.api';
-import { type CatalogData, bestDiscount, runListing, sortProducts, stockStatusOf, toSummary } from './catalog-engine';
+import { computeServiceability, loadCatalogData as loadData } from './catalog-data';
+import { bestDiscount, runListing, sortProducts, stockStatusOf, toSummary } from './catalog-engine';
 
-interface HomeFile {
-  banners: Banner[];
-  categoryTiles: HomeData['categoryTiles'];
-}
-
-let dataPromise: Promise<CatalogData & { home: HomeFile }> | undefined;
 let reviewsPromise: Promise<Review[]> | undefined;
 
-/** JSON fixtures are loaded lazily so they never weigh down the initial bundle. */
-function loadData() {
-  dataPromise ??= Promise.all([import('./data/products.json'), import('./data/categories.json'), import('./data/brands.json'), import('./data/collections.json'), import('./data/home.json')]).then(
-    ([products, categories, brands, collections, home]) => ({
-      products: products.default as unknown as Product[],
-      categories: categories.default as unknown as Category[],
-      brands: brands.default as Brand[],
-      collections: collections.default as Collection[],
-      home: home.default as unknown as HomeFile,
-    }),
-  );
-  return dataPromise;
-}
 function loadReviews() {
   reviewsPromise ??= import('./data/reviews.json').then((m) => m.default as Review[]);
   return reviewsPromise;
 }
-
-const DAY_MS = 86_400_000;
 
 @Injectable()
 export class MockCatalogApi extends CatalogApi {
@@ -145,8 +112,7 @@ export class MockCatalogApi extends CatalogApi {
     if (!/^[1-9][0-9]{5}$/.test(pincode)) {
       return throwError(() => new ApiException('validation', 'Enter a valid 6-digit pin code', { pincode: 'Invalid pin code' }));
     }
-    const first = Number(pincode[0]);
-    const result: Serviceability = first === 9 ? { serviceable: false, pincode } : { serviceable: true, pincode, estimatedDays: 2 + (first % 4), estimatedDate: new Date(Date.now() + (2 + (first % 4)) * DAY_MS).toISOString(), codAvailable: first % 2 === 0 };
+    const result = computeServiceability(pincode);
     return of(result).pipe(delay(this.ms));
   }
 }

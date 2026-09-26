@@ -17,3 +17,6 @@ export * from './lib/tabs/tabs';
 export * from './lib/gallery/gallery';
 export * from './lib/misc/misc';
 export * from './lib/not-found/not-found';
+export * from './lib/cart-line/cart-line';
+export * from './lib/order-summary/order-summary';
+export * from './lib/stepper/stepper';

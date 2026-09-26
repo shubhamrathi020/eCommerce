@@ -57,7 +57,7 @@ Dependency rule (enforced with Nx tags in eslint.config.mjs; `core` is tagged `t
 
 ## 6. Performance rules
 - Images: `NgOptimizedImage`, explicit width/height, lazy below the fold, responsive `srcset`.
-- No large libs without justification (check bundle impact). Budgets in `angular.json`: initial bundle warning 500 kB, error 1 MB.
+- No large libs without justification (check bundle impact). Budgets in `angular.json`: initial bundle warning 600 kB (raised from 500 while mock adapters ship in the bundle; revisit when HTTP adapters replace them), error 1 MB.
 - Track lists with `track` by id. Avoid function calls in templates; use `computed`.
 
 ## 7. Git (when asked to commit)
@@ -65,6 +65,7 @@ Dependency rule (enforced with Nx tags in eslint.config.mjs; `core` is tagged `t
 - One logical change per commit. Never commit secrets, `.env`, or build output.
 
 ## 8. Definition of done (per task)
+0. `PROJECT-LOG.md` updated.
 1. Matches BRD acceptance criteria.
 2. Follows design.md (tokens, responsive, accessible) and security.md.
 3. Tests, lint, and build pass.

@@ -22,7 +22,9 @@
       "@ecom/shared/data-access": ["./libs/shared/data-access/src/index.ts"],
       "@ecom/shared/core": ["./libs/shared/core/src/index.ts"],
       "@ecom/storefront/shell": ["./libs/storefront/shell/src/index.ts"],
-      "@ecom/storefront/catalog": ["./libs/storefront/catalog/src/index.ts"]
+      "@ecom/storefront/catalog": ["./libs/storefront/catalog/src/index.ts"],
+      "@ecom/shared/state": ["./libs/shared/state/src/index.ts"],
+      "@ecom/storefront/checkout": ["./libs/storefront/checkout/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

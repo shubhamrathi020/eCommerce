@@ -1,0 +1,88 @@
+# Project Log
+
+A plain-English diary of what is being built, why, and which commands were used. It is updated at the end of every task (this is a standing rule in `CLAUDE.md`). Newest entries are added at the bottom of each section.
+
+**How to read it:** "Decision" = a choice that shapes the project. "Brief" = what was done and why. "Commands" = the terminal commands worth knowing, each with a one-line meaning.
+
+---
+
+## 1. Key decisions (and why)
+
+| Date | Decision | Plain-English reason |
+|---|---|---|
+| 2026-09-26 | Build an all-category store (fashion, electronics, grocery...) | One catalog model with per-category attributes instead of a niche-specific design |
+| 2026-09-26 | Modular monolith first, split into services later | Simpler to build and debug alone; boundaries are kept clean so services can be extracted |
+| 2026-09-26 | Frontend first on mock data, backend later | Lets us see and refine the product early; mocks sit behind interfaces so swapping to the real backend is a config change |
+| 2026-09-26 | Search: Meilisearch first. Payments: Razorpay. Queue: RabbitMQ. DBs: PostgreSQL + MongoDB + Redis | Lightweight, India-friendly, and covers the system-design topics we want to practise |
+| 2026-09-26 | Kubernetes locally first, cloud later; B2B later | Keep cost and scope down |
+| 2026-09-26 | One BRD (requirements doc) per module; commit after each BRD | Small, reviewable steps; docs stay in sync with code |
+| 2026-09-27 | Angular 22 + Nx + pnpm + Tailwind + Vitest | pnpm because `npm install` crashed on this machine; Nx to keep apps and libraries organised |
+| 2026-09-27 | Money is always stored as whole paise (integers) | Avoids rounding errors; formatting happens only when displaying |
+| 2026-09-27 | The client never calculates prices, tax, shipping or discounts | Those come from the API (mock now, server later), so they cannot be tampered with |
+| 2026-09-27 | User gave advance approval for future decisions | I choose sensible defaults and record them here |
+| 2026-09-27 | Cart state in its own shared library; catalog talks to it through a token | Feature libraries may not import each other; this keeps them independent |
+| 2026-09-27 | Payment window is behind an interface; mock now, real Razorpay later | Checkout page stays unchanged when the real one is added |
+
+## 2. Work briefs (what was done)
+
+### Step 0: Requirements and rules (2026-09-26)
+- Wrote the master business requirements (`BR-eCommerce-Platform.md`): about 190 requirements across accounts, catalog, search, cart, payments, orders, admin and more, plus non-functional needs and a map of system-design concepts.
+- Wrote the steering docs (`steering/`): rules, architecture, design system, security, and a memory file. These are the rules I follow on every task.
+- Wrote `CLAUDE.md` so every session starts by reading those rules.
+
+### Step 1: App shell and design system, BRD 01 (2026-09-27)
+- Created the Nx workspace with a storefront (server-side rendered) and an admin placeholder.
+- Built design tokens (colors, spacing, fonts) and the first shared components (button, form field, price, rating, drawer, toast...).
+- Built header with mega menu, mobile drawer, footer, cookie banner, static pages, SEO service, error handling.
+- Result: lint, tests and build pass; verified in the browser.
+
+### Step 2: Catalog, BRD 02 (2026-09-27)
+- Generated 252 products, 1,854 reviews and images with a seeded script (same data every time).
+- Built home page, category/brand/collection/search listing with filters, sort and pagination (all stored in the URL), product page with variants, gallery, delivery check and reviews, compare, recently viewed.
+- Server-rendered pages include SEO tags and structured data; unknown pages return real 404s.
+
+### Step 3: Cart and checkout, BRD 04 (2026-09-27)
+- Wrote `brds/04-cart-checkout.md`.
+- Built the mock "server": a pricing engine that decides tax (GST included), shipping, coupons and stock; plus cart, checkout, order and payment APIs.
+- Built the cart store (shared), mini-cart drawer, cart page with coupons, four-step guest checkout, a mock Razorpay window (success, failure, cancel, retry), order confirmation with a tracking timeline, cancel, a printable invoice and an orders list.
+- Try it: add a product, apply `WELCOME10`, check out, choose online payment and use "Simulate failed payment" then "Retry".
+- Tests: 30 for the data layer, plus cart store, page flows and accessibility checks. Everything (lint, tests, build for 12 projects) passes.
+- Not done yet: stock is not reduced when an order is placed; no saved addresses; accounts come next.
+
+## 3. Useful commands (with meaning)
+
+| Command | What it does |
+|---|---|
+| `pnpm install` | Installs all project dependencies |
+| `pnpm exec nx serve storefront` | Starts the storefront at http://localhost:4200 with live reload |
+| `pnpm exec nx build storefront` | Production build (also checks size budgets) |
+| `pnpm exec nx test <project>` | Runs the unit tests of one project (e.g. `shared-data-access`) |
+| `pnpm exec nx lint <project>` | Checks code style and accessibility rules |
+| `pnpm exec nx run-many -t lint test build` | Runs lint, tests and build for every project (the "is everything green?" check) |
+| `node tools/generate-mock-data/generate.mjs` | Regenerates all mock products, reviews and images |
+| `pnpm exec nx g @nx/angular:library --name=<x> --directory=libs/<path> ...` | Creates a new library with the right structure |
+| `git add -A && git commit -m "..."` | Saves a snapshot of the work (one commit per finished BRD) |
+| `pnpm exec nx test storefront-checkout` | Runs the cart, checkout and order page tests |
+
+## 4. Problems met and how they were solved
+
+| Problem | Fix (plain English) |
+|---|---|
+| `npm install` crashed | Used pnpm instead |
+| Nx template added an unwanted backend app | Started from an empty Nx workspace and added only what we need |
+| Page crashed when a CMS page was missing | Angular resources throw if you read a value while in error state; check `hasValue()` first |
+| "Writing to signals in computed" error | Load saved state in the constructor, never inside a computed value |
+| Mega menu would not open on click | Hover and click cancelled each other; hover now opens, click confirms |
+| Old product links returned 200 | Fixed so they send a proper redirect (302) to the new address |
+| Checkout redirect for an empty cart crashed | A route guard used `inject()` after an `await`; injection must happen before the first await (found by a test) |
+| Bundle grew past the 500 kB warning | Mock adapters ship in the bundle for now; warning limit raised to 600 kB and noted to revisit |
+
+## 5. Change history
+
+| Date | Change |
+|---|---|
+| 2026-09-26 | Master BR approved (v1.0); steering docs created |
+| 2026-09-27 | BRD 01 built and committed |
+| 2026-09-27 | BRD 02 built and committed |
+| 2026-09-27 | Project log created (this file); BRD 04 started |
+| 2026-09-27 | BRD 04 built and committed |

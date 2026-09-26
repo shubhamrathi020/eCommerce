@@ -1,0 +1,104 @@
+import { Injectable, inject } from '@angular/core';
+import type { Order, PlaceOrderRequest } from '@ecom/shared/models';
+import { ApiException } from '@ecom/shared/models';
+import { OrderApi } from '../lib/commerce.api';
+import { EMPTY_STORED_CART } from './cart-engine';
+import { codEligibility, validateDeliverable } from './mock-checkout.api';
+import { MockCartState } from './mock-cart-state';
+import { createMockResponder } from './mock-latency';
+import { MockOrderStore, withProgress } from './mock-order-store';
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE = /^[6-9][0-9]{9}$/;
+
+function newOrderId(): string {
+  return `ORD-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
+}
+
+@Injectable()
+export class MockOrderApi extends OrderApi {
+  private readonly respond = createMockResponder();
+  private readonly cart = inject(MockCartState);
+  private readonly store = inject(MockOrderStore);
+
+  place(request: PlaceOrderRequest) {
+    return this.respond.okAsync<Order>(async () => {
+      // Idempotency: the same key always returns the same order.
+      const existingId = this.store.orderIdForKey(request.idempotencyKey);
+      const existing = existingId ? this.store.find(existingId) : undefined;
+      if (existing) return withProgress(existing, Date.now());
+
+      const fields: Record<string, string> = {};
+      if (!request.contact.name.trim()) fields['name'] = 'Name is required';
+      if (!EMAIL.test(request.contact.email)) fields['email'] = 'Enter a valid email address';
+      if (!PHONE.test(request.contact.phone)) fields['phone'] = 'Enter a valid 10-digit mobile number';
+      if (!request.address.line1.trim()) fields['line1'] = 'Address is required';
+      if (!request.address.city.trim()) fields['city'] = 'City is required';
+      if (!request.address.state.trim()) fields['state'] = 'State is required';
+      if (Object.keys(fields).length) throw new ApiException('validation', 'Please check the highlighted fields.', fields);
+      validateDeliverable(request.address.pincode);
+
+      const { cart } = await this.cart.priced();
+      if (cart.lines.length === 0) throw new ApiException('validation', 'Your cart is empty.');
+      if (cart.blocked) throw new ApiException('validation', 'Some items in your cart are out of stock. Remove them to continue.');
+      if (request.paymentMethod === 'cod') {
+        const cod = codEligibility(request.address.pincode, cart.totals.total.amount);
+        if (!cod.enabled) throw new ApiException('validation', cod.reason ?? 'Cash on delivery is not available.');
+      }
+
+      const now = new Date().toISOString();
+      const cod = request.paymentMethod === 'cod';
+      const order: Order = {
+        id: newOrderId(),
+        status: cod ? 'confirmed' : 'pending_payment',
+        paymentStatus: cod ? 'cod' : 'pending',
+        paymentMethod: request.paymentMethod,
+        lines: cart.lines,
+        totals: cart.totals,
+        ...(cart.coupon ? { couponCode: cart.coupon.code } : {}),
+        shippingMethod: cart.shippingMethod,
+        contact: request.contact,
+        address: request.address,
+        createdAt: now,
+        timeline: [
+          { status: 'placed', label: 'Order placed', at: now },
+          ...(cod ? [{ status: 'confirmed' as const, label: 'Order confirmed', at: now }] : []),
+        ],
+      };
+      this.store.save(order);
+      this.store.rememberKey(request.idempotencyKey, order.id);
+      if (cod) this.cart.write({ ...EMPTY_STORED_CART, items: [], shippingMethod: cart.shippingMethod });
+      return order;
+    });
+  }
+
+  get(orderId: string) {
+    return this.respond.okAsync<Order>(async () => {
+      const order = this.store.find(orderId);
+      if (!order) throw new ApiException('not_found', 'Order not found');
+      return withProgress(order, Date.now());
+    });
+  }
+
+  list() {
+    return this.respond.okAsync<Order[]>(async () => this.store.all().map((o) => withProgress(o, Date.now())));
+  }
+
+  cancel(orderId: string) {
+    return this.respond.okAsync<Order>(async () => {
+      const found = this.store.find(orderId);
+      if (!found) throw new ApiException('not_found', 'Order not found');
+      const order = withProgress(found, Date.now());
+      if (order.status === 'cancelled') return order;
+      if (order.status === 'shipped' || order.status === 'delivered') throw new ApiException('validation', 'This order has already shipped and can no longer be cancelled.');
+      const cancelled: Order = {
+        ...found,
+        status: 'cancelled',
+        paymentStatus: found.paymentStatus === 'paid' ? 'refund_pending' : found.paymentStatus,
+        timeline: [...found.timeline.filter((t) => t.status === 'placed' || t.status === 'paid' || t.status === 'confirmed'), { status: 'cancelled', label: 'Order cancelled', at: new Date().toISOString() }],
+      };
+      this.store.save(cancelled);
+      return cancelled;
+    });
+  }
+}

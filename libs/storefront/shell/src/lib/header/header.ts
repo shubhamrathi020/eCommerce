@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { APP_CONFIG } from '@ecom/shared/core';
 import { DrawerComponent, IconComponent } from '@ecom/shared/ui';
-import { CartBadgeStore } from '../cart-badge.store';
+import { CartStore } from '@ecom/shared/state';
 import { CategoryMenuStore } from '../category-menu.store';
 
 @Component({
@@ -11,7 +11,7 @@ import { CategoryMenuStore } from '../category-menu.store';
   imports: [RouterLink, FormsModule, IconComponent, DrawerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'sticky top-0 z-20 block border-b border-border bg-surface transition-shadow',
+    class: 'sticky top-0 z-20 block print:hidden border-b border-border bg-surface transition-shadow',
     '[class.shadow-card]': 'scrolled()',
     '(window:scroll)': 'onScroll()',
     '(document:keydown.escape)': 'openMenu.set(null)',
@@ -127,7 +127,7 @@ import { CategoryMenuStore } from '../category-menu.store';
 export class HeaderComponent {
   private readonly router = inject(Router);
   private readonly menu = inject(CategoryMenuStore);
-  private readonly cart = inject(CartBadgeStore);
+  private readonly cart = inject(CartStore);
 
   protected readonly siteName = inject(APP_CONFIG).siteName;
   protected readonly roots = this.menu.roots;

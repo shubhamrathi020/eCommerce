@@ -6,19 +6,23 @@ export interface AddToCartRequest {
   variantId: string;
   quantity: number;
   title: string;
+  /** Set false for "Buy now", which goes straight to checkout instead of opening the mini-cart. */
+  openMiniCart?: boolean;
 }
 
-/** What catalog UI needs from the cart. The cart module (BRD 04) provides the real implementation. */
+/** What catalog UI needs from the cart. The cart state library provides the real implementation. */
 export interface CartFacade {
-  add(request: AddToCartRequest): void;
+  /** Resolves true when the item was added. */
+  add(request: AddToCartRequest): Promise<boolean>;
 }
 
 @Injectable({ providedIn: 'root' })
 class PlaceholderCartFacade implements CartFacade {
   private readonly toast = inject(ToastService);
 
-  add(request: AddToCartRequest): void {
+  async add(request: AddToCartRequest): Promise<boolean> {
     this.toast.info(`"${request.title}" will be added to your cart once the cart module ships.`);
+    return false;
   }
 }
 
