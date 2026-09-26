@@ -89,4 +89,31 @@ describe('catalog pages', () => {
     TestBed.resetTestingModule();
     expect(await seriousViolations((await open(href)).el)).toEqual([]);
   }, 30000);
+
+  it('search page: relevance sort by default, typo tolerance, corrected-query notice and zero-result help', async () => {
+    const found = await open('/search?q=sneekers');
+    expect(found.el.querySelector('h1')?.textContent).toContain('sneekers');
+    expect(found.el.querySelectorAll('ui-product-card').length).toBeGreaterThan(0);
+    const sort = found.el.querySelector('select');
+    expect(sort?.value).toBe('relevance');
+    expect(Array.from(found.el.querySelectorAll('#sort option')).map((o) => o.textContent)).toContain('Relevance');
+    expect(found.el.textContent).not.toContain('No exact matches');
+
+    TestBed.resetTestingModule();
+    const corrected = await open('/search?q=tvx');
+    expect(corrected.el.textContent).toContain('No exact matches for “tvx”');
+    expect(corrected.el.querySelectorAll('ui-product-card').length).toBeGreaterThan(0);
+
+    TestBed.resetTestingModule();
+    const none = await open('/search?q=qzqzqz');
+    expect(none.el.textContent).toContain('No results for “qzqzqz”');
+    expect(none.el.textContent).toContain('Popular searches');
+    expect(none.el.querySelectorAll('a[href^="/search?q="]').length).toBeGreaterThan(3);
+    expect(await seriousViolations(none.el)).toEqual([]);
+  }, 30000);
+
+  it('category pages do not offer the relevance sort', async () => {
+    const { el } = await open('/c/laptops');
+    expect(Array.from(el.querySelectorAll('#sort option')).map((o) => o.textContent)).not.toContain('Relevance');
+  });
 });

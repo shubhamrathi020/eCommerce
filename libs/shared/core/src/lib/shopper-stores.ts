@@ -65,3 +65,29 @@ export class WishlistStore extends IdListStore {
     return added;
   }
 }
+
+/** The shopper's last search terms on this device (never sent anywhere). */
+@Injectable({ providedIn: 'root' })
+export class RecentSearchesStore extends IdListStore {
+  protected readonly storageKey = 'ecom.recent-searches.v1';
+  protected readonly maxItems = 8;
+
+  constructor() {
+    super();
+    this.load();
+  }
+
+  add(term: string): void {
+    const t = term.trim().slice(0, 100);
+    if (!t) return;
+    this.write([t, ...this.current().filter((x) => x.toLowerCase() !== t.toLowerCase())].slice(0, this.maxItems));
+  }
+
+  remove(term: string): void {
+    this.write(this.current().filter((x) => x !== term));
+  }
+
+  clear(): void {
+    this.write([]);
+  }
+}

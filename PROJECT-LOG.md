@@ -21,6 +21,7 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | The client never calculates prices, tax, shipping or discounts | Those come from the API (mock now, server later), so they cannot be tampered with |
 | 2026-09-27 | User gave advance approval for future decisions | I choose sensible defaults and record them here |
 | 2026-09-27 | Cart state in its own shared library; catalog talks to it through a token | Feature libraries may not import each other; this keeps them independent |
+| 2026-09-27 | Search results still come from the catalog listing call (with a query); the real search server will replace only the data source | Pages stay the same when Meilisearch arrives |
 | 2026-09-27 | Payment window is behind an interface; mock now, real Razorpay later | Checkout page stays unchanged when the real one is added |
 
 ## 2. Work briefs (what was done)
@@ -49,6 +50,13 @@ A plain-English diary of what is being built, why, and which commands were used.
 - Tests: 30 for the data layer, plus cart store, page flows and accessibility checks. Everything (lint, tests, build for 12 projects) passes.
 - Not done yet: stock is not reduced when an order is placed; no saved addresses; accounts come next.
 
+### Step 4: Search, BRD 03 (2026-09-27)
+- Wrote `brds/03-search.md` (numbered 03 because search was planned before cart; it was built after BRD 04).
+- Built a small search engine that behaves like Meilisearch: matches every word, prefix on the last word, typo tolerance, synonyms (tee = t-shirt, mobile = smartphone...), plural handling and relevance ranking.
+- New header search box with suggestions (queries, products, categories, brands), recent and popular searches, full keyboard support.
+- Search results page: Relevance sort by default, a notice when the spelling was corrected, and a friendly no-results page with popular searches.
+- Try it: type "lap", then search "labtop" or "sneekers" (typos still work).
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -63,6 +71,7 @@ A plain-English diary of what is being built, why, and which commands were used.
 | `pnpm exec nx g @nx/angular:library --name=<x> --directory=libs/<path> ...` | Creates a new library with the right structure |
 | `git add -A && git commit -m "..."` | Saves a snapshot of the work (one commit per finished BRD) |
 | `pnpm exec nx test storefront-checkout` | Runs the cart, checkout and order page tests |
+| `pnpm exec nx test shared-data-access` | Runs data-layer tests including cart pricing and search |
 
 ## 4. Problems met and how they were solved
 
@@ -86,3 +95,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRD 02 built and committed |
 | 2026-09-27 | Project log created (this file); BRD 04 started |
 | 2026-09-27 | BRD 04 built and committed |
+| 2026-09-27 | BRD 03 (search) built and committed |

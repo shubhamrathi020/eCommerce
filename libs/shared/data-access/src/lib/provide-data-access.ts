@@ -3,11 +3,13 @@ import { CatalogApi } from './catalog.api';
 import { CartApi, CheckoutApi, OrderApi, PaymentApi } from './commerce.api';
 import { CategoryApi } from './category.api';
 import { CmsApi } from './cms.api';
+import { SearchApi } from './search.api';
 import { NewsletterApi } from './newsletter.api';
 import { MockCartApi } from '../mock/mock-cart.api';
 import { MockCatalogApi } from '../mock/mock-catalog.api';
 import { MockCheckoutApi } from '../mock/mock-checkout.api';
 import { MockOrderApi } from '../mock/mock-order.api';
+import { MockSearchApi } from '../mock/mock-search.api';
 import { MockPaymentApi } from '../mock/mock-payment.api';
 import { MockCategoryApi } from '../mock/mock-category.api';
 import { MockCmsApi } from '../mock/mock-cms.api';
@@ -23,6 +25,7 @@ export function provideDataAccess(options: { useMocks: boolean }): EnvironmentPr
   }
   return makeEnvironmentProviders([
     { provide: CatalogApi, useClass: MockCatalogApi },
+    { provide: SearchApi, useClass: MockSearchApi },
     { provide: CartApi, useClass: MockCartApi },
     { provide: CheckoutApi, useClass: MockCheckoutApi },
     { provide: OrderApi, useClass: MockOrderApi },

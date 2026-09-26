@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, signal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { RESPONSE_INIT } from '@angular/core';
-import { SeoService } from '@ecom/shared/core';
-import { CatalogApi } from '@ecom/shared/data-access';
-import type { ListingQuery, ListingResult } from '@ecom/shared/models';
+import { AnalyticsService, RecentSearchesStore, SeoService } from '@ecom/shared/core';
+import { CatalogApi, SearchApi } from '@ecom/shared/data-access';
+import type { ListingQuery, ListingResult, SortKey } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
 import { BreadcrumbComponent, ButtonComponent, ChipComponent, DrawerComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, NotFoundComponent, PaginationComponent, ProductCardComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { ShopperActions } from '../shopper-actions';
@@ -17,7 +17,7 @@ export type ListingKind = 'category' | 'brand' | 'collection' | 'search';
 /** Category, brand, collection and search results. The URL is the single source of truth for filters, sort and page. */
 @Component({
   selector: 'app-listing-page',
-  imports: [BreadcrumbComponent, ButtonComponent, ChipComponent, DrawerComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, NotFoundComponent, PaginationComponent, ProductCardComponent, SkeletonComponent, FilterPanelComponent, NotFoundComponent, RecentlyViewedComponent],
+  imports: [RouterLink, BreadcrumbComponent, ButtonComponent, ChipComponent, DrawerComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, NotFoundComponent, PaginationComponent, ProductCardComponent, SkeletonComponent, FilterPanelComponent, NotFoundComponent, RecentlyViewedComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (notFound()) {
@@ -26,6 +26,9 @@ export type ListingKind = 'category' | 'brand' | 'collection' | 'search';
       @if (shown(); as r) {
         @if (r.breadcrumb.length) {
           <ui-breadcrumb class="mb-3" [items]="crumbs()" />
+        }
+        @if (r.correctedFrom) {
+          <p class="mb-3 rounded-md bg-surface-alt p-3 text-sm" role="status">No exact matches for “{{ r.correctedFrom }}”. Showing the closest results instead.</p>
         }
         <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -36,7 +39,7 @@ export type ListingKind = 'category' | 'brand' | 'collection' | 'search';
             <button uiButton variant="secondary" type="button" class="lg:hidden" (click)="filtersOpen.set(true)">Filters@if (activeCount() > 0) { ({{ activeCount() }}) }</button>
             <label class="sr-only" for="sort">Sort by</label>
             <select id="sort" uiInput class="!w-auto" [value]="state().sort" (change)="setSort($any($event.target).value)">
-              @for (option of sortOptions; track option.value) {
+              @for (option of sortOptions(); track option.value) {
                 <option [value]="option.value" [selected]="option.value === state().sort">{{ option.label }}</option>
               }
             </select>
@@ -77,8 +80,18 @@ export type ListingKind = 'category' | 'brand' | 'collection' | 'search';
               </ul>
               <ui-pagination class="mt-8" [page]="r.page" [pageSize]="r.pageSize" [total]="r.total" />
             } @else {
-              <ui-empty-state title="No products match your filters" description="Try removing a filter or searching for something else.">
-                <button uiButton variant="secondary" type="button" (click)="clearAll()">Clear all filters</button>
+              <ui-empty-state [title]="kind() === 'search' && !activeCount() ? 'No results for “' + (state().q ?? '') + '”' : 'No products match your filters'" description="Check the spelling, try a more general word, or remove a filter.">
+                @if (activeCount() > 0) {
+                  <button uiButton variant="secondary" type="button" (click)="clearAll()">Clear all filters</button>
+                }
+                @if (kind() === 'search' && popular().length) {
+                  <p class="mt-4 text-sm font-medium">Popular searches</p>
+                  <ul class="mt-2 flex flex-wrap justify-center gap-2">
+                    @for (term of popular(); track term) {
+                      <li><a [routerLink]="['/search']" [queryParams]="{ q: term }" class="inline-flex min-h-11 items-center rounded-full border border-border-strong px-4 text-sm font-medium hover:bg-surface-alt">{{ term }}</a></li>
+                    }
+                  </ul>
+                }
               </ui-empty-state>
             }
           </section>
@@ -114,13 +127,18 @@ export class ListingPageComponent {
   private readonly seo = inject(SeoService);
   private readonly response = inject(RESPONSE_INIT, { optional: true });
   protected readonly actions = inject(ShopperActions);
+  private readonly analytics = inject(AnalyticsService);
+  private readonly searchApi = inject(SearchApi);
+  private readonly popularResource = rxResource({ stream: () => this.searchApi.popular() });
+  protected readonly popular = computed(() => (this.popularResource.hasValue() ? this.popularResource.value() : []));
 
-  protected readonly sortOptions = SORT_OPTIONS;
+  protected readonly defaultSort = computed<SortKey>(() => (this.kind() === 'search' ? 'relevance' : 'featured'));
+  protected readonly sortOptions = computed(() => SORT_OPTIONS.filter((o) => o.value !== (this.kind() === 'search' ? 'featured' : 'relevance')));
   protected readonly skeletons = Array.from({ length: 8 }, (_, i) => i);
   protected readonly filtersOpen = signal(false);
 
   private readonly params = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
-  protected readonly state = computed<UrlListingState>(() => parseListingParams(this.params()));
+  protected readonly state = computed<UrlListingState>(() => parseListingParams(this.params(), this.defaultSort()));
 
   private readonly query = computed<ListingQuery>(() => {
     const s = this.state();
@@ -178,11 +196,18 @@ export class ListingPageComponent {
         title: r.title + (s.page > 1 ? ` - Page ${s.page}` : ''),
         description: `Shop ${r.title} online. ${r.total} products with fast delivery and easy returns.`,
         path: s.page > 1 ? `${base}?page=${s.page}` : base,
-        noindex: isRefined(s) || this.kind() === 'search',
+        noindex: isRefined(s, this.defaultSort()) || this.kind() === 'search',
       });
     });
     effect(() => {
       if (this.notFound() && this.response) this.response.status = 404;
+    });
+    // Search analytics: term is length-limited and only sent with consent (see AnalyticsService).
+    effect(() => {
+      const r = this.shown();
+      const term = this.state().q;
+      if (this.kind() !== 'search' || !r || !term) return;
+      untracked(() => this.analytics.track({ name: r.total === 0 ? 'search_zero_results' : 'search', props: { term: term.slice(0, 50), results: r.total } }));
     });
   }
 
@@ -192,7 +217,7 @@ export class ListingPageComponent {
   }
 
   private update(next: UrlListingState): void {
-    void this.router.navigate([], { relativeTo: this.route, queryParams: toQueryParams(next, this.params().keys), replaceUrl: false });
+    void this.router.navigate([], { relativeTo: this.route, queryParams: toQueryParams(next, this.params().keys, this.defaultSort()), replaceUrl: false });
   }
 
   protected setSort(value: string): void {

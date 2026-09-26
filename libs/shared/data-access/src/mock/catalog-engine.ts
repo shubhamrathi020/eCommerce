@@ -13,6 +13,7 @@ import type {
   Variant,
 } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
+import { buildIndex, searchProducts } from './search-engine';
 
 /** Stock at or below this many units (across variants) is shown as "Only N left". */
 export const LOW_STOCK_THRESHOLD = 5;
@@ -116,14 +117,14 @@ export function runListing(data: CatalogData, query: ListingQuery): ListingResul
     scope = scope.filter((p) => p.tags.includes(collection.tag));
     heading = collection.name;
   }
-  const q = query.q?.trim().toLowerCase();
-  if (q) {
-    const tokens = q.split(/\s+/);
-    scope = scope.filter((p) => {
-      const haystack = `${p.title} ${p.brandName} ${p.categoryPath.map((c) => c.name).join(' ')} ${p.tags.join(' ')}`.toLowerCase();
-      return tokens.every((t) => haystack.includes(t));
-    });
-    heading = `Results for "${query.q?.trim()}"`;
+  let scores: Map<string, number> | undefined;
+  let correctedFrom: string | undefined;
+  if (query.q?.trim()) {
+    const matches = searchProducts(buildIndex(data.products), scope, query.q);
+    scope = matches.products;
+    scores = matches.scores;
+    correctedFrom = matches.correctedFrom;
+    heading = `Results for "${matches.usedQuery}"`;
   }
 
   // Predicates per facet group, so each facet can be counted ignoring its own selection.
@@ -198,7 +199,7 @@ export function runListing(data: CatalogData, query: ListingQuery): ListingResul
   const priceBounds = allPrices.length ? { min: Math.min(...allPrices), max: Math.max(...allPrices) } : { min: 0, max: 0 };
 
   // Sort, paginate
-  const items = sortProducts(matching(), query.sort);
+  const items = sortProducts(matching(), query.sort, scores);
   const pageSize = Math.max(1, query.pageSize);
   const pages = Math.max(1, Math.ceil(items.length / pageSize));
   const page = Math.min(Math.max(1, query.page), pages);
@@ -212,11 +213,13 @@ export function runListing(data: CatalogData, query: ListingQuery): ListingResul
     priceBounds,
     title: heading,
     breadcrumb,
+    ...(correctedFrom ? { correctedFrom } : {}),
   };
 }
 
-export function sortProducts(products: Product[], sort: SortKey): Product[] {
+export function sortProducts(products: Product[], sort: SortKey, scores?: Map<string, number>): Product[] {
   const cmp: Record<SortKey, (a: Product, b: Product) => number> = {
+    relevance: (a, b) => (scores?.get(b.id) ?? 0) - (scores?.get(a.id) ?? 0) || b.popularity - a.popularity,
     featured: (a, b) => b.popularity - a.popularity,
     'price-asc': (a, b) => cheapestVariant(a).price.amount - cheapestVariant(b).price.amount,
     'price-desc': (a, b) => cheapestVariant(b).price.amount - cheapestVariant(a).price.amount,

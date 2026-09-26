@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { APP_CONFIG } from '@ecom/shared/core';
 import { DrawerComponent, IconComponent } from '@ecom/shared/ui';
 import { CartStore } from '@ecom/shared/state';
+import { SearchBoxComponent } from '../search-box/search-box';
 import { CategoryMenuStore } from '../category-menu.store';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, FormsModule, IconComponent, DrawerComponent],
+  imports: [RouterLink, IconComponent, DrawerComponent, SearchBoxComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'sticky top-0 z-20 block print:hidden border-b border-border bg-surface transition-shadow',
@@ -25,22 +25,7 @@ import { CategoryMenuStore } from '../category-menu.store';
 
       <a routerLink="/" class="text-xl font-bold text-primary" aria-label="{{ siteName }} home">{{ siteName }}</a>
 
-      <form class="order-last hidden min-w-0 flex-1 md:order-none md:flex" role="search" (submit)="search($event)">
-        <label for="site-search" class="sr-only">Search products</label>
-        <input
-          id="site-search"
-          type="search"
-          name="q"
-          autocomplete="off"
-          placeholder="Search for products, brands and more"
-          class="min-h-11 w-full rounded-l-md border border-r-0 border-border-strong bg-surface px-3 text-base"
-          [ngModel]="query()"
-          (ngModelChange)="query.set($event)"
-        />
-        <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-r-md bg-primary px-4 text-primary-contrast hover:bg-primary-hover" aria-label="Search">
-          <ui-icon name="search" />
-        </button>
-      </form>
+      <app-search-box idPrefix="search-d" class="order-last hidden min-w-0 flex-1 md:order-none md:block" />
 
       <nav aria-label="Account and cart" class="ml-auto flex items-center gap-1 md:ml-0">
         <a routerLink="/wishlist" class="inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-alt" aria-label="Wishlist"><ui-icon name="heart" [size]="24" /></a>
@@ -54,13 +39,7 @@ import { CategoryMenuStore } from '../category-menu.store';
       </nav>
     </div>
 
-    <form class="px-4 pb-3 md:hidden" role="search" (submit)="search($event)">
-      <label for="site-search-m" class="sr-only">Search products</label>
-      <div class="flex">
-        <input id="site-search-m" type="search" name="q" autocomplete="off" placeholder="Search products" class="min-h-11 w-full rounded-l-md border border-r-0 border-border-strong bg-surface px-3 text-base" [ngModel]="query()" (ngModelChange)="query.set($event)" />
-        <button type="submit" class="inline-flex min-h-11 items-center rounded-r-md bg-primary px-4 text-primary-contrast" aria-label="Search"><ui-icon name="search" /></button>
-      </div>
-    </form>
+    <app-search-box idPrefix="search-m" placeholder="Search products" class="block px-4 pb-3 md:hidden" />
 
     @if (!scrolled()) {
       <nav aria-label="Categories" class="relative hidden border-t border-border lg:block">
@@ -125,7 +104,6 @@ import { CategoryMenuStore } from '../category-menu.store';
   `,
 })
 export class HeaderComponent {
-  private readonly router = inject(Router);
   private readonly menu = inject(CategoryMenuStore);
   private readonly cart = inject(CartStore);
 
@@ -138,7 +116,6 @@ export class HeaderComponent {
   protected readonly drawerOpen = signal(false);
   protected readonly openMenu = signal<string | null>(null);
   protected readonly expanded = signal<string | null>(null);
-  protected readonly query = signal('');
   private openedBy: 'hover' | 'click' = 'click';
 
   protected onScroll(): void {
@@ -166,11 +143,5 @@ export class HeaderComponent {
   protected onFocusOut(event: FocusEvent): void {
     const next = event.relatedTarget as Node | null;
     if (next && !(event.currentTarget as HTMLElement).contains(next)) this.openMenu.set(null);
-  }
-
-  protected search(event: Event): void {
-    event.preventDefault();
-    const q = this.query().trim();
-    if (q) void this.router.navigate(['/search'], { queryParams: { q } });
   }
 }

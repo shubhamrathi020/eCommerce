@@ -110,7 +110,7 @@ export interface ListingQuery {
   pageSize: number;
 }
 
-export type SortKey = 'featured' | 'price-asc' | 'price-desc' | 'newest' | 'rating' | 'discount';
+export type SortKey = 'relevance' | 'featured' | 'price-asc' | 'price-desc' | 'newest' | 'rating' | 'discount';
 
 export interface FacetOption {
   value: string;
@@ -136,6 +136,15 @@ export interface ListingResult {
   /** Heading context for the page. */
   title: string;
   breadcrumb: CategoryRef[];
+  /** Set when the query had no matches and results are shown for a close spelling instead. */
+  correctedFrom?: string;
+}
+
+export interface SearchSuggestions {
+  queries: string[];
+  products: ProductSummary[];
+  categories: { slug: string; name: string }[];
+  brands: { slug: string; name: string }[];
 }
 
 export interface Review {

@@ -10,6 +10,7 @@ export type UrlListingState = Pick<ListingQuery, 'q' | 'filters' | 'priceMin' | 
 
 export const DEFAULT_PAGE_SIZE = 24;
 export const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'relevance', label: 'Relevance' },
   { value: 'featured', label: 'Featured' },
   { value: 'price-asc', label: 'Price: low to high' },
   { value: 'price-desc', label: 'Price: high to low' },
@@ -39,7 +40,7 @@ function parsePrice(value: string | null): { priceMin?: number; priceMax?: numbe
   return out;
 }
 
-export function parseListingParams(params: ParamReader): UrlListingState {
+export function parseListingParams(params: ParamReader, defaultSort: SortKey = 'featured'): UrlListingState {
   const sort = params.get('sort');
   const filters: Record<string, string[]> = {};
   for (const key of params.keys) {
@@ -50,18 +51,18 @@ export function parseListingParams(params: ParamReader): UrlListingState {
   return {
     q: params.get('q')?.trim() || undefined,
     filters,
-    sort: sort && SORTS.has(sort) ? (sort as SortKey) : 'featured',
+    sort: sort && SORTS.has(sort) ? (sort as SortKey) : defaultSort,
     page: parsePositiveInt(params.get('page'), 1),
     ...parsePrice(params.get('price')),
   };
 }
 
 /** Inverse of `parseListingParams`. Defaults are omitted so URLs stay clean; unset keys are `null` (cleared by the router). */
-export function toQueryParams(state: UrlListingState, previousKeys: string[] = []): Record<string, string | null> {
+export function toQueryParams(state: UrlListingState, previousKeys: string[] = [], defaultSort: SortKey = 'featured'): Record<string, string | null> {
   const out: Record<string, string | null> = {};
   for (const key of previousKeys) if (!RESERVED.has(key)) out[key] = null;
   out['q'] = state.q ?? null;
-  out['sort'] = state.sort === 'featured' ? null : state.sort;
+  out['sort'] = state.sort === defaultSort ? null : state.sort;
   out['page'] = state.page > 1 ? String(state.page) : null;
   out['price'] = state.priceMin !== undefined || state.priceMax !== undefined ? `${state.priceMin !== undefined ? Math.round(state.priceMin / 100) : ''}-${state.priceMax !== undefined ? Math.round(state.priceMax / 100) : ''}` : null;
   for (const [key, values] of Object.entries(state.filters)) if (values.length) out[key] = values.join(',');
@@ -69,6 +70,6 @@ export function toQueryParams(state: UrlListingState, previousKeys: string[] = [
 }
 
 /** True when the URL carries anything beyond the plain category page (used to `noindex` filtered views). */
-export function isRefined(state: UrlListingState): boolean {
-  return !!state.q || state.sort !== 'featured' || state.priceMin !== undefined || state.priceMax !== undefined || Object.keys(state.filters).length > 0;
+export function isRefined(state: UrlListingState, defaultSort: SortKey = 'featured'): boolean {
+  return !!state.q || state.sort !== defaultSort || state.priceMin !== undefined || state.priceMax !== undefined || Object.keys(state.filters).length > 0;
 }

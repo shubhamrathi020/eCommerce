@@ -1,5 +1,6 @@
 export * from './lib/catalog.api';
 export * from './lib/commerce.api';
+export * from './lib/search.api';
 export * from './lib/category.api';
 export * from './lib/cms.api';
 export * from './lib/newsletter.api';
