@@ -9,7 +9,7 @@ import { ButtonComponent } from '@ecom/shared/ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (consent.needsDecision()) {
-      <section aria-label="Cookie preferences" class="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface p-4 shadow-modal">
+      <section aria-label="Cookie preferences" class="fixed inset-x-0 bottom-0 z-[15] border-t border-border bg-surface p-4 shadow-modal">
         <div class="mx-auto flex max-w-7xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <p class="text-sm text-text">
             We use essential cookies to make the store work. With your consent we also use analytics cookies to improve it.

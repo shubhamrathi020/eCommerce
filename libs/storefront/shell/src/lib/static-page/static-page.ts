@@ -3,8 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { SeoService } from '@ecom/shared/core';
 import { CmsApi } from '@ecom/shared/data-access';
 import { ApiException } from '@ecom/shared/models';
-import { ErrorStateComponent, SkeletonComponent } from '@ecom/shared/ui';
-import { NotFoundComponent } from '../not-found/not-found';
+import { ErrorStateComponent, NotFoundComponent, SkeletonComponent } from '@ecom/shared/ui';
 
 /** Renders a CMS page by slug. HTML is bound with [innerHTML], so Angular sanitises it. */
 @Component({
@@ -20,7 +19,7 @@ import { NotFoundComponent } from '../not-found/not-found';
       }
       @case ('error') {
         @if (isNotFound()) {
-          <app-not-found />
+          <ui-not-found />
         } @else {
           <ui-error-state (retry)="page.reload()" />
         }

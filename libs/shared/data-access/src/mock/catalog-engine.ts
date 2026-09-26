@@ -1,0 +1,232 @@
+import type {
+  Brand,
+  Category,
+  CategoryRef,
+  Collection,
+  Facet,
+  ListingQuery,
+  ListingResult,
+  Product,
+  ProductSummary,
+  SortKey,
+  StockStatus,
+  Variant,
+} from '@ecom/shared/models';
+import { ApiException } from '@ecom/shared/models';
+
+/** Stock at or below this many units (across variants) is shown as "Only N left". */
+export const LOW_STOCK_THRESHOLD = 5;
+
+export interface CatalogData {
+  products: Product[];
+  categories: Category[];
+  brands: Brand[];
+  collections: Collection[];
+}
+
+const totalStock = (p: Product): number => p.variants.reduce((sum, v) => sum + v.stock, 0);
+
+export function stockStatusOf(p: Product): { status: StockStatus; left?: number } {
+  const stock = totalStock(p);
+  if (stock === 0) return { status: 'out_of_stock' };
+  if (stock <= LOW_STOCK_THRESHOLD) return { status: 'low_stock', left: stock };
+  return { status: 'in_stock' };
+}
+
+const cheapestVariant = (p: Product): Variant => p.variants.reduce((a, b) => (b.price.amount < a.price.amount ? b : a));
+
+function variantDiscount(v: Variant): number {
+  if (!v.mrp || v.mrp.amount <= v.price.amount) return 0;
+  return Math.round(((v.mrp.amount - v.price.amount) / v.mrp.amount) * 100);
+}
+
+export const bestDiscount = (p: Product): number => Math.max(...p.variants.map(variantDiscount));
+
+export function toSummary(p: Product): ProductSummary {
+  const cheapest = cheapestVariant(p);
+  const prices = p.variants.map((v) => v.price.amount);
+  const { status, left } = stockStatusOf(p);
+  const buyable = p.variants.filter((v) => v.stock > 0);
+  const summary: ProductSummary = {
+    id: p.id,
+    slug: p.slug,
+    title: p.title,
+    brandName: p.brandName,
+    categoryName: p.categoryPath[p.categoryPath.length - 1].name,
+    image: p.images[0],
+    priceMin: { amount: Math.min(...prices), currency: 'INR' },
+    priceMax: { amount: Math.max(...prices), currency: 'INR' },
+    rating: { average: p.rating.average, count: p.rating.count },
+    stockStatus: status,
+    variantCount: p.variants.length,
+  };
+  if (p.images[1]) summary.hoverImage = p.images[1];
+  if (variantDiscount(cheapest) >= 1 && cheapest.mrp) summary.mrpMin = cheapest.mrp;
+  if (left !== undefined) summary.stockLeft = left;
+  if (p.variants.length === 1 && buyable.length === 1) summary.quickAddVariantId = buyable[0].id;
+  return summary;
+}
+
+// ---------- listing ----------
+
+type Predicate = (p: Product) => boolean;
+
+const brandSlugOf = (p: Product): string => p.brandId.replace(/^brand-/, '');
+
+function attributeValuesOf(p: Product, key: string, isAxis: boolean): string[] {
+  if (isAxis) return [...new Set(p.variants.map((v) => v.options[key]).filter((v): v is string => v !== undefined))];
+  const value = p.attributes[key];
+  return value === undefined ? [] : [String(value)];
+}
+
+const RATING_STEPS = [4, 3, 2, 1];
+const DISCOUNT_STEPS = [10, 25, 40];
+
+function leafIdsUnder(category: Category, categories: Category[]): Set<string> {
+  const children = categories.filter((c) => c.parentId === category.id);
+  return new Set(children.length ? children.map((c) => c.id) : [category.id]);
+}
+
+export function runListing(data: CatalogData, query: ListingQuery): ListingResult {
+  let scope = data.products;
+  let heading = 'All products';
+  let breadcrumb: CategoryRef[] = [];
+  let attributeDefs: NonNullable<Category['attributeDefs']> = [];
+
+  if (query.categorySlug) {
+    const category = data.categories.find((c) => c.slug === query.categorySlug);
+    if (!category) throw new ApiException('not_found', 'Category not found');
+    const ids = leafIdsUnder(category, data.categories);
+    scope = scope.filter((p) => ids.has(p.categoryId));
+    heading = category.name;
+    const parent = category.parentId ? data.categories.find((c) => c.id === category.parentId) : undefined;
+    breadcrumb = [...(parent ? [{ id: parent.id, slug: parent.slug, name: parent.name }] : []), { id: category.id, slug: category.slug, name: category.name }];
+    // Attribute facets only make sense inside a single leaf category.
+    if (category.attributeDefs) attributeDefs = category.attributeDefs.filter((d) => d.filterable);
+  }
+  if (query.brandSlug) {
+    const brand = data.brands.find((b) => b.slug === query.brandSlug);
+    if (!brand) throw new ApiException('not_found', 'Brand not found');
+    scope = scope.filter((p) => p.brandId === brand.id);
+    heading = brand.name;
+  }
+  if (query.collectionSlug) {
+    const collection = data.collections.find((c) => c.slug === query.collectionSlug);
+    if (!collection) throw new ApiException('not_found', 'Collection not found');
+    scope = scope.filter((p) => p.tags.includes(collection.tag));
+    heading = collection.name;
+  }
+  const q = query.q?.trim().toLowerCase();
+  if (q) {
+    const tokens = q.split(/\s+/);
+    scope = scope.filter((p) => {
+      const haystack = `${p.title} ${p.brandName} ${p.categoryPath.map((c) => c.name).join(' ')} ${p.tags.join(' ')}`.toLowerCase();
+      return tokens.every((t) => haystack.includes(t));
+    });
+    heading = `Results for "${query.q?.trim()}"`;
+  }
+
+  // Predicates per facet group, so each facet can be counted ignoring its own selection.
+  const predicates: Record<string, Predicate> = {};
+  const sel = query.filters;
+  if (sel['brand']?.length) predicates['brand'] = (p) => sel['brand'].includes(brandSlugOf(p));
+  if (sel['rating']?.length) {
+    const min = Math.min(...sel['rating'].map(Number));
+    predicates['rating'] = (p) => p.rating.average >= min;
+  }
+  if (sel['availability']?.includes('in_stock')) predicates['availability'] = (p) => totalStock(p) > 0;
+  if (sel['discount']?.length) {
+    const min = Math.min(...sel['discount'].map(Number));
+    predicates['discount'] = (p) => bestDiscount(p) >= min;
+  }
+  for (const def of attributeDefs) {
+    const chosen = sel[def.key];
+    if (chosen?.length) predicates[def.key] = (p) => attributeValuesOf(p, def.key, def.variantAxis).some((v) => chosen.includes(v));
+  }
+  if (query.priceMin !== undefined || query.priceMax !== undefined) {
+    const lo = query.priceMin ?? 0;
+    const hi = query.priceMax ?? Number.MAX_SAFE_INTEGER;
+    predicates['price'] = (p) => p.variants.some((v) => v.price.amount >= lo && v.price.amount <= hi);
+  }
+
+  const matching = (ignore?: string): Product[] =>
+    scope.filter((p) => Object.entries(predicates).every(([key, pred]) => key === ignore || pred(p)));
+
+  // Facets
+  const facets: Facet[] = [];
+  const brandItems = matching('brand');
+  const brandCounts = new Map<string, number>();
+  for (const p of brandItems) brandCounts.set(brandSlugOf(p), (brandCounts.get(brandSlugOf(p)) ?? 0) + 1);
+  facets.push({
+    key: 'brand',
+    label: 'Brand',
+    options: [...brandCounts.entries()]
+      .map(([slug, count]) => ({ value: slug, label: data.brands.find((b) => b.slug === slug)?.name ?? slug, count, selected: !!sel['brand']?.includes(slug) }))
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)),
+  });
+  for (const def of attributeDefs) {
+    const items = matching(def.key);
+    const counts = new Map<string, number>();
+    for (const p of items) for (const v of attributeValuesOf(p, def.key, def.variantAxis)) counts.set(v, (counts.get(v) ?? 0) + 1);
+    const options = [...counts.entries()]
+      .map(([value, count]) => ({ value, label: value, count, selected: !!sel[def.key]?.includes(value) }))
+      .sort((a, b) => (def.values ? def.values.indexOf(a.value) - def.values.indexOf(b.value) : a.label.localeCompare(b.label)));
+    if (options.length > 1 || options.some((o) => o.selected)) facets.push({ key: def.key, label: def.label, options });
+  }
+  const ratingItems = matching('rating');
+  facets.push({
+    key: 'rating',
+    label: 'Customer rating',
+    options: RATING_STEPS.map((n) => ({ value: String(n), label: `${n} stars & up`, count: ratingItems.filter((p) => p.rating.average >= n).length, selected: !!sel['rating']?.includes(String(n)) })),
+  });
+  const discountItems = matching('discount');
+  facets.push({
+    key: 'discount',
+    label: 'Discount',
+    options: DISCOUNT_STEPS.map((n) => ({ value: String(n), label: `${n}% or more`, count: discountItems.filter((p) => bestDiscount(p) >= n).length, selected: !!sel['discount']?.includes(String(n)) })),
+  });
+  const stockItems = matching('availability');
+  facets.push({
+    key: 'availability',
+    label: 'Availability',
+    options: [{ value: 'in_stock', label: 'In stock only', count: stockItems.filter((p) => totalStock(p) > 0).length, selected: !!sel['availability']?.includes('in_stock') }],
+  });
+
+  // Price bounds (ignoring the price filter itself)
+  const priceItems = matching('price');
+  const allPrices = priceItems.flatMap((p) => p.variants.map((v) => v.price.amount));
+  const priceBounds = allPrices.length ? { min: Math.min(...allPrices), max: Math.max(...allPrices) } : { min: 0, max: 0 };
+
+  // Sort, paginate
+  const items = sortProducts(matching(), query.sort);
+  const pageSize = Math.max(1, query.pageSize);
+  const pages = Math.max(1, Math.ceil(items.length / pageSize));
+  const page = Math.min(Math.max(1, query.page), pages);
+
+  return {
+    items: items.slice((page - 1) * pageSize, page * pageSize).map(toSummary),
+    total: items.length,
+    page,
+    pageSize,
+    facets,
+    priceBounds,
+    title: heading,
+    breadcrumb,
+  };
+}
+
+export function sortProducts(products: Product[], sort: SortKey): Product[] {
+  const cmp: Record<SortKey, (a: Product, b: Product) => number> = {
+    featured: (a, b) => b.popularity - a.popularity,
+    'price-asc': (a, b) => cheapestVariant(a).price.amount - cheapestVariant(b).price.amount,
+    'price-desc': (a, b) => cheapestVariant(b).price.amount - cheapestVariant(a).price.amount,
+    newest: (a, b) => b.createdAt.localeCompare(a.createdAt),
+    rating: (a, b) => b.rating.average - a.rating.average || b.rating.count - a.rating.count,
+    discount: (a, b) => bestDiscount(b) - bestDiscount(a),
+  };
+  // Out-of-stock products rank last; ties break on id so the order is stable.
+  return [...products].sort((a, b) => {
+    const oos = Number(totalStock(a) === 0) - Number(totalStock(b) === 0);
+    return oos || cmp[sort](a, b) || a.id.localeCompare(b.id);
+  });
+}

@@ -21,6 +21,7 @@ Living record of decisions, facts and learned patterns. Append only; correct wit
 | 2026-09-26 | Frontend on mock data behind swappable API interfaces (architecture.md 2.2) | Backend not started; swap by config |
 | 2026-09-26 | Steering docs v0.1 reviewed and confirmed | Consistency across tasks |
 | 2026-09-27 | Scaffolded with Nx 23.2 + Angular 22.1 (zoneless, SSR, esbuild), TypeScript 6, Vitest (analog) for unit tests, Playwright e2e for storefront, Tailwind 4 + CDK, pnpm as package manager | `npm` install crashed (npm arborist bug) so pnpm was used; Nx `angular-monorepo` preset also generated an unwanted `api` app, so an empty workspace + Angular generators was used |
+| 2026-09-27 | BRD 02 (catalog) implemented on mock data: 252 products, seeded generator, lazy JSON fixtures | Second slice |
 | 2026-09-27 | Steering updated (approved): `libs/shared/core`, mock-data location, Angular 22/pnpm baseline | First slice deviations |
 | 2026-09-27 | Nx workspace uses path aliases (`@ecom/...`, tsconfig.base paths), not TS project references | `@nx/angular` does not support project references |
 | 2026-09-26 | Confirmed: Tailwind + Angular CDK, Nx monorepo, placeholder brand palette (indigo/amber) until a brand is chosen; test runner and Storybook-vs-showcase chosen by Claude at scaffold | User confirmation |
@@ -32,6 +33,8 @@ Living record of decisions, facts and learned patterns. Append only; correct wit
 ## Patterns and lessons (fill as they emerge)
 - Shell of Windows Git Bash: a large multi-file heredoc can fail to parse; write files with the Write tool instead.
 - Angular resources: `resource.value()` throws in error state; guard with `hasValue()`. Errors must be `Error` instances (use `ApiException`) or they are wrapped.
+- Signals: never write to a signal inside a `computed` (NG0600); load persisted state in the constructor, not lazily in a computed. Output names must not match native DOM events (`toggle`, `change`...).
+- SSR: an Angular Router navigation during SSR becomes a real 302; set `RESPONSE_INIT.status` for 404s. Keep server rendering free of `window`/`matchMedia` (guard, jsdom lacks matchMedia too).
 - Zoneless tests: drive test hosts with signals and `await fixture.whenStable()`.
 
 ## Skills index

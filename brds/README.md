@@ -21,4 +21,4 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | BRD | Status |
 |---|---|
 | [01-shell-design-system](01-shell-design-system.md) | Implemented (storefront shell) |
-| [02-catalog](02-catalog.md) | Approved, next |
+| [02-catalog](02-catalog.md) | Implemented (mock data) |

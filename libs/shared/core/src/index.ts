@@ -6,3 +6,6 @@ export * from './lib/feature-flag.service';
 export * from './lib/analytics.service';
 export * from './lib/consent.service';
 export * from './lib/provide-core';
+export * from './lib/id-list.store';
+export * from './lib/shopper-stores';
+export * from './lib/cart-facade';

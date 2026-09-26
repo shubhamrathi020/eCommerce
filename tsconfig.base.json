@@ -21,7 +21,8 @@
       "@ecom/shared/models": ["./libs/shared/models/src/index.ts"],
       "@ecom/shared/data-access": ["./libs/shared/data-access/src/index.ts"],
       "@ecom/shared/core": ["./libs/shared/core/src/index.ts"],
-      "@ecom/storefront/shell": ["./libs/storefront/shell/src/index.ts"]
+      "@ecom/storefront/shell": ["./libs/storefront/shell/src/index.ts"],
+      "@ecom/storefront/catalog": ["./libs/storefront/catalog/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

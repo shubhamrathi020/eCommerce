@@ -35,14 +35,14 @@ describe('shared ui', () => {
     const { fixture, el } = await setup();
     fixture.componentInstance.loading.set(true);
     await fixture.whenStable();
-    const btn = el.querySelector('button')!;
+    const btn = el.querySelector('button') as HTMLButtonElement;
     expect(btn.getAttribute('aria-busy')).toBe('true');
     expect(btn.getAttribute('aria-disabled')).toBe('true');
   });
 
   it('Price shows the selling price, MRP and discount', async () => {
     const { el } = await setup();
-    const text = el.querySelector('ui-price')!.textContent!;
+    const text = el.querySelector('ui-price')?.textContent ?? '';
     expect(text).toContain('₹750');
     expect(text).toContain('₹1,000');
     expect(text).toContain('25% off');
@@ -61,7 +61,7 @@ describe('shared ui', () => {
 
   it('Rating exposes an accessible label', async () => {
     const { el } = await setup();
-    expect(el.querySelector('ui-rating')!.getAttribute('aria-label')).toBe('Rated 4.2 out of 5 from 10 reviews');
+    expect(el.querySelector('ui-rating')?.getAttribute('aria-label')).toBe('Rated 4.2 out of 5 from 10 reviews');
   });
 
   it('Drawer renders only when open', async () => {

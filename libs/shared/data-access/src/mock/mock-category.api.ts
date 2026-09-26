@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
+import { defer, from, mergeMap } from 'rxjs';
 import type { Category, CategoryNode } from '@ecom/shared/models';
 import { CategoryApi } from '../lib/category.api';
 import { createMockResponder } from './mock-latency';
-import categories from './data/categories.json';
 
 function buildTree(flat: Category[]): CategoryNode[] {
   const nodes = new Map<string, CategoryNode>(flat.map((c) => [c.id, { ...c, children: [] }]));
@@ -24,6 +24,9 @@ export class MockCategoryApi extends CategoryApi {
   private readonly respond = createMockResponder();
 
   tree() {
-    return this.respond.ok(() => buildTree(categories as Category[]));
+    // Loaded lazily so the fixture stays out of the initial bundle.
+    return defer(() => from(import('./data/categories.json'))).pipe(
+      mergeMap((m) => this.respond.ok(() => buildTree(m.default as unknown as Category[]))),
+    );
   }
 }
