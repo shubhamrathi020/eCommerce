@@ -147,6 +147,8 @@ export interface SearchSuggestions {
   brands: { slug: string; name: string }[];
 }
 
+export type ReviewStatus = 'approved' | 'pending' | 'rejected';
+
 export interface Review {
   id: string;
   productId: string;
@@ -157,6 +159,27 @@ export interface Review {
   createdAt: string;
   verified: boolean;
   helpful: number;
+  /** Absent means approved (seeded reviews). Shoppers only ever see approved reviews, plus their own held ones. */
+  status?: ReviewStatus;
+  /** True when the signed-in user wrote it. */
+  mine?: boolean;
+  /** True when the signed-in user marked it helpful. */
+  voted?: boolean;
+}
+
+export interface ReviewInput {
+  productId: string;
+  rating: number;
+  title: string;
+  body: string;
+}
+
+export interface ReviewEligibility {
+  canReview: boolean;
+  /** Why not, when `canReview` is false. */
+  reason?: 'sign_in' | 'not_purchased';
+  /** The customer's existing review of this product, if any. */
+  existing?: Review;
 }
 
 export type ReviewSort = 'recent' | 'helpful' | 'high' | 'low';

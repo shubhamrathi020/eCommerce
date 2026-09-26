@@ -8,6 +8,7 @@ import type {
   AdminProductDetail,
   AdminProductInput,
   AdminProductQuery,
+  AdminReviewRow,
   AdminProductRow,
   AdminUser,
   AuditEntry,
@@ -52,6 +53,13 @@ export abstract class AdminCouponApi {
 export abstract class AdminUserApi {
   abstract list(): Observable<AdminUser[]>;
   abstract setRole(userId: string, role: Role, granted: boolean): Observable<AdminUser[]>;
+}
+
+export abstract class AdminReviewApi {
+  abstract list(query: { status?: AdminReviewRow['status']; page: number; pageSize: number }): Observable<Paged<AdminReviewRow>>;
+  abstract pendingCount(): Observable<number>;
+  abstract moderate(id: string, decision: 'approved' | 'rejected'): Observable<AdminReviewRow>;
+  abstract remove(id: string): Observable<void>;
 }
 
 export abstract class AdminDashboardApi {

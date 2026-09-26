@@ -75,6 +75,13 @@ A plain-English diary of what is being built, why, and which commands were used.
 - The admin app has its own seeded demo data (about 60 orders over 30 days) because it runs on a different browser address from the shop; a real backend will let both share data.
 - Try it: run `pnpm exec nx serve admin`, open http://localhost:4201, use "Development only: fill demo admin", sign in.
 
+### Step 7: Reviews, BRD 07 (2026-09-27)
+- Wrote `brds/07-reviews.md`.
+- Customers who bought a product can now write one review (stars, title, text), edit or delete it; other shoppers can mark reviews helpful. Ratings everywhere update when a review goes live.
+- Simple safety checks: reviews with links or blocked words are held for moderation and hidden from others (the author still sees them with a "waiting" note).
+- Admin console got a Reviews page to approve, reject or delete held reviews (audited).
+- Try it: sign in as the demo customer, place a cash-on-delivery order, open that product's Reviews tab and write a review.
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -120,3 +127,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRD 03 (search) built and committed |
 | 2026-09-27 | BRD 05 (accounts) built and committed |
 | 2026-09-27 | BRD 06 (admin console) built and committed |
+| 2026-09-27 | BRD 07 (reviews) built and committed |

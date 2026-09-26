@@ -223,4 +223,26 @@ describe('admin console', () => {
     await settle(out.harness, 10);
     expect(el(out.harness).textContent).toContain('Razorpay');
   }, 60000);
+
+  it('review moderation: shows the flagged queue, approves and rejects, and is accessible', async () => {
+    const out = await setup();
+    await out.harness.navigateByUrl('/reviews');
+    await settle(out.harness, 15);
+    const root = el(out.harness);
+    expect(root.querySelectorAll('main li, ul > li').length).toBeGreaterThan(5);
+    expect(root.textContent).toContain('Contains a link');
+    expect(root.textContent).toContain('Contains blocked language');
+    expect(await violations(root)).toEqual([]);
+
+    button(root, 'Approve')?.click();
+    await settle(out.harness, 15);
+    button(root, 'Reject')?.click();
+    await settle(out.harness, 15);
+    expect(root.textContent).toContain('7 reviews'.replace('7', '6'));
+
+    await out.harness.navigateByUrl('/reviews?status=approved');
+    await settle(out.harness, 15);
+    expect(el(out.harness).querySelectorAll('li').length).toBeGreaterThan(0);
+    expect(el(out.harness).textContent).toContain('1 reviews');
+  }, 40000);
 });

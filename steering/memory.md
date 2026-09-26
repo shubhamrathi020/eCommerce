@@ -21,6 +21,7 @@ Living record of decisions, facts and learned patterns. Append only; correct wit
 | 2026-09-26 | Frontend on mock data behind swappable API interfaces (architecture.md 2.2) | Backend not started; swap by config |
 | 2026-09-26 | Steering docs v0.1 reviewed and confirmed | Consistency across tasks |
 | 2026-09-27 | Scaffolded with Nx 23.2 + Angular 22.1 (zoneless, SSR, esbuild), TypeScript 6, Vitest (analog) for unit tests, Playwright e2e for storefront, Tailwind 4 + CDK, pnpm as package manager | `npm` install crashed (npm arborist bug) so pnpm was used; Nx `angular-monorepo` preset also generated an unwanted `api` app, so an empty workspace + Angular generators was used |
+| 2026-09-27 | BRD 07 (reviews) implemented: review store overlay, ratings recomputed on every catalog call | Seventh slice |
 | 2026-09-27 | BRD 06 (admin console) implemented; admin runs on port 4201 with separate seeded data | Sixth slice |
 | 2026-09-27 | BRD 05 (accounts) implemented with a mock identity store, guards and a dev-only mailbox | Fifth slice |
 | 2026-09-27 | BRD 03 (search) implemented with a mock engine behind the listing call and a `SearchApi` for suggestions | Fourth slice |
@@ -44,6 +45,7 @@ Living record of decisions, facts and learned patterns. Append only; correct wit
 - Search box tests: drive with real DOM events and wait a few debounce periods; keep `mockLatencyMs: 0`.
 - Identity in mocks: `MockUserStore` holds users, session and lockout data; anything that must follow the signed-in owner (cart, orders, addresses) reads `currentUserId()` from it.
 - Admin mocks: `MockAdminState` holds an overlay (edits, notes, roles, audit) over seeded data; every admin API calls `state.require(permission)` first and `state.record(...)` on writes.
+- When a test looks for a button by attribute (e.g. `aria-pressed`), scope it to the component; pages often have several.
 - Zoneless tests: drive test hosts with signals and `await fixture.whenStable()`.
 
 ## Skills index

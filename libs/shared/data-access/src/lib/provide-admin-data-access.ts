@@ -1,6 +1,6 @@
 import { EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
-import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, AdminUserApi, AuditApi } from './admin.api';
-import { MockAdminCouponApi, MockAdminDashboardApi, MockAdminOrderApi, MockAdminProductApi, MockAdminUserApi, MockAuditApi } from '../mock/admin/mock-admin.api';
+import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, AdminReviewApi, AdminUserApi, AuditApi } from './admin.api';
+import { MockAdminCouponApi, MockAdminDashboardApi, MockAdminOrderApi, MockAdminProductApi, MockAdminReviewApi, MockAdminUserApi, MockAuditApi } from '../mock/admin/mock-admin.api';
 
 /** Back-office adapters. Only the admin app provides these, so the storefront bundle stays free of them. */
 export function provideAdminDataAccess(options: { useMocks: boolean }): EnvironmentProviders {
@@ -10,6 +10,7 @@ export function provideAdminDataAccess(options: { useMocks: boolean }): Environm
     { provide: AdminOrderApi, useClass: MockAdminOrderApi },
     { provide: AdminCouponApi, useClass: MockAdminCouponApi },
     { provide: AdminUserApi, useClass: MockAdminUserApi },
+    { provide: AdminReviewApi, useClass: MockAdminReviewApi },
     { provide: AdminDashboardApi, useClass: MockAdminDashboardApi },
     { provide: AuditApi, useClass: MockAuditApi },
   ]);

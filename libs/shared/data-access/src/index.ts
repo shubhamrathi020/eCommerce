@@ -1,6 +1,7 @@
 export * from './lib/catalog.api';
 export * from './lib/account.api';
 export * from './lib/commerce.api';
+export * from './lib/review.api';
 export * from './lib/search.api';
 export * from './lib/category.api';
 export * from './lib/cms.api';
@@ -16,3 +17,5 @@ export { MAX_FAILED_ATTEMPTS, LOCKOUT_MINUTES } from './mock/mock-user-store';
 export * from './lib/admin.api';
 export * from './lib/provide-admin-data-access';
 export { ORDER_TRANSITIONS } from './mock/admin/mock-admin.api';
+export { REVIEW_LIMITS } from './mock/mock-review.api';
+export { reviewFlag } from './mock/mock-review-store';

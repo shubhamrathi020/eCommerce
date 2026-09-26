@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
 import type { AdminProductInput } from '@ecom/shared/models';
-import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, AdminUserApi, AuditApi, AuthApi, DEMO_ACCOUNTS, ORDER_TRANSITIONS, provideAdminDataAccess, provideDataAccess } from '../../index';
+import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, AdminReviewApi, AdminUserApi, AuditApi, AuthApi, DEMO_ACCOUNTS, ORDER_TRANSITIONS, provideAdminDataAccess, provideDataAccess } from '../../index';
 
 const admin = DEMO_ACCOUNTS[1];
 const customer = DEMO_ACCOUNTS[0];
@@ -15,6 +15,7 @@ describe('admin console (mock)', () => {
   let users: AdminUserApi;
   let dashboard: AdminDashboardApi;
   let audit: AuditApi;
+  let reviewApi: AdminReviewApi;
 
   const listQuery = { sort: 'title' as const, dir: 'asc' as const, page: 1, pageSize: 20 };
   const orderQuery = { page: 1, pageSize: 100 };
@@ -32,6 +33,7 @@ describe('admin console (mock)', () => {
     users = TestBed.inject(AdminUserApi);
     dashboard = TestBed.inject(AdminDashboardApi);
     audit = TestBed.inject(AuditApi);
+    reviewApi = TestBed.inject(AdminReviewApi);
     await firstValueFrom(auth.login(admin.email, admin.password));
   });
 
@@ -39,7 +41,7 @@ describe('admin console (mock)', () => {
     await firstValueFrom(auth.logout());
     await expect(firstValueFrom(products.list(listQuery))).rejects.toMatchObject({ code: 'unauthorized' });
     await firstValueFrom(auth.login(customer.email, customer.password));
-    for (const call of [() => products.list(listQuery), () => orders.list(orderQuery), () => coupons.list(), () => users.list(), () => dashboard.metrics(7), () => audit.list({ page: 1, pageSize: 10 })]) {
+    for (const call of [() => reviewApi.list({ page: 1, pageSize: 10 }), () => products.list(listQuery), () => orders.list(orderQuery), () => coupons.list(), () => users.list(), () => dashboard.metrics(7), () => audit.list({ page: 1, pageSize: 10 })]) {
       await expect(firstValueFrom(call())).rejects.toMatchObject({ code: 'forbidden' });
     }
   });
@@ -156,5 +158,22 @@ describe('admin console (mock)', () => {
     expect(m30.topProducts[0].revenue.amount).toBeGreaterThanOrEqual(m30.topProducts[m30.topProducts.length - 1].revenue.amount);
     expect(m30.statusBreakdown.length).toBeGreaterThan(1);
     expect(Array.isArray(m30.lowStock)).toBe(true);
+  });
+
+  it('moderates flagged reviews: queue, approve, reject, delete, and audit entries', async () => {
+    const pending = await firstValueFrom(reviewApi.list({ status: 'pending', page: 1, pageSize: 50 }));
+    expect(pending.total).toBe(8);
+    expect(pending.items.every((r) => r.flagReason)).toBe(true);
+    expect(await firstValueFrom(reviewApi.pendingCount())).toBe(8);
+
+    const [a, b, c] = pending.items;
+    expect((await firstValueFrom(reviewApi.moderate(a.id, 'approved'))).status).toBe('approved');
+    expect((await firstValueFrom(reviewApi.moderate(b.id, 'rejected'))).status).toBe('rejected');
+    await firstValueFrom(reviewApi.remove(c.id));
+    expect(await firstValueFrom(reviewApi.pendingCount())).toBe(5);
+    expect((await firstValueFrom(reviewApi.list({ status: 'approved', page: 1, pageSize: 10 }))).items.map((r) => r.id)).toEqual([a.id]);
+    await expect(firstValueFrom(reviewApi.moderate('nope', 'approved'))).rejects.toMatchObject({ code: 'not_found' });
+    const actions = (await firstValueFrom(audit.list({ page: 1, pageSize: 10 }))).items.map((e) => e.action);
+    expect(actions).toEqual(expect.arrayContaining(['review.moderate', 'review.delete']));
   });
 });

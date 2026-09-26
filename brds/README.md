@@ -26,3 +26,4 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | [04-cart-checkout](04-cart-checkout.md) | Implemented (mock adapters) |
 | [05-accounts](05-accounts.md) | Implemented (mock identity) |
 | [06-admin-console](06-admin-console.md) | Implemented (mock, separate seeded data) |
+| [07-reviews](07-reviews.md) | Implemented (mock) |

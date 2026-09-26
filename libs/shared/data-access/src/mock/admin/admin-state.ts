@@ -27,10 +27,12 @@ export interface AdminOverlay {
   orders: Record<string, OrderOverlay>;
   coupons: Record<string, Omit<AdminCoupon, 'usageCount'>>;
   roles: Record<string, Role[]>;
+  /** Moderation decisions on seeded reviews (`deleted` removes them). */
+  reviewDecisions: Record<string, 'approved' | 'rejected' | 'deleted'>;
   audit: AuditEntry[];
 }
 
-const empty = (): AdminOverlay => ({ editedProducts: {}, createdProducts: [], deletedProducts: [], productMeta: {}, orders: {}, coupons: {}, roles: {}, audit: [] });
+const empty = (): AdminOverlay => ({ editedProducts: {}, createdProducts: [], deletedProducts: [], productMeta: {}, orders: {}, coupons: {}, roles: {}, reviewDecisions: {}, audit: [] });
 
 /** Overlay storage, permission checks and audit logging shared by all admin mock APIs. */
 @Injectable({ providedIn: 'root' })

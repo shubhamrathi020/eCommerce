@@ -7,6 +7,7 @@ import type { HomeData, ListingQuery, Product, ProductSummary, Review, ReviewPag
 import { ApiException } from '@ecom/shared/models';
 import { CatalogApi, type ProductLookup } from '../lib/catalog.api';
 import { computeServiceability, loadCatalogData as loadData } from './catalog-data';
+import { MockReviewStore, applyReviewOverlay } from './mock-review-store';
 import { bestDiscount, runListing, sortProducts, stockStatusOf, toSummary } from './catalog-engine';
 
 let reviewsPromise: Promise<Review[]> | undefined;
@@ -20,11 +21,13 @@ function loadReviews() {
 export class MockCatalogApi extends CatalogApi {
   private readonly latency = inject(APP_CONFIG).mockLatencyMs ?? 200;
   private readonly ms = isPlatformBrowser(inject(PLATFORM_ID)) ? this.latency : 0;
+  private readonly reviewStore = inject(MockReviewStore);
 
   /** Runs `work` against the loaded data after simulated latency; thrown ApiExceptions become observable errors. */
   private run<T>(work: (data: Awaited<ReturnType<typeof loadData>>) => T | Promise<T>): Observable<T> {
     return defer(() =>
-      from(loadData().then(work)).pipe(delay(this.ms)),
+      // New approved reviews are counted in product ratings for every call.
+      from(loadData().then((d) => work({ ...d, products: applyReviewOverlay(d.products, this.reviewStore.approved()) }))).pipe(delay(this.ms)),
     );
   }
 
@@ -95,7 +98,16 @@ export class MockCatalogApi extends CatalogApi {
     return this.run<ReviewPage>(async (d) => {
       const product = d.products.find((p) => p.id === productId);
       if (!product) throw new ApiException('not_found', 'Product not found');
-      const all = (await loadReviews()).filter((r) => r.productId === productId);
+      const seeded = (await loadReviews())
+        .filter((r) => r.productId === productId)
+        .map((r) => ({ ...r, helpful: r.helpful + this.reviewStore.votesFor(r.id), voted: this.reviewStore.votedByCurrentUser(r.id) }));
+      // Approved reviews from this browser, plus the viewer's own held ones (only they can see those).
+      const written = this.reviewStore
+        .read()
+        .reviews.filter((r) => r.productId === productId)
+        .map((r) => this.reviewStore.view(r))
+        .filter((r) => r.status === 'approved' || r.mine);
+      const all = [...written, ...seeded];
       const sorters: Record<ReviewQuery['sort'], (a: Review, b: Review) => number> = {
         recent: (a, b) => b.createdAt.localeCompare(a.createdAt),
         helpful: (a, b) => b.helpful - a.helpful,

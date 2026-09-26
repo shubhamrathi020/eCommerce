@@ -22,6 +22,7 @@ export const adminRoutes: Route[] = [
       { path: 'products/:id', canActivate: [permissionGuard('product:read')], loadComponent: () => import('./products/product-form-page').then((m) => m.ProductFormPageComponent) },
       { path: 'orders', loadComponent: () => import('./orders/orders-page').then((m) => m.OrdersPageComponent) },
       { path: 'orders/:id', loadComponent: () => import('./orders/order-detail-page').then((m) => m.OrderDetailPageComponent) },
+      { path: 'reviews', canActivate: [permissionGuard('review:moderate')], loadComponent: () => import('./pages/reviews-page').then((m) => m.ReviewsPageComponent) },
       { path: 'coupons', canActivate: [permissionGuard('coupon:write')], loadComponent: () => import('./pages/coupons-page').then((m) => m.CouponsPageComponent) },
       { path: 'users', canActivate: [permissionGuard('user:read')], loadComponent: () => import('./pages/users-page').then((m) => m.UsersPageComponent) },
       { path: 'audit', canActivate: [permissionGuard('user:read')], loadComponent: () => import('./pages/audit-page').then((m) => m.AuditPageComponent) },

@@ -156,3 +156,17 @@ export interface AuditEntry {
   target: string;
   detail: string;
 }
+
+export interface AdminReviewRow {
+  id: string;
+  productId: string;
+  productTitle: string;
+  author: string;
+  rating: number;
+  title: string;
+  body: string;
+  status: 'approved' | 'pending' | 'rejected';
+  /** Why the automatic check held it back. */
+  flagReason?: string;
+  createdAt: string;
+}

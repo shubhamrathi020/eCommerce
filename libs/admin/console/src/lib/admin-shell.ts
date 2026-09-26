@@ -14,6 +14,7 @@ const NAV: NavItem[] = [
   { label: 'Dashboard', link: '/', permission: 'order:read:any', exact: true },
   { label: 'Products', link: '/products', permission: 'product:read' },
   { label: 'Orders', link: '/orders', permission: 'order:read:any' },
+  { label: 'Reviews', link: '/reviews', permission: 'review:moderate' },
   { label: 'Coupons', link: '/coupons', permission: 'coupon:write' },
   { label: 'Users', link: '/users', permission: 'user:read' },
   { label: 'Audit log', link: '/audit', permission: 'user:read' },

@@ -9,6 +9,7 @@ import type {
   AdminProductInput,
   AdminProductQuery,
   AdminProductRow,
+  AdminReviewRow,
   AdminUser,
   AuditEntry,
   DashboardMetrics,
@@ -21,7 +22,7 @@ import type {
   Variant,
 } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
-import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, AdminUserApi, AuditApi } from '../../lib/admin.api';
+import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, AdminReviewApi, AdminUserApi, AuditApi } from '../../lib/admin.api';
 import { COUPONS } from '../cart-engine';
 import { loadCatalogData } from '../catalog-data';
 import { createMockResponder } from '../mock-latency';
@@ -568,6 +569,91 @@ export class MockAuditApi extends AuditApi {
       const pageSize = Math.max(1, query.pageSize);
       const page = Math.min(Math.max(1, query.page), Math.max(1, Math.ceil(rows.length / pageSize)));
       return { total: rows.length, page, pageSize, items: rows.slice((page - 1) * pageSize, page * pageSize) };
+    });
+  }
+}
+
+// ---------- review moderation ----------
+
+const SEED_REVIEW_TEXT: { rating: number; title: string; body: string; flag?: string }[] = [
+  { rating: 1, title: 'Total scam', body: 'The seller is a fraud, do not buy anything here.', flag: 'Contains blocked language' },
+  { rating: 5, title: 'Best deals', body: 'Find cheaper prices at www.dealz.example right now.', flag: 'Contains a link' },
+  { rating: 2, title: 'Stopped working', body: 'Broke after two weeks. Support was slow to respond.', flag: 'Edited after approval' },
+  { rating: 1, title: 'Stupid design', body: 'Whoever designed this is an idiot, terrible product.', flag: 'Contains blocked language' },
+  { rating: 4, title: 'Good but pricey', body: 'Quality is good, though it costs more than similar items.', flag: 'Edited after approval' },
+  { rating: 5, title: 'Visit my store', body: 'Great item! Check https://spam.example for coupons.', flag: 'Contains a link' },
+  { rating: 3, title: 'Average', body: 'Does the job. Packaging could be better and delivery was late.', flag: 'Reported by a customer' },
+  { rating: 1, title: 'Cheat', body: 'They cheat customers with fake discounts.', flag: 'Contains blocked language' },
+];
+
+@Injectable()
+export class MockAdminReviewApi extends AdminReviewApi {
+  private readonly respond = createMockResponder();
+  private readonly state = inject(MockAdminState);
+
+  /** Seeded review queue with the moderator's decisions applied. */
+  private async build(): Promise<AdminReviewRow[]> {
+    const { products } = await loadCatalogData();
+    const decisions = this.state.read().reviewDecisions;
+    const names = ['Aarav S.', 'Diya M.', 'Rohan K.', 'Ananya P.', 'Vihaan R.', 'Ishita G.', 'Kabir N.', 'Meera T.'];
+    return SEED_REVIEW_TEXT.map((r, i): AdminReviewRow => {
+      const product = products[(i * 29 + 5) % products.length];
+      const id = `rv_seed_${i + 1}`;
+      const decision = decisions[id];
+      return {
+        id,
+        productId: product.id,
+        productTitle: product.title,
+        author: names[i % names.length],
+        rating: r.rating,
+        title: r.title,
+        body: r.body,
+        status: decision && decision !== 'deleted' ? decision : 'pending',
+        ...(r.flag ? { flagReason: r.flag } : {}),
+        createdAt: new Date(Date.now() - (i + 1) * DAY).toISOString(),
+      };
+    }).filter((r) => decisions[r.id] !== 'deleted');
+  }
+
+  list(query: { status?: AdminReviewRow['status']; page: number; pageSize: number }) {
+    return this.respond.okAsync<Paged<AdminReviewRow>>(async () => {
+      this.state.require('review:moderate');
+      const rows = (await this.build()).filter((r) => !query.status || r.status === query.status);
+      const pageSize = Math.max(1, query.pageSize);
+      const page = Math.min(Math.max(1, query.page), Math.max(1, Math.ceil(rows.length / pageSize)));
+      return { total: rows.length, page, pageSize, items: rows.slice((page - 1) * pageSize, page * pageSize) };
+    });
+  }
+
+  pendingCount() {
+    return this.respond.okAsync<number>(async () => {
+      this.state.require('review:moderate');
+      return (await this.build()).filter((r) => r.status === 'pending').length;
+    });
+  }
+
+  moderate(id: string, decision: 'approved' | 'rejected') {
+    return this.respond.okAsync<AdminReviewRow>(async () => {
+      this.state.require('review:moderate');
+      const row = (await this.build()).find((r) => r.id === id);
+      if (!row) throw new ApiException('not_found', 'Review not found');
+      this.state.update((o) => {
+        o.reviewDecisions[id] = decision;
+      });
+      this.state.record('review.moderate', row.productTitle, `${decision === 'approved' ? 'Approved' : 'Rejected'} review "${row.title}"`);
+      return { ...row, status: decision };
+    });
+  }
+
+  remove(id: string) {
+    return this.respond.okAsync<void>(async () => {
+      this.state.require('review:moderate');
+      const row = (await this.build()).find((r) => r.id === id);
+      if (!row) throw new ApiException('not_found', 'Review not found');
+      this.state.update((o) => {
+        o.reviewDecisions[id] = 'deleted';
+      });
+      this.state.record('review.delete', row.productTitle, `Deleted review "${row.title}"`);
     });
   }
 }
