@@ -33,3 +33,15 @@ export function computeServiceability(pincode: string, now = Date.now()): Servic
   const days = 2 + (first % 4);
   return { serviceable: true, pincode, estimatedDays: days, estimatedDate: new Date(now + days * DAY_MS).toISOString(), codAvailable: first % 2 === 0 };
 }
+
+/** Public URLs for the sitemap (products, categories, brands, collections and published pages). */
+export async function loadSitemapSource() {
+  const [{ products, categories, brands, collections }, pages] = await Promise.all([loadCatalogData(), import('./data/cms-pages.json')]);
+  return {
+    products: products.map((p) => ({ slug: p.slug, createdAt: p.createdAt })),
+    categories: categories.map((c) => ({ slug: c.slug })),
+    brands: brands.map((b) => ({ slug: b.slug })),
+    collections: collections.map((c) => ({ slug: c.slug })),
+    pages: (pages.default as { slug: string }[]).map((p) => ({ slug: p.slug })),
+  };
+}

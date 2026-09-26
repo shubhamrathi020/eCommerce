@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Status | Draft (planned, not built) |
-| Version | 0.1 (2026-09-27) |
+| Status | Implemented (mock adapters, placeholder brand and content) |
+| Version | 0.2 (2026-09-27) |
 | Phase | Phase 1 (frontend completion) |
 | Covers (master BR) | CMS-01, CMS-03, CMS-04 (part), ADM-05, UX-09, UX-10, CAT-11 |
 | Depends on | BRD 01, 02, 06 |
@@ -57,3 +57,9 @@ Content is cached by the storefront and refreshed on change; the editor autosave
 | Date | Change | Why |
 |---|---|---|
 | 2026-09-27 | Initial draft for review | Planning of the remaining work |
+| 2026-09-27 | Built with placeholder brand ("Shop", indigo and amber), placeholder legal text and generated banner images, as agreed. Real brand, text and images can be dropped in later through the new admin screens (Content) without code changes | Owner chose to proceed with placeholders |
+| 2026-09-27 | Implemented CM-01..CM-09: banners (schedule, order, active, mandatory alt text), home sections (enable, rename, reorder), pages editor with safe text format and live preview, footer link groups, redirect manager with chain following and loop refusal, `/sitemap.xml` and `/robots.txt` from the storefront server (380 URLs), draft preview for staff, `content:write` permission and audit for every change. 78 data-layer tests, storefront and admin tests with accessibility checks pass | Slice built |
+| 2026-09-27 | Page text is a small safe format (`## heading`, `- list`, `**bold**`, `[text](link)`) converted to HTML by one shared function that escapes everything else, instead of a full rich-text editor; links must be `/path`, `https://` or `mailto:` | Simplest safe option; scripts and event handlers are impossible |
+| 2026-09-27 | Redirects: the browser is sent with a client navigation and the server answers a real 301 with a Location header; managed redirects are per browser storage in the mock, so they do not yet reach the server-rendered pass | Real 301 for managed redirects needs the backend |
+| 2026-09-27 | Sitemap uses seeded catalog data and the seeded pages; the address comes from `SITE_URL` or an allowed host | Backend later supplies live data |
+| 2026-09-27 | Known limits: the admin and shop are separate origins in development, so content changes made in the admin do not show in the shop until a shared backend exists; no image upload (choose a sample image or paste an address); `hreflang` deferred to BRD 18 | Same reasons as before |

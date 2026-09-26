@@ -3,5 +3,6 @@ import type { CmsPage } from '@ecom/shared/models';
 
 export abstract class CmsApi {
   /** Emits the page, or errors with an `ApiError` (`not_found`) for an unknown slug. */
-  abstract page(slug: string): Observable<CmsPage>;
+  /** Draft pages are only returned with `preview` and only to staff with `content:write`. */
+  abstract page(slug: string, options?: { preview?: boolean }): Observable<CmsPage>;
 }

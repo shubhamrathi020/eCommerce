@@ -27,6 +27,9 @@ import { ErrorStateComponent, NotFoundComponent, SkeletonComponent } from '@ecom
       @default {
         @if (page.value(); as p) {
           <article class="max-w-3xl">
+            @if (p.preview) {
+              <p class="mb-4 rounded-md border border-warning p-3 text-sm" role="status">Preview: this draft is not visible to shoppers.</p>
+            }
             <h1 class="mb-4 text-3xl font-bold">{{ p.title }}</h1>
             <div class="space-y-3 text-text [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-semibold" [innerHTML]="p.body"></div>
           </article>
@@ -38,14 +41,16 @@ import { ErrorStateComponent, NotFoundComponent, SkeletonComponent } from '@ecom
 export class StaticPageComponent {
   /** Bound from the `:slug` route parameter (withComponentInputBinding). */
   readonly slug = input.required<string>();
+  /** `?preview=1`: staff can view a draft before publishing. */
+  readonly preview = input<string | undefined>();
 
   private readonly seo = inject(SeoService);
   private readonly api = inject(CmsApi);
   private readonly response = inject(RESPONSE_INIT, { optional: true });
 
   protected readonly page = rxResource({
-    params: () => this.slug(),
-    stream: ({ params }) => this.api.page(params),
+    params: () => ({ slug: this.slug(), preview: this.preview() === '1' }),
+    stream: ({ params }) => this.api.page(params.slug, { preview: params.preview }),
   });
 
   protected isNotFound(): boolean {
@@ -58,7 +63,7 @@ export class StaticPageComponent {
       // value() throws while the resource is in an error state, so guard first.
       if (this.page.hasValue()) {
         const p = this.page.value();
-        this.seo.set({ title: p.seo?.title ?? p.title, description: p.seo?.description, path: `/pages/${p.slug}` });
+        this.seo.set({ title: p.seo?.title ?? p.title, description: p.seo?.description, path: `/pages/${p.slug}`, noindex: !!p.preview });
       }
     });
     effect(() => {

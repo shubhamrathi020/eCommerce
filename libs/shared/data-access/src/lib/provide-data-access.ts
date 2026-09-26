@@ -4,6 +4,7 @@ import { CatalogApi } from './catalog.api';
 import { CartApi, CheckoutApi, OrderApi, PaymentApi } from './commerce.api';
 import { CategoryApi } from './category.api';
 import { CmsApi } from './cms.api';
+import { ContentApi } from './content.api';
 import { ReviewApi } from './review.api';
 import { SearchApi } from './search.api';
 import { NewsletterApi } from './newsletter.api';
@@ -17,7 +18,7 @@ import { MockSearchApi } from '../mock/mock-search.api';
 import { MockReviewApi } from '../mock/mock-review.api';
 import { MockPaymentApi } from '../mock/mock-payment.api';
 import { MockCategoryApi } from '../mock/mock-category.api';
-import { MockCmsApi } from '../mock/mock-cms.api';
+import { MockCmsApi, MockContentApi } from '../mock/mock-content.api';
 import { MockNewsletterApi } from '../mock/mock-newsletter.api';
 
 /**
@@ -40,6 +41,7 @@ export function provideDataAccess(options: { useMocks: boolean }): EnvironmentPr
     { provide: PaymentApi, useClass: MockPaymentApi },
     { provide: CategoryApi, useClass: MockCategoryApi },
     { provide: CmsApi, useClass: MockCmsApi },
+    { provide: ContentApi, useClass: MockContentApi },
     { provide: NewsletterApi, useClass: MockNewsletterApi },
   ]);
 }

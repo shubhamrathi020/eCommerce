@@ -21,6 +21,7 @@ Living record of decisions, facts and learned patterns. Append only; correct wit
 | 2026-09-26 | Frontend on mock data behind swappable API interfaces (architecture.md 2.2) | Backend not started; swap by config |
 | 2026-09-26 | Steering docs v0.1 reviewed and confirmed | Consistency across tasks |
 | 2026-09-27 | Scaffolded with Nx 23.2 + Angular 22.1 (zoneless, SSR, esbuild), TypeScript 6, Vitest (analog) for unit tests, Playwright e2e for storefront, Tailwind 4 + CDK, pnpm as package manager | `npm` install crashed (npm arborist bug) so pnpm was used; Nx `angular-monorepo` preset also generated an unwanted `api` app, so an empty workspace + Angular generators was used |
+| 2026-09-27 | BRD 09 (content and SEO) implemented with placeholder brand and content; content store shared by storefront and admin mocks | Ninth slice |
 | 2026-09-27 | BRD 08 (DevOps) implemented: Docker verified, Kubernetes manifests render-checked only | Eighth slice |
 | 2026-09-27 | BRD 07 (reviews) implemented: review store overlay, ratings recomputed on every catalog call | Seventh slice |
 | 2026-09-27 | BRD 06 (admin console) implemented; admin runs on port 4201 with separate seeded data | Sixth slice |
@@ -49,6 +50,7 @@ Living record of decisions, facts and learned patterns. Append only; correct wit
 - When a test looks for a button by attribute (e.g. `aria-pressed`), scope it to the component; pages often have several.
 - Never run broad process killers (for example `taskkill /IM node.exe`); stop a dev server by the port it listens on.
 - Python patch scripts: write regexes containing `` with `chr(92)` or a raw string, or use the Edit tool; a plain string turns `` into an invisible backspace.
+- Anything a spec imports from `@ecom/shared/data-access` must be exported from its index (a missing export shows up as `Cannot convert undefined or null to object` in TestBed.inject).
 - Zoneless tests: drive test hosts with signals and `await fixture.whenStable()`.
 
 ## Skills index

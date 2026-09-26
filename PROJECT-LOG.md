@@ -95,6 +95,13 @@ A plain-English diary of what is being built, why, and which commands were used.
 - Updated the BRD index with status, dependencies and a recommended order.
 - Wrote `docs/VERIFICATION-CHECKLIST.md`: what to run and click to verify everything built so far, the inputs needed from the owner, setup tasks, known limitations and the phase 1 sign-off rule.
 
+### Step 10: Content and SEO management, BRD 09 (2026-09-27)
+- Built with placeholder brand and text (as agreed); real ones can be entered later in the admin without code changes.
+- Admin console has a new Content area: home banners (schedule, order, alt text), home sections (show, hide, rename, reorder), pages (safe text editor with live preview, draft or published), footer links and redirects (loops are refused).
+- The shop home page and footer now read this content. Draft pages are hidden from shoppers and can be previewed by staff.
+- The shop server now serves `/robots.txt` and `/sitemap.xml` (380 public URLs; cart, checkout, account and search are excluded).
+- Try it: `pnpm start:admin`, sign in as the demo admin, open Content. Note the admin and shop keep separate mock data in development.
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -150,3 +157,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRD 07 (reviews) built and committed |
 | 2026-09-27 | BRD 08 (DevOps foundation) built and committed |
 | 2026-09-27 | BRDs 09 to 25 drafted; verification checklist written |
+| 2026-09-27 | BRD 09 (content and SEO) built and committed |

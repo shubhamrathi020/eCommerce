@@ -47,6 +47,8 @@ Sign in with "fill demo admin" at http://localhost:4201 (admin data is separate 
 | C5 | Reviews | Approve, reject and delete flagged reviews | Queue shrinks; actions appear in the audit log |
 | C6 | Audit and settings | Open both | Every change above is listed; settings are read-only |
 | C7 | Access | Sign in with the demo customer at the admin | Refused with a clear message |
+| C8 | Content (BRD 09) | Content: add a banner, reorder or hide home sections, create a draft page and preview it, add a footer link, add a redirect (try a loop) | Validation messages are clear; the page preview shows no scripts; loops are refused |
+| C9 | SEO files (BRD 09) | Run the production server (`pnpm docker:up`) and open http://localhost:4000/robots.txt and /sitemap.xml | Private paths are disallowed; sitemap lists categories, brands, products and pages |
 
 ## D. Look and feel (you decide)
 

@@ -5,6 +5,7 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { APP_CONFIG } from '@ecom/shared/core';
 import { provideDataAccess } from '@ecom/shared/data-access';
+import { MockContentStore } from '@ecom/shared/data-access';
 import { catalogRoutes, homeRoute } from './catalog.routes';
 
 const config = { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop', siteUrl: 'http://x', features: {} };
@@ -116,4 +117,28 @@ describe('catalog pages', () => {
     const { el } = await open('/c/laptops');
     expect(Array.from(el.querySelectorAll('#sort option')).map((o) => o.textContent)).not.toContain('Relevance');
   });
+
+  it('home page follows the content settings: banners, section order and visibility', async () => {
+    localStorage.clear();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection(), provideRouter([homeRoute, ...catalogRoutes], withComponentInputBinding()), { provide: APP_CONFIG, useValue: config }, provideDataAccess({ useMocks: true })],
+    });
+    const store = TestBed.inject(MockContentStore);
+    store.setBanners(store.banners().map((b, i) => ({ ...b, active: i === 0 })));
+    store.setSections(store.sections().map((s) => (s.key === 'brands' ? { ...s, enabled: false } : s.key === 'new' ? { ...s, title: 'Fresh in store', order: 0 } : s)));
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/');
+    for (let i = 0; i < 20; i++) {
+      await harness.fixture.whenStable();
+      await new Promise((r) => setTimeout(r, 25));
+      harness.detectChanges();
+    }
+    const el = harness.routeNativeElement as HTMLElement;
+    expect(el.querySelectorAll('app-hero-carousel [role="group"]')).toHaveLength(1);
+    expect(el.querySelector('section[aria-label="Popular brands"]')).toBeNull();
+    const headings = Array.from(el.querySelectorAll('h2')).map((h) => h.textContent?.trim());
+    expect(headings).toContain('Fresh in store');
+    expect(headings.indexOf('Fresh in store')).toBeLessThan(headings.indexOf('Shop by category'));
+  }, 30000);
 });

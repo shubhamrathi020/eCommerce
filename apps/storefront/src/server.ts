@@ -1,3 +1,5 @@
+import { loadSitemapSource } from '@ecom/shared/data-access';
+import { buildRobotsTxt, buildSitemapXml } from '@ecom/shared/util';
 import { AngularNodeAppEngine, createNodeRequestHandler, isMainModule, writeResponseToNodeResponse } from '@angular/ssr/node';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { createHash, randomBytes } from 'node:crypto';
@@ -28,6 +30,29 @@ app.get('/healthz', (_req, res) => {
 });
 app.get('/readyz', (_req, res) => {
   res.status(ready ? 200 : 503).type('text/plain').send(ready ? 'ready' : 'starting');
+});
+
+/**
+ * Public address used in the sitemap. `SITE_URL` wins; otherwise the request's host is used only when it is on the allow-list,
+ * so a forged Host header cannot put another site's address into the sitemap.
+ */
+function siteUrl(req: Request): string {
+  const configured = process.env['SITE_URL'];
+  if (configured) return configured.replace(/\/$/, '');
+  const host = req.hostname;
+  return `${req.protocol}://${allowedHosts.includes(host) ? req.get('host') : 'localhost'}`;
+}
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').set('Cache-Control', 'public, max-age=3600').send(buildRobotsTxt(siteUrl(req)));
+});
+
+app.get('/sitemap.xml', async (req, res, next) => {
+  try {
+    res.type('application/xml').set('Cache-Control', 'public, max-age=3600').send(buildSitemapXml(siteUrl(req), await loadSitemapSource()));
+  } catch (error) {
+    next(error);
+  }
 });
 
 /**

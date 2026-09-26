@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { APP_CONFIG, ToastService } from '@ecom/shared/core';
-import { NewsletterApi } from '@ecom/shared/data-access';
+import { ContentApi, NewsletterApi } from '@ecom/shared/data-access';
+import { rxResource } from '@angular/core/rxjs-interop';
+import type { LinkGroup, NavLink } from '@ecom/shared/models';
 import { ButtonComponent, FormFieldComponent, InputDirective } from '@ecom/shared/ui';
 
 @Component({
@@ -12,27 +14,22 @@ import { ButtonComponent, FormFieldComponent, InputDirective } from '@ecom/share
   host: { class: 'mt-12 block print:hidden border-t border-border bg-surface-alt' },
   template: `
     <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-4 md:px-6">
-      <section aria-labelledby="f-about">
-        <h2 id="f-about" class="mb-3 font-semibold">{{ siteName }}</h2>
-        <ul class="space-y-2 text-sm text-text-muted">
-          <li><a routerLink="/pages/about" class="hover:text-primary hover:underline">About us</a></li>
-          <li><a routerLink="/pages/contact" class="hover:text-primary hover:underline">Contact us</a></li>
-        </ul>
-      </section>
-      <section aria-labelledby="f-help">
-        <h2 id="f-help" class="mb-3 font-semibold">Help</h2>
-        <ul class="space-y-2 text-sm text-text-muted">
-          <li><a routerLink="/pages/faq" class="hover:text-primary hover:underline">FAQ</a></li>
-          <li><a routerLink="/orders" class="hover:text-primary hover:underline">Track order</a></li>
-        </ul>
-      </section>
-      <section aria-labelledby="f-legal">
-        <h2 id="f-legal" class="mb-3 font-semibold">Legal</h2>
-        <ul class="space-y-2 text-sm text-text-muted">
-          <li><a routerLink="/pages/terms" class="hover:text-primary hover:underline">Terms and conditions</a></li>
-          <li><a routerLink="/pages/privacy" class="hover:text-primary hover:underline">Privacy policy</a></li>
-        </ul>
-      </section>
+      @for (group of groups; track group.key) {
+        <section [attr.aria-labelledby]="'f-' + group.key">
+          <h2 [id]="'f-' + group.key" class="mb-3 font-semibold">{{ group.key === 'about' ? siteName : group.title }}</h2>
+          <ul class="space-y-2 text-sm text-text-muted">
+            @for (link of linksFor(group.key); track link.id) {
+              <li>
+                @if (link.href.startsWith('/')) {
+                  <a [routerLink]="link.href" class="hover:text-primary hover:underline">{{ link.label }}</a>
+                } @else {
+                  <a [href]="link.href" rel="noopener noreferrer" class="hover:text-primary hover:underline">{{ link.label }}</a>
+                }
+              </li>
+            }
+          </ul>
+        </section>
+      }
       <section aria-labelledby="f-news">
         <h2 id="f-news" class="mb-3 font-semibold">Newsletter</h2>
         <form (submit)="subscribe($event)" novalidate class="space-y-2">
@@ -50,6 +47,19 @@ import { ButtonComponent, FormFieldComponent, InputDirective } from '@ecom/share
 })
 export class FooterComponent {
   private readonly api = inject(NewsletterApi);
+  private readonly content = inject(ContentApi);
+  private readonly nav = rxResource({ stream: () => this.content.navigation() });
+  private readonly links = computed<NavLink[]>(() => (this.nav.hasValue() ? this.nav.value() : []));
+  protected readonly groups: { key: LinkGroup; title: string }[] = [
+    { key: 'about', title: '' },
+    { key: 'help', title: 'Help' },
+    { key: 'legal', title: 'Legal' },
+  ];
+
+  protected linksFor(group: LinkGroup): NavLink[] {
+    return this.links().filter((l) => l.group === group);
+  }
+
   private readonly toast = inject(ToastService);
 
   protected readonly siteName = inject(APP_CONFIG).siteName;

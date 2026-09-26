@@ -245,4 +245,86 @@ describe('admin console', () => {
     expect(el(out.harness).querySelectorAll('li').length).toBeGreaterThan(0);
     expect(el(out.harness).textContent).toContain('1 reviews');
   }, 40000);
+
+  it('content: banners, sections, pages (with live safe preview), links and redirects', async () => {
+    const out = await setup();
+    await out.harness.navigateByUrl('/content');
+    await settle(out.harness, 15);
+    expect(out.router.url).toBe('/content/banners');
+    let root = el(out.harness);
+    expect(root.querySelectorAll('ol[aria-label="Banners in display order"] li')).toHaveLength(4);
+    expect(await violations(root)).toEqual([]);
+
+    // banner validation and create
+    button(root, 'New banner')?.click();
+    await settle(out.harness);
+    fill(root, '[formcontrolname="title"]', 'Festive sale');
+    fill(root, '[formcontrolname="link"]', 'javascript:alert(1)');
+    button(root, 'Save banner')?.click();
+    await settle(out.harness, 15);
+    expect(root.textContent).toContain('Use an internal path');
+    expect(root.textContent).toContain('Describe the image for screen readers');
+    fill(root, '[formcontrolname="link"]', '/collections/trending');
+    fill(root, '[formcontrolname="imageAlt"]', 'A festive banner');
+    button(root, 'Save banner')?.click();
+    await settle(out.harness, 20);
+    expect(root.querySelectorAll('ol[aria-label="Banners in display order"] li')).toHaveLength(5);
+
+    // sections
+    await out.harness.navigateByUrl('/content/sections');
+    await settle(out.harness, 15);
+    root = el(out.harness);
+    expect(await violations(root)).toEqual([]);
+    root.querySelector<HTMLInputElement>('ol li input[type="checkbox"]')?.click();
+    await settle(out.harness);
+    button(root, 'Save sections')?.click();
+    await settle(out.harness, 15);
+
+    // pages: the preview never runs scripts
+    await out.harness.navigateByUrl('/content/pages');
+    await settle(out.harness, 15);
+    root = el(out.harness);
+    expect(root.textContent).toContain('/pages/about');
+    button(root, 'New page')?.click();
+    await settle(out.harness);
+    fill(root, '[formcontrolname="title"]', 'Shipping');
+    fill(root, '[formcontrolname="slug"]', 'shipping');
+    fill(root, '[formcontrolname="source"]', '## Rates\n\n<script>alert(1)</script> and **bold**');
+    await settle(out.harness);
+    const preview = root.querySelector('[aria-labelledby="preview-h"]') as HTMLElement;
+    expect(preview.innerHTML).toContain('<h2>Rates</h2>');
+    expect(preview.querySelector('script')).toBeNull();
+    expect(await violations(root)).toEqual([]);
+    button(root, 'Save page')?.click();
+    await settle(out.harness, 20);
+    expect(root.textContent).toContain('/pages/shipping');
+    expect(root.textContent).toContain('draft');
+
+    // links
+    await out.harness.navigateByUrl('/content/links');
+    await settle(out.harness, 15);
+    root = el(out.harness);
+    expect(await violations(root)).toEqual([]);
+    button(root, 'Add link')?.click();
+    await settle(out.harness);
+    button(root, 'Save links')?.click();
+    await settle(out.harness, 15);
+    expect(root.textContent).toContain('Label is required');
+
+    // redirects
+    await out.harness.navigateByUrl('/content/redirects');
+    await settle(out.harness, 15);
+    root = el(out.harness);
+    expect(await violations(root)).toEqual([]);
+    fill(root, '[formcontrolname="from"]', '/old-page');
+    fill(root, '[formcontrolname="to"]', '/pages/about');
+    button(root, 'Add redirect')?.click();
+    await settle(out.harness, 15);
+    expect(root.textContent).toContain('/old-page');
+    fill(root, '[formcontrolname="from"]', '/pages/about');
+    fill(root, '[formcontrolname="to"]', '/old-page');
+    button(root, 'Add redirect')?.click();
+    await settle(out.harness, 15);
+    expect(root.textContent).toContain('Creates a redirect loop');
+  }, 60000);
 });
