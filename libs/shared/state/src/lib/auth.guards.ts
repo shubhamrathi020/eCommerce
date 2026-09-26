@@ -8,14 +8,18 @@ import { AuthStore } from './auth.store';
  * This is a UX convenience only: the backend must enforce access on every request.
  * The session lives in the browser, so the server render lets the request through and the client re-checks.
  */
-export const authGuard: CanActivateFn = async (_route, state) => {
-  if (!isPlatformBrowser(inject(PLATFORM_ID))) return true;
-  // Inject before awaiting: the injection context is gone afterwards.
-  const auth = inject(AuthStore);
-  const router = inject(Router);
-  await auth.init();
-  return auth.loggedIn() ? true : router.createUrlTree(['/account/login'], { queryParams: { returnUrl: state.url } });
-};
+export function createAuthGuard(loginPath: string): CanActivateFn {
+  return async (_route, state) => {
+    if (!isPlatformBrowser(inject(PLATFORM_ID))) return true;
+    // Inject before awaiting: the injection context is gone afterwards.
+    const auth = inject(AuthStore);
+    const router = inject(Router);
+    await auth.init();
+    return auth.loggedIn() ? true : router.createUrlTree([loginPath], { queryParams: { returnUrl: state.url } });
+  };
+}
+
+export const authGuard: CanActivateFn = createAuthGuard('/account/login');
 
 /** Sign in and register pages are for signed-out visitors only. */
 export const guestOnlyGuard: CanActivateFn = async () => {
@@ -27,12 +31,12 @@ export const guestOnlyGuard: CanActivateFn = async () => {
 };
 
 /** Requires a permission such as `product:write` (used by the admin app). */
-export function permissionGuard(permission: string): CanActivateFn {
+export function permissionGuard(permission: string, loginPath = '/account/login'): CanActivateFn {
   return async () => {
     if (!isPlatformBrowser(inject(PLATFORM_ID))) return true;
     const auth = inject(AuthStore);
     const router = inject(Router);
     await auth.init();
-    return auth.hasPermission(permission) ? true : router.createUrlTree(['/account/login']);
+    return auth.hasPermission(permission) ? true : router.createUrlTree([loginPath]);
   };
 }

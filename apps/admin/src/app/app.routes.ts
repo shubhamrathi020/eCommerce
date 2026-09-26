@@ -1,4 +1,4 @@
 import { Route } from '@angular/router';
-import { AdminHomeComponent } from './admin-home';
+import { adminRoutes } from '@ecom/admin/console';
 
-export const appRoutes: Route[] = [{ path: '', component: AdminHomeComponent }];
+export const appRoutes: Route[] = adminRoutes;

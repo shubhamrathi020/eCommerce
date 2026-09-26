@@ -20,6 +20,6 @@ const TONES: Record<BadgeTone, string> = {
 export class BadgeComponent {
   readonly tone = input<BadgeTone>('neutral');
   protected readonly classes = computed(
-    () => `inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${TONES[this.tone()]}`,
+    () => `inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${TONES[this.tone()]}`,
   );
 }

@@ -21,6 +21,7 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | The client never calculates prices, tax, shipping or discounts | Those come from the API (mock now, server later), so they cannot be tampered with |
 | 2026-09-27 | User gave advance approval for future decisions | I choose sensible defaults and record them here |
 | 2026-09-27 | Cart state in its own shared library; catalog talks to it through a token | Feature libraries may not import each other; this keeps them independent |
+| 2026-09-27 | Admin app on its own port with its own seeded demo data; permissions checked on every API call | Different browser address means separate storage; real backend will unify |
 | 2026-09-27 | Mock emails go to a local mailbox page instead of being sent | Lets every email flow be tested without a mail server |
 | 2026-09-27 | Access checks in the browser (route guards) are only for convenience; the real backend must enforce access | Anything in the browser can be bypassed |
 | 2026-09-27 | Search results still come from the catalog listing call (with a query); the real search server will replace only the data source | Pages stay the same when Meilisearch arrives |
@@ -67,6 +68,13 @@ A plain-English diary of what is being built, why, and which commands were used.
 - Emails are not really sent: a development-only page `/dev/mailbox` shows them (verification links, reset links, order confirmations).
 - Try it: open `/account/login`, use the "Development only: fill demo customer" button, sign in; or register a new account and open `/dev/mailbox` to verify it.
 
+### Step 6: Admin console, BRD 06 (2026-09-27)
+- Wrote `brds/06-admin-console.md`.
+- Built the back-office app (`apps/admin`, runs on port 4201): dashboard with revenue chart, product management (search, filters, bulk actions, create and edit with variants), order processing (only valid status steps, cancel, notes), coupons, users and admin roles, audit log and a read-only settings view.
+- Every write is recorded in the audit log, and the mock API checks permissions on every call (not only the page guards).
+- The admin app has its own seeded demo data (about 60 orders over 30 days) because it runs on a different browser address from the shop; a real backend will let both share data.
+- Try it: run `pnpm exec nx serve admin`, open http://localhost:4201, use "Development only: fill demo admin", sign in.
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -81,6 +89,8 @@ A plain-English diary of what is being built, why, and which commands were used.
 | `pnpm exec nx g @nx/angular:library --name=<x> --directory=libs/<path> ...` | Creates a new library with the right structure |
 | `git add -A && git commit -m "..."` | Saves a snapshot of the work (one commit per finished BRD) |
 | `pnpm exec nx test storefront-checkout` | Runs the cart, checkout and order page tests |
+| `pnpm exec nx serve admin` | Starts the admin console at http://localhost:4201 |
+| `pnpm exec nx test admin-console` | Runs the admin page tests |
 | `pnpm exec nx test storefront-account` | Runs the sign-in, account and address-book page tests |
 | `pnpm exec nx test shared-data-access` | Runs data-layer tests including cart pricing and search |
 
@@ -109,3 +119,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRD 04 built and committed |
 | 2026-09-27 | BRD 03 (search) built and committed |
 | 2026-09-27 | BRD 05 (accounts) built and committed |
+| 2026-09-27 | BRD 06 (admin console) built and committed |
