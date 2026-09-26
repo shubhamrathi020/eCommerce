@@ -1,0 +1,28 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2022",
+    "module": "esnext",
+    "lib": ["es2022", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "paths": {
+      "@ecom/shared/ui": ["./libs/shared/ui/src/index.ts"],
+      "@ecom/shared/util": ["./libs/shared/util/src/index.ts"],
+      "@ecom/shared/models": ["./libs/shared/models/src/index.ts"],
+      "@ecom/shared/data-access": ["./libs/shared/data-access/src/index.ts"],
+      "@ecom/shared/core": ["./libs/shared/core/src/index.ts"],
+      "@ecom/storefront/shell": ["./libs/storefront/shell/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

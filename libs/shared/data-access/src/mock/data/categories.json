@@ -1,0 +1,344 @@
+[
+  {
+    "id": "cat-fashion",
+    "slug": "fashion",
+    "name": "Fashion",
+    "order": 1
+  },
+  {
+    "id": "cat-men-clothing",
+    "slug": "men-clothing",
+    "name": "Men Clothing",
+    "parentId": "cat-fashion",
+    "order": 1
+  },
+  {
+    "id": "cat-women-clothing",
+    "slug": "women-clothing",
+    "name": "Women Clothing",
+    "parentId": "cat-fashion",
+    "order": 2
+  },
+  {
+    "id": "cat-kids-wear",
+    "slug": "kids-wear",
+    "name": "Kids Wear",
+    "parentId": "cat-fashion",
+    "order": 3
+  },
+  {
+    "id": "cat-footwear",
+    "slug": "footwear",
+    "name": "Footwear",
+    "parentId": "cat-fashion",
+    "order": 4
+  },
+  {
+    "id": "cat-watches",
+    "slug": "watches",
+    "name": "Watches",
+    "parentId": "cat-fashion",
+    "order": 5
+  },
+  {
+    "id": "cat-bags-and-luggage",
+    "slug": "bags-and-luggage",
+    "name": "Bags & Luggage",
+    "parentId": "cat-fashion",
+    "order": 6
+  },
+  {
+    "id": "cat-electronics",
+    "slug": "electronics",
+    "name": "Electronics",
+    "order": 2
+  },
+  {
+    "id": "cat-mobiles",
+    "slug": "mobiles",
+    "name": "Mobiles",
+    "parentId": "cat-electronics",
+    "order": 1
+  },
+  {
+    "id": "cat-laptops",
+    "slug": "laptops",
+    "name": "Laptops",
+    "parentId": "cat-electronics",
+    "order": 2
+  },
+  {
+    "id": "cat-televisions",
+    "slug": "televisions",
+    "name": "Televisions",
+    "parentId": "cat-electronics",
+    "order": 3
+  },
+  {
+    "id": "cat-audio-and-headphones",
+    "slug": "audio-and-headphones",
+    "name": "Audio & Headphones",
+    "parentId": "cat-electronics",
+    "order": 4
+  },
+  {
+    "id": "cat-cameras",
+    "slug": "cameras",
+    "name": "Cameras",
+    "parentId": "cat-electronics",
+    "order": 5
+  },
+  {
+    "id": "cat-smart-wearables",
+    "slug": "smart-wearables",
+    "name": "Smart Wearables",
+    "parentId": "cat-electronics",
+    "order": 6
+  },
+  {
+    "id": "cat-grocery",
+    "slug": "grocery",
+    "name": "Grocery",
+    "order": 3
+  },
+  {
+    "id": "cat-fruits-and-vegetables",
+    "slug": "fruits-and-vegetables",
+    "name": "Fruits & Vegetables",
+    "parentId": "cat-grocery",
+    "order": 1
+  },
+  {
+    "id": "cat-staples-and-grains",
+    "slug": "staples-and-grains",
+    "name": "Staples & Grains",
+    "parentId": "cat-grocery",
+    "order": 2
+  },
+  {
+    "id": "cat-snacks",
+    "slug": "snacks",
+    "name": "Snacks",
+    "parentId": "cat-grocery",
+    "order": 3
+  },
+  {
+    "id": "cat-beverages",
+    "slug": "beverages",
+    "name": "Beverages",
+    "parentId": "cat-grocery",
+    "order": 4
+  },
+  {
+    "id": "cat-dairy-and-eggs",
+    "slug": "dairy-and-eggs",
+    "name": "Dairy & Eggs",
+    "parentId": "cat-grocery",
+    "order": 5
+  },
+  {
+    "id": "cat-packaged-foods",
+    "slug": "packaged-foods",
+    "name": "Packaged Foods",
+    "parentId": "cat-grocery",
+    "order": 6
+  },
+  {
+    "id": "cat-home-and-kitchen",
+    "slug": "home-and-kitchen",
+    "name": "Home & Kitchen",
+    "order": 4
+  },
+  {
+    "id": "cat-furniture",
+    "slug": "furniture",
+    "name": "Furniture",
+    "parentId": "cat-home-and-kitchen",
+    "order": 1
+  },
+  {
+    "id": "cat-cookware",
+    "slug": "cookware",
+    "name": "Cookware",
+    "parentId": "cat-home-and-kitchen",
+    "order": 2
+  },
+  {
+    "id": "cat-home-decor",
+    "slug": "home-decor",
+    "name": "Home Decor",
+    "parentId": "cat-home-and-kitchen",
+    "order": 3
+  },
+  {
+    "id": "cat-bedding",
+    "slug": "bedding",
+    "name": "Bedding",
+    "parentId": "cat-home-and-kitchen",
+    "order": 4
+  },
+  {
+    "id": "cat-appliances",
+    "slug": "appliances",
+    "name": "Appliances",
+    "parentId": "cat-home-and-kitchen",
+    "order": 5
+  },
+  {
+    "id": "cat-storage",
+    "slug": "storage",
+    "name": "Storage",
+    "parentId": "cat-home-and-kitchen",
+    "order": 6
+  },
+  {
+    "id": "cat-beauty",
+    "slug": "beauty",
+    "name": "Beauty",
+    "order": 5
+  },
+  {
+    "id": "cat-skincare",
+    "slug": "skincare",
+    "name": "Skincare",
+    "parentId": "cat-beauty",
+    "order": 1
+  },
+  {
+    "id": "cat-makeup",
+    "slug": "makeup",
+    "name": "Makeup",
+    "parentId": "cat-beauty",
+    "order": 2
+  },
+  {
+    "id": "cat-haircare",
+    "slug": "haircare",
+    "name": "Haircare",
+    "parentId": "cat-beauty",
+    "order": 3
+  },
+  {
+    "id": "cat-fragrances",
+    "slug": "fragrances",
+    "name": "Fragrances",
+    "parentId": "cat-beauty",
+    "order": 4
+  },
+  {
+    "id": "cat-personal-care",
+    "slug": "personal-care",
+    "name": "Personal Care",
+    "parentId": "cat-beauty",
+    "order": 5
+  },
+  {
+    "id": "cat-sports-and-fitness",
+    "slug": "sports-and-fitness",
+    "name": "Sports & Fitness",
+    "order": 6
+  },
+  {
+    "id": "cat-gym-equipment",
+    "slug": "gym-equipment",
+    "name": "Gym Equipment",
+    "parentId": "cat-sports-and-fitness",
+    "order": 1
+  },
+  {
+    "id": "cat-sportswear",
+    "slug": "sportswear",
+    "name": "Sportswear",
+    "parentId": "cat-sports-and-fitness",
+    "order": 2
+  },
+  {
+    "id": "cat-outdoor",
+    "slug": "outdoor",
+    "name": "Outdoor",
+    "parentId": "cat-sports-and-fitness",
+    "order": 3
+  },
+  {
+    "id": "cat-cycling",
+    "slug": "cycling",
+    "name": "Cycling",
+    "parentId": "cat-sports-and-fitness",
+    "order": 4
+  },
+  {
+    "id": "cat-yoga",
+    "slug": "yoga",
+    "name": "Yoga",
+    "parentId": "cat-sports-and-fitness",
+    "order": 5
+  },
+  {
+    "id": "cat-books",
+    "slug": "books",
+    "name": "Books",
+    "order": 7
+  },
+  {
+    "id": "cat-fiction",
+    "slug": "fiction",
+    "name": "Fiction",
+    "parentId": "cat-books",
+    "order": 1
+  },
+  {
+    "id": "cat-non-fiction",
+    "slug": "non-fiction",
+    "name": "Non-Fiction",
+    "parentId": "cat-books",
+    "order": 2
+  },
+  {
+    "id": "cat-academic",
+    "slug": "academic",
+    "name": "Academic",
+    "parentId": "cat-books",
+    "order": 3
+  },
+  {
+    "id": "cat-comics",
+    "slug": "comics",
+    "name": "Comics",
+    "parentId": "cat-books",
+    "order": 4
+  },
+  {
+    "id": "cat-toys-and-games",
+    "slug": "toys-and-games",
+    "name": "Toys & Games",
+    "order": 8
+  },
+  {
+    "id": "cat-action-figures",
+    "slug": "action-figures",
+    "name": "Action Figures",
+    "parentId": "cat-toys-and-games",
+    "order": 1
+  },
+  {
+    "id": "cat-board-games",
+    "slug": "board-games",
+    "name": "Board Games",
+    "parentId": "cat-toys-and-games",
+    "order": 2
+  },
+  {
+    "id": "cat-learning-toys",
+    "slug": "learning-toys",
+    "name": "Learning Toys",
+    "parentId": "cat-toys-and-games",
+    "order": 3
+  },
+  {
+    "id": "cat-outdoor-play",
+    "slug": "outdoor-play",
+    "name": "Outdoor Play",
+    "parentId": "cat-toys-and-games",
+    "order": 4
+  }
+]

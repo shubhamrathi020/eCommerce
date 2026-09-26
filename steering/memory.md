@@ -1,0 +1,38 @@
+# Project Memory
+
+Living record of decisions, facts and learned patterns. Append only; correct with a new dated entry that supersedes the old one. Changes to steering docs are proposed and reviewed first (see README.md).
+
+## Project facts
+- Owner: Shubham Rathi, solo, no fixed timeline. Working dir: `C:\shubhu\coding\claude\eCommerce`. Platform: Windows 11 (PowerShell + Git Bash).
+- Goal: full eCommerce app that also demonstrates system design concepts (caching, queues, rate limiting, universal search, Docker, K8s, etc.).
+- Build order: frontend (mock data) -> backend -> infra. Per-module BRDs in `brds/`, updated on every change.
+
+## Decisions
+| Date | Decision | Why |
+|---|---|---|
+| 2026-09-26 | Master BR v1.0 approved | Baseline scope |
+| 2026-09-26 | General-purpose catalog (fashion, electronics, grocery, ...) | Category-driven attributes/variants, not niche-specific |
+| 2026-09-26 | Modular monolith first, services later | Avoid early complexity, still teach boundaries |
+| 2026-09-26 | Search: Meilisearch first | Lightweight, quick to run locally |
+| 2026-09-26 | Payments: Razorpay (test mode) | India/INR focus |
+| 2026-09-26 | DB: PostgreSQL + MongoDB (catalog) + Redis; queue: RabbitMQ (Kafka in P3) | As proposed in BR |
+| 2026-09-26 | K8s local first (kind/minikube), cloud later | Cost and simplicity |
+| 2026-09-26 | B2B deferred; keep price/customer models extensible | Add only if not disruptive |
+| 2026-09-26 | Frontend on mock data behind swappable API interfaces (architecture.md 2.2) | Backend not started; swap by config |
+| 2026-09-26 | Steering docs v0.1 reviewed and confirmed | Consistency across tasks |
+| 2026-09-27 | Scaffolded with Nx 23.2 + Angular 22.1 (zoneless, SSR, esbuild), TypeScript 6, Vitest (analog) for unit tests, Playwright e2e for storefront, Tailwind 4 + CDK, pnpm as package manager | `npm` install crashed (npm arborist bug) so pnpm was used; Nx `angular-monorepo` preset also generated an unwanted `api` app, so an empty workspace + Angular generators was used |
+| 2026-09-27 | Steering updated (approved): `libs/shared/core`, mock-data location, Angular 22/pnpm baseline | First slice deviations |
+| 2026-09-27 | Nx workspace uses path aliases (`@ecom/...`, tsconfig.base paths), not TS project references | `@nx/angular` does not support project references |
+| 2026-09-26 | Confirmed: Tailwind + Angular CDK, Nx monorepo, placeholder brand palette (indigo/amber) until a brand is chosen; test runner and Storybook-vs-showcase chosen by Claude at scaffold | User confirmation |
+
+## Open items
+- Brand name/logo/final palette (placeholder in use).
+- Add e2e (Playwright) + axe contrast checks once a stable flow exists.
+
+## Patterns and lessons (fill as they emerge)
+- Shell of Windows Git Bash: a large multi-file heredoc can fail to parse; write files with the Write tool instead.
+- Angular resources: `resource.value()` throws in error state; guard with `hasValue()`. Errors must be `Error` instances (use `ApiException`) or they are wrapped.
+- Zoneless tests: drive test hosts with signals and `await fixture.whenStable()`.
+
+## Skills index
+_None yet. Format: `name`: what it automates (path)._
