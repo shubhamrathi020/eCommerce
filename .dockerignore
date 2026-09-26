@@ -1,0 +1,15 @@
+node_modules
+dist
+tmp
+coverage
+.git
+.nx
+.angular
+.vscode
+.claude
+**/*.md
+!**/README.md
+Dockerfile*
+docker-compose*.yml
+deploy
+docs

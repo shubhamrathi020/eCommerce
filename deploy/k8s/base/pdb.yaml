@@ -1,0 +1,20 @@
+# Keeps at least one pod running during voluntary disruptions such as node drains.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: storefront
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: storefront
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: admin
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: admin

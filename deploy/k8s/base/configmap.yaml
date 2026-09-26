@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: storefront-config
+data:
+  PORT: "4000"
+  # Hosts the SSR server accepts (Host header allow-list). Add the real domain per environment.
+  ALLOWED_HOSTS: "shop.localtest.me,localhost,storefront,storefront.shop.svc.cluster.local"

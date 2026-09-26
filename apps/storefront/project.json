@@ -4,11 +4,16 @@
   "projectType": "application",
   "prefix": "app",
   "sourceRoot": "apps/storefront/src",
-  "tags": ["type:app", "scope:storefront"],
+  "tags": [
+    "type:app",
+    "scope:storefront"
+  ],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "defaultConfiguration": "production",
       "options": {
         "outputPath": "dist/apps/storefront",
@@ -20,7 +25,9 @@
             "input": "apps/storefront/public"
           }
         ],
-        "styles": ["apps/storefront/src/styles.css"],
+        "styles": [
+          "apps/storefront/src/styles.css"
+        ],
         "server": "apps/storefront/src/main.server.ts",
         "ssr": {
           "entry": "apps/storefront/src/server.ts"
@@ -41,7 +48,15 @@
               "maximumError": "8kb"
             }
           ],
-          "outputHashing": "all"
+          "outputHashing": "all",
+          "optimization": {
+            "scripts": true,
+            "styles": {
+              "minify": true,
+              "inlineCritical": false
+            },
+            "fonts": true
+          }
         },
         "development": {
           "optimization": false,
@@ -68,7 +83,9 @@
     },
     "test": {
       "executor": "@nx/vitest:test",
-      "outputs": ["{options.reportsDirectory}"],
+      "outputs": [
+        "{options.reportsDirectory}"
+      ],
       "options": {
         "reportsDirectory": "coverage/apps/storefront"
       }

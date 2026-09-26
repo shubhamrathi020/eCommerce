@@ -1,75 +1,34 @@
 import { defineConfig, devices } from '@playwright/test';
-import { nxE2EPreset } from '@nx/playwright/preset';
-import { workspaceRoot } from '@nx/devkit';
+import { resolve } from 'node:path';
 
-// For CI, you may want to set BASE_URL to the deployed application.
-const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
-
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import 'dotenv/config';
+const storefrontUrl = process.env['BASE_URL'] || 'http://localhost:4200';
+const adminUrl = process.env['ADMIN_URL'] || 'http://localhost:4201';
+const workspaceRoot = resolve(import.meta.dirname, '../..');
 
 /**
- * See https://playwright.dev/docs/test-configuration.
- *
- * Generated as a .mts file so Node forces ESM regardless of workspace
- * `type`. Playwright routes `.mts` through its ESM loader (dynamic import,
- * bypassing the pirates CJS-compile path), and Nx's native TS strip loads
- * `.mts` directly. Playwright's configLoader auto-discovers
- * `playwright.config.mts` via its extension list
- * (.ts/.js/.mts/.mjs/.cts/.cjs).
+ * Smoke tests for the main journeys. They run against the dev servers (started here when not already running).
+ * Locally the installed Microsoft Edge is used so no browser download is needed; CI installs Chromium.
  */
 export default defineConfig({
-  ...nxE2EPreset(import.meta.dirname, { testDir: './src' }),
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  testDir: './src',
+  outputDir: resolve(workspaceRoot, 'dist/.playwright/output'),
+  reporter: [['list'], ['html', { outputFolder: resolve(workspaceRoot, 'dist/.playwright/report'), open: 'never' }]],
+  timeout: 60_000,
+  expect: { timeout: 10_000 },
+  retries: process.env['CI'] ? 1 : 0,
+  fullyParallel: true,
   use: {
-    baseURL,
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    baseURL: storefrontUrl,
     trace: 'on-first-retry',
   },
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'pnpm exec nx run storefront:serve',
-    url: 'http://localhost:4200',
-    reuseExistingServer: true,
-    cwd: workspaceRoot,
-  },
+  webServer: [
+    { command: 'pnpm exec nx run storefront:serve', url: storefrontUrl, reuseExistingServer: true, cwd: workspaceRoot, timeout: 180_000 },
+    { command: 'pnpm exec nx run admin:serve', url: adminUrl, reuseExistingServer: true, cwd: workspaceRoot, timeout: 180_000 },
+  ],
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], ...(process.env['CI'] ? {} : { channel: 'msedge' }) },
     },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    // Uncomment for mobile browsers support
-    /* {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    }, */
-
-    // Uncomment for branded browsers
-    /* {
-      name: 'Microsoft Edge',
-      use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    },
-    {
-      name: 'Google Chrome',
-      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    } */
   ],
 });

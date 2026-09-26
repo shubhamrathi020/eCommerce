@@ -1,0 +1,50 @@
+# Run the whole shop locally:  docker compose up --build
+#   Storefront: http://localhost:4000      Admin console: http://localhost:4001
+# Backend services (database, cache, queue, search) are added here as they are built.
+name: shop
+
+services:
+  storefront:
+    build:
+      context: .
+      dockerfile: apps/storefront/Dockerfile
+    image: shop-storefront:local
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: "4000"
+      # Hosts the server may answer to (Angular blocks unknown Host headers).
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/healthz"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    image: shop-admin:local
+    ports:
+      - "4001:8080"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

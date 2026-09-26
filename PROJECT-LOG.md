@@ -82,6 +82,14 @@ A plain-English diary of what is being built, why, and which commands were used.
 - Admin console got a Reviews page to approve, reject or delete held reviews (audited).
 - Try it: sign in as the demo customer, place a cash-on-delivery order, open that product's Reviews tab and write a review.
 
+### Step 8: DevOps foundation, BRD 08 (2026-09-27)
+- Wrote `brds/08-devops-foundation.md`.
+- Started Docker Desktop (it was installed but not running) and built and ran both apps as containers. Storefront image 247 MB, admin image 79 MB; both run as non-root and report healthy.
+- Storefront server now has health endpoints, strict security headers, a Content-Security-Policy with a per-request nonce, and safe shutdown for rolling updates.
+- Added a `docker-compose.yml`, Kubernetes manifests (Kustomize: 2 replicas, probes, autoscaling, disruption budget, ingress), a GitHub Actions pipeline, and 6 end-to-end smoke tests that drive a real browser through shopping, sign in and the admin.
+- Wrote `docs/RUNBOOK.md` with all everyday commands and troubleshooting.
+- Not verified: the Kubernetes manifests were only checked by rendering (no cluster on this machine), and the CI file has not run yet (no GitHub remote).
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -96,6 +104,9 @@ A plain-English diary of what is being built, why, and which commands were used.
 | `pnpm exec nx g @nx/angular:library --name=<x> --directory=libs/<path> ...` | Creates a new library with the right structure |
 | `git add -A && git commit -m "..."` | Saves a snapshot of the work (one commit per finished BRD) |
 | `pnpm exec nx test storefront-checkout` | Runs the cart, checkout and order page tests |
+| `pnpm docker:up` / `pnpm docker:down` | Build and start (or stop) both apps as containers: shop on 4000, admin on 4001 |
+| `pnpm e2e` | Real-browser smoke tests (Edge locally, Chromium in CI) |
+| `pnpm k8s:render` | Print the Kubernetes manifests (no cluster needed) |
 | `pnpm exec nx serve admin` | Starts the admin console at http://localhost:4201 |
 | `pnpm exec nx test admin-console` | Runs the admin page tests |
 | `pnpm exec nx test storefront-account` | Runs the sign-in, account and address-book page tests |
@@ -112,6 +123,10 @@ A plain-English diary of what is being built, why, and which commands were used.
 | Mega menu would not open on click | Hover and click cancelled each other; hover now opens, click confirms |
 | Old product links returned 200 | Fixed so they send a proper redirect (302) to the new address |
 | Password hashing failed in the test runner | `crypto.subtle` is missing in that environment (and on plain http); added a clearly labelled fallback hash for the mock |
+| Production server answered 400 to every page | Angular blocks unknown Host headers; added an `ALLOWED_HOSTS` list |
+| Docker build failed at `pnpm install` | Container used a newer pnpm; pinned it with `packageManager` in `package.json` |
+| Admin container kept restarting | An nginx regex with braces must be quoted |
+| Browser blocked inline scripts under the strict CSP | Added a per-request nonce, and turned off critical-CSS inlining (adds inline handlers) |
 | Checkout redirect for an empty cart crashed | A route guard used `inject()` after an `await`; injection must happen before the first await (found by a test) |
 | Bundle grew past the 500 kB warning | Mock adapters ship in the bundle for now; warning limit raised to 600 kB and noted to revisit |
 
@@ -128,3 +143,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRD 05 (accounts) built and committed |
 | 2026-09-27 | BRD 06 (admin console) built and committed |
 | 2026-09-27 | BRD 07 (reviews) built and committed |
+| 2026-09-27 | BRD 08 (DevOps foundation) built and committed |

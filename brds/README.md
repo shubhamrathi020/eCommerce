@@ -27,3 +27,4 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | [05-accounts](05-accounts.md) | Implemented (mock identity) |
 | [06-admin-console](06-admin-console.md) | Implemented (mock, separate seeded data) |
 | [07-reviews](07-reviews.md) | Implemented (mock) |
+| [08-devops-foundation](08-devops-foundation.md) | Implemented (Docker verified; Kubernetes render-checked) |

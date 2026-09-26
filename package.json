@@ -2,7 +2,19 @@
   "name": "@org/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "start:storefront": "nx serve storefront",
+    "start:admin": "nx serve admin",
+    "build": "nx run-many -t build",
+    "test": "nx run-many -t test",
+    "lint": "nx run-many -t lint",
+    "verify": "nx run-many -t lint test build",
+    "e2e": "nx e2e storefront-e2e",
+    "mock-data": "node tools/generate-mock-data/generate.mjs",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "k8s:render": "kubectl kustomize deploy/k8s/base"
+  },
   "private": true,
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "~2.6.0",
@@ -65,5 +77,6 @@
     "@fontsource-variable/inter": "^5.3.0",
     "express": "^4.21.2",
     "rxjs": "~7.8.0"
-  }
+  },
+  "packageManager": "pnpm@9.15.9"
 }
