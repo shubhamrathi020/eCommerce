@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { RouterLink } from '@angular/router';
 import { APP_CONFIG } from '@ecom/shared/core';
 import { DrawerComponent, IconComponent } from '@ecom/shared/ui';
-import { CartStore } from '@ecom/shared/state';
+import { AuthStore, CartStore } from '@ecom/shared/state';
 import { SearchBoxComponent } from '../search-box/search-box';
 import { CategoryMenuStore } from '../category-menu.store';
 
@@ -29,7 +29,7 @@ import { CategoryMenuStore } from '../category-menu.store';
 
       <nav aria-label="Account and cart" class="ml-auto flex items-center gap-1 md:ml-0">
         <a routerLink="/wishlist" class="inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-alt" aria-label="Wishlist"><ui-icon name="heart" [size]="24" /></a>
-        <a routerLink="/account" class="inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-alt" aria-label="Account"><ui-icon name="user" [size]="24" /></a>
+        <a [routerLink]="auth.loggedIn() ? '/account' : '/account/login'" class="inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-alt" [attr.aria-label]="accountLabel()"><ui-icon name="user" [size]="24" /></a>
         <a routerLink="/cart" class="relative inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-alt" [attr.aria-label]="cartLabel()">
           <ui-icon name="cart" [size]="24" />
           @if (cartCount() > 0) {
@@ -106,6 +106,11 @@ import { CategoryMenuStore } from '../category-menu.store';
 export class HeaderComponent {
   private readonly menu = inject(CategoryMenuStore);
   private readonly cart = inject(CartStore);
+  protected readonly auth = inject(AuthStore);
+  protected readonly accountLabel = computed(() => {
+    const user = this.auth.user();
+    return user ? `My account (${user.name.split(' ')[0]})` : 'Sign in';
+  });
 
   protected readonly siteName = inject(APP_CONFIG).siteName;
   protected readonly roots = this.menu.roots;

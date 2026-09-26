@@ -21,6 +21,8 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | The client never calculates prices, tax, shipping or discounts | Those come from the API (mock now, server later), so they cannot be tampered with |
 | 2026-09-27 | User gave advance approval for future decisions | I choose sensible defaults and record them here |
 | 2026-09-27 | Cart state in its own shared library; catalog talks to it through a token | Feature libraries may not import each other; this keeps them independent |
+| 2026-09-27 | Mock emails go to a local mailbox page instead of being sent | Lets every email flow be tested without a mail server |
+| 2026-09-27 | Access checks in the browser (route guards) are only for convenience; the real backend must enforce access | Anything in the browser can be bypassed |
 | 2026-09-27 | Search results still come from the catalog listing call (with a query); the real search server will replace only the data source | Pages stay the same when Meilisearch arrives |
 | 2026-09-27 | Payment window is behind an interface; mock now, real Razorpay later | Checkout page stays unchanged when the real one is added |
 
@@ -57,6 +59,14 @@ A plain-English diary of what is being built, why, and which commands were used.
 - Search results page: Relevance sort by default, a notice when the spelling was corrected, and a friendly no-results page with popular searches.
 - Try it: type "lap", then search "labtop" or "sneekers" (typos still work).
 
+### Step 5: Accounts, BRD 05 (2026-09-27)
+- Wrote `brds/05-accounts.md`.
+- Built a mock identity system: register, sign in and out, lockout after 5 wrong passwords, forgot and reset password, email verification, roles and permissions in the session.
+- Account pages: home, profile and password, address book, privacy (export data as JSON, delete account), wishlist page, and account order history.
+- Your guest cart is merged into your account cart when you sign in; checkout pre-fills your details and saved addresses and can save a new address.
+- Emails are not really sent: a development-only page `/dev/mailbox` shows them (verification links, reset links, order confirmations).
+- Try it: open `/account/login`, use the "Development only: fill demo customer" button, sign in; or register a new account and open `/dev/mailbox` to verify it.
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -71,6 +81,7 @@ A plain-English diary of what is being built, why, and which commands were used.
 | `pnpm exec nx g @nx/angular:library --name=<x> --directory=libs/<path> ...` | Creates a new library with the right structure |
 | `git add -A && git commit -m "..."` | Saves a snapshot of the work (one commit per finished BRD) |
 | `pnpm exec nx test storefront-checkout` | Runs the cart, checkout and order page tests |
+| `pnpm exec nx test storefront-account` | Runs the sign-in, account and address-book page tests |
 | `pnpm exec nx test shared-data-access` | Runs data-layer tests including cart pricing and search |
 
 ## 4. Problems met and how they were solved
@@ -83,6 +94,7 @@ A plain-English diary of what is being built, why, and which commands were used.
 | "Writing to signals in computed" error | Load saved state in the constructor, never inside a computed value |
 | Mega menu would not open on click | Hover and click cancelled each other; hover now opens, click confirms |
 | Old product links returned 200 | Fixed so they send a proper redirect (302) to the new address |
+| Password hashing failed in the test runner | `crypto.subtle` is missing in that environment (and on plain http); added a clearly labelled fallback hash for the mock |
 | Checkout redirect for an empty cart crashed | A route guard used `inject()` after an `await`; injection must happen before the first await (found by a test) |
 | Bundle grew past the 500 kB warning | Mock adapters ship in the bundle for now; warning limit raised to 600 kB and noted to revisit |
 
@@ -96,3 +108,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | Project log created (this file); BRD 04 started |
 | 2026-09-27 | BRD 04 built and committed |
 | 2026-09-27 | BRD 03 (search) built and committed |
+| 2026-09-27 | BRD 05 (accounts) built and committed |

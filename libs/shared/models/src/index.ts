@@ -6,3 +6,4 @@ export * from './lib/api-error';
 export * from './lib/catalog';
 export * from './lib/cart';
 export * from './lib/order';
+export * from './lib/user';

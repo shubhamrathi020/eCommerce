@@ -5,6 +5,7 @@ import { PaymentApi } from '../lib/commerce.api';
 import { EMPTY_STORED_CART } from './cart-engine';
 import { MockCartState } from './mock-cart-state';
 import { createMockResponder } from './mock-latency';
+import { MockMailbox } from './mock-mailbox';
 import { MockOrderStore } from './mock-order-store';
 
 /** Public test key id (never a secret). */
@@ -25,6 +26,7 @@ export class MockPaymentApi extends PaymentApi {
   private readonly respond = createMockResponder();
   private readonly store = inject(MockOrderStore);
   private readonly cart = inject(MockCartState);
+  private readonly mailbox = inject(MockMailbox);
 
   private orderOrThrow(orderId: string): Order {
     const order = this.store.find(orderId);
@@ -56,6 +58,7 @@ export class MockPaymentApi extends PaymentApi {
       };
       this.store.save(paid);
       this.cart.write({ ...EMPTY_STORED_CART, items: [], shippingMethod: order.shippingMethod });
+      this.mailbox.send({ to: order.contact.email, subject: `Order ${order.id} confirmed`, body: `Thanks ${order.contact.name}! We received your payment and your order is confirmed.`, link: `/orders/${order.id}` });
       return paid;
     });
   }

@@ -37,6 +37,8 @@ export interface Order {
   address: Address;
   timeline: TimelineEntry[];
   createdAt: string;
+  /** Set when a signed-in customer placed the order. */
+  userId?: string;
 }
 
 export interface PlaceOrderRequest {

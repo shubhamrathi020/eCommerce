@@ -1,4 +1,5 @@
 export * from './lib/catalog.api';
+export * from './lib/account.api';
 export * from './lib/commerce.api';
 export * from './lib/search.api';
 export * from './lib/category.api';
@@ -8,3 +9,7 @@ export * from './lib/provide-data-access';
 export { LOW_STOCK_THRESHOLD } from './mock/catalog-engine';
 export { mockSignature } from './mock/mock-payment.api';
 export { COD_MAX_TOTAL, FREE_SHIPPING_THRESHOLD, MAX_LINE_QUANTITY } from './mock/cart-engine';
+export { MockMailbox, type MockMail } from './mock/mock-mailbox';
+export { passwordProblem } from './mock/mock-auth.api';
+export { DEMO_ACCOUNTS } from './mock/demo-accounts';
+export { MAX_FAILED_ATTEMPTS, LOCKOUT_MINUTES } from './mock/mock-user-store';

@@ -27,6 +27,16 @@ export class MockOrderStore {
     this.writeJson(ORDERS_KEY, [order, ...others]);
   }
 
+  /** Account deletion: keep the order for accounting, drop the personal links. */
+  anonymise(userId: string): void {
+    const cleaned = this.all().map((o) => {
+      if (o.userId !== userId) return o;
+      const { userId: _removed, ...rest } = o;
+      return { ...rest, contact: { name: 'Deleted customer', email: '', phone: '' }, address: { line1: 'Removed', city: '', state: '', pincode: o.address.pincode } };
+    });
+    this.writeJson(ORDERS_KEY, cleaned);
+  }
+
   find(id: string): Order | undefined {
     return this.all().find((o) => o.id === id);
   }

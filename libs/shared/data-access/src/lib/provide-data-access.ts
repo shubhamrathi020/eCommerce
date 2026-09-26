@@ -1,10 +1,13 @@
 import { EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
+import { AddressBookApi, AuthApi } from './account.api';
 import { CatalogApi } from './catalog.api';
 import { CartApi, CheckoutApi, OrderApi, PaymentApi } from './commerce.api';
 import { CategoryApi } from './category.api';
 import { CmsApi } from './cms.api';
 import { SearchApi } from './search.api';
 import { NewsletterApi } from './newsletter.api';
+import { MockAddressBookApi } from '../mock/mock-address-book.api';
+import { MockAuthApi } from '../mock/mock-auth.api';
 import { MockCartApi } from '../mock/mock-cart.api';
 import { MockCatalogApi } from '../mock/mock-catalog.api';
 import { MockCheckoutApi } from '../mock/mock-checkout.api';
@@ -25,6 +28,8 @@ export function provideDataAccess(options: { useMocks: boolean }): EnvironmentPr
   }
   return makeEnvironmentProviders([
     { provide: CatalogApi, useClass: MockCatalogApi },
+    { provide: AuthApi, useClass: MockAuthApi },
+    { provide: AddressBookApi, useClass: MockAddressBookApi },
     { provide: SearchApi, useClass: MockSearchApi },
     { provide: CartApi, useClass: MockCartApi },
     { provide: CheckoutApi, useClass: MockCheckoutApi },

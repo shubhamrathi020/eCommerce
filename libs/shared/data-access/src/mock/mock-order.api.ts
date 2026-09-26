@@ -6,7 +6,9 @@ import { EMPTY_STORED_CART } from './cart-engine';
 import { codEligibility, validateDeliverable } from './mock-checkout.api';
 import { MockCartState } from './mock-cart-state';
 import { createMockResponder } from './mock-latency';
+import { MockMailbox } from './mock-mailbox';
 import { MockOrderStore, withProgress } from './mock-order-store';
+import { MockUserStore } from './mock-user-store';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE = /^[6-9][0-9]{9}$/;
@@ -20,6 +22,8 @@ export class MockOrderApi extends OrderApi {
   private readonly respond = createMockResponder();
   private readonly cart = inject(MockCartState);
   private readonly store = inject(MockOrderStore);
+  private readonly users = inject(MockUserStore);
+  private readonly mailbox = inject(MockMailbox);
 
   place(request: PlaceOrderRequest) {
     return this.respond.okAsync<Order>(async () => {
@@ -60,6 +64,7 @@ export class MockOrderApi extends OrderApi {
         contact: request.contact,
         address: request.address,
         createdAt: now,
+        ...(this.users.currentUserId() ? { userId: this.users.currentUserId() as string } : {}),
         timeline: [
           { status: 'placed', label: 'Order placed', at: now },
           ...(cod ? [{ status: 'confirmed' as const, label: 'Order confirmed', at: now }] : []),
@@ -67,7 +72,10 @@ export class MockOrderApi extends OrderApi {
       };
       this.store.save(order);
       this.store.rememberKey(request.idempotencyKey, order.id);
-      if (cod) this.cart.write({ ...EMPTY_STORED_CART, items: [], shippingMethod: cart.shippingMethod });
+      if (cod) {
+        this.cart.write({ ...EMPTY_STORED_CART, items: [], shippingMethod: cart.shippingMethod });
+        this.mailbox.send({ to: order.contact.email, subject: `Order ${order.id} confirmed`, body: `Thanks ${order.contact.name}! Your order is confirmed. Pay on delivery.`, link: `/orders/${order.id}` });
+      }
       return order;
     });
   }
@@ -81,7 +89,11 @@ export class MockOrderApi extends OrderApi {
   }
 
   list() {
-    return this.respond.okAsync<Order[]>(async () => this.store.all().map((o) => withProgress(o, Date.now())));
+    return this.respond.okAsync<Order[]>(async () => {
+      // Signed-in customers see their own orders; guests see the orders placed on this device.
+      const userId = this.users.currentUserId();
+      return this.store.all().filter((o) => (userId ? o.userId === userId : !o.userId)).map((o) => withProgress(o, Date.now()));
+    });
   }
 
   cancel(orderId: string) {

@@ -4,10 +4,10 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
-import { CheckoutApi, OrderApi, PaymentApi } from '@ecom/shared/data-access';
-import type { Order, PaymentMethod, PaymentOption, ShippingMethodId, ShippingOption } from '@ecom/shared/models';
+import { AddressBookApi, CheckoutApi, OrderApi, PaymentApi } from '@ecom/shared/data-access';
+import type { Order, PaymentMethod, PaymentOption, SavedAddress, ShippingMethodId, ShippingOption } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
-import { CartStore } from '@ecom/shared/state';
+import { AuthStore, CartStore } from '@ecom/shared/state';
 import { ButtonComponent, CartLineComponent, FormFieldComponent, InputDirective, OrderSummaryComponent, SkeletonComponent, StepperComponent } from '@ecom/shared/ui';
 import { MoneyPipe } from '@ecom/shared/util';
 import { MockRazorpayComponent } from '../payment/mock-razorpay';
@@ -37,6 +37,17 @@ const INVALID_MESSAGES: Partial<Record<FieldName, string>> = { email: 'Enter a v
 
           @switch (step()) {
             @case (0) {
+              @if (saved().length) {
+                <div class="mb-4">
+                  <label for="saved-address" class="mb-1 block text-sm font-medium">Deliver to a saved address</label>
+                  <select id="saved-address" uiInput (change)="pickSaved($any($event.target).value)">
+                    <option value="">Enter a new address</option>
+                    @for (a of saved(); track a.id) {
+                      <option [value]="a.id" [selected]="a.id === selectedSaved()">{{ a.label }}: {{ a.address.line1 }}, {{ a.address.city }} {{ a.address.pincode }}</option>
+                    }
+                  </select>
+                </div>
+              }
               <form [formGroup]="form" (ngSubmit)="continueFromAddress()" novalidate class="grid gap-4 md:grid-cols-2">
                 <ui-form-field #f1="uiFormField" label="Full name" [required]="true" [error]="err('name')">
                   <input uiInput [id]="f1.id" formControlName="name" autocomplete="name" [attr.aria-describedby]="f1.describedBy()" [attr.aria-invalid]="err('name') ? 'true' : null" />
@@ -62,6 +73,9 @@ const INVALID_MESSAGES: Partial<Record<FieldName, string>> = { email: 'Enter a v
                 <ui-form-field #f8="uiFormField" label="State" [required]="true" [error]="err('state')">
                   <input uiInput [id]="f8.id" formControlName="state" autocomplete="address-level1" [attr.aria-describedby]="f8.describedBy()" [attr.aria-invalid]="err('state') ? 'true' : null" />
                 </ui-form-field>
+                @if (auth.loggedIn() && !selectedSaved()) {
+                  <label class="flex min-h-11 items-center gap-2 text-sm md:col-span-2"><input type="checkbox" class="size-5 accent-primary" [checked]="saveAddress()" (change)="saveAddress.set(!saveAddress())" /> Save this address to my account</label>
+                }
                 <div class="md:col-span-2">
                   <button uiButton type="submit" [loading]="busy()">Continue to delivery</button>
                 </div>
@@ -167,6 +181,12 @@ export class CheckoutPageComponent {
   private readonly launcher = inject(PaymentLauncher);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  protected readonly auth = inject(AuthStore);
+  private readonly book = inject(AddressBookApi);
+
+  protected readonly saved = signal<SavedAddress[]>([]);
+  protected readonly selectedSaved = signal('');
+  protected readonly saveAddress = signal(true);
 
   protected readonly steps = STEPS;
   protected readonly step = signal(0);
@@ -192,11 +212,38 @@ export class CheckoutPageComponent {
 
   constructor() {
     inject(SeoService).set({ title: 'Checkout', noindex: true, path: '/checkout' });
+    void this.prefillFromAccount();
     // Move keyboard focus to the new step's heading so screen-reader users know the page changed.
     effect(() => {
       this.step();
       setTimeout(() => document.getElementById('step-heading')?.focus(), 0);
     });
+  }
+
+  /** Signed-in customers get their details and default address filled in. */
+  private async prefillFromAccount(): Promise<void> {
+    await this.auth.init();
+    const user = this.auth.user();
+    if (!user) return;
+    this.form.patchValue({ name: user.name, email: user.email, phone: user.phone ?? '' });
+    try {
+      const list = await firstValueFrom(this.book.list());
+      this.saved.set(list);
+      const fallback = list.find((a) => a.isDefault);
+      if (fallback) this.pickSaved(fallback.id);
+    } catch {
+      // Checkout still works without saved addresses.
+    }
+  }
+
+  protected pickSaved(id: string): void {
+    this.selectedSaved.set(id);
+    const a = this.saved().find((x) => x.id === id);
+    if (!a) {
+      this.form.patchValue({ line1: '', line2: '', city: '', state: '', pincode: '' });
+      return;
+    }
+    this.form.patchValue({ name: a.name, phone: a.phone, line1: a.address.line1, line2: a.address.line2 ?? '', city: a.address.city, state: a.address.state, pincode: a.address.pincode });
   }
 
   protected err(name: FieldName): string {
@@ -325,6 +372,14 @@ export class CheckoutPageComponent {
   }
 
   private async finish(order: Order): Promise<void> {
+    if (this.auth.loggedIn() && this.saveAddress() && !this.selectedSaved()) {
+      const f = this.form.getRawValue();
+      try {
+        await firstValueFrom(this.book.add({ label: `Address ${this.saved().length + 1}`, name: f.name.trim(), phone: f.phone, address: { line1: f.line1.trim(), ...(f.line2.trim() ? { line2: f.line2.trim() } : {}), city: f.city.trim(), state: f.state.trim(), pincode: f.pincode } }));
+      } catch {
+        // Saving the address is a convenience; the order already succeeded.
+      }
+    }
     await this.store.refresh();
     this.toast.success(`Order placed. A confirmation was sent to ${order.contact.email}.`);
     await this.router.navigate(['/orders', order.id], { queryParams: { placed: 1 } });

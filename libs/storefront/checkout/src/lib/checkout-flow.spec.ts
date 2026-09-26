@@ -5,8 +5,8 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import axe from 'axe-core';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
-import { CatalogApi, provideDataAccess } from '@ecom/shared/data-access';
-import { CartStore } from '@ecom/shared/state';
+import { AddressBookApi, CatalogApi, DEMO_ACCOUNTS, OrderApi, provideDataAccess } from '@ecom/shared/data-access';
+import { AuthStore, CartStore } from '@ecom/shared/state';
 import { checkoutRoutes } from './checkout.routes';
 import { MockPaymentLauncher } from './payment/payment-launcher';
 
@@ -185,5 +185,49 @@ describe('cart and checkout pages', () => {
     el = harness.routeNativeElement as HTMLElement;
     expect(el.textContent).toContain('Your cart is empty');
     expect(await violations(el)).toEqual([]);
+  }, 30000);
+
+  it('signed-in customers get details and their default address pre-filled, and the order is linked to them', async () => {
+    const { harness, store, variantId } = await setup();
+    const auth = TestBed.inject(AuthStore);
+    await auth.init();
+    await auth.login(DEMO_ACCOUNTS[0].email, DEMO_ACCOUNTS[0].password);
+    await firstValueFrom(TestBed.inject(AddressBookApi).add({ label: 'Home', name: 'Demo Customer', phone: '9876543210', address: { line1: '5 Park Street', city: 'Kolkata', state: 'West Bengal', pincode: '700016' } }));
+    await store.add({ productId: 'x', variantId, quantity: 1, title: 'T' });
+    await harness.navigateByUrl('/checkout');
+    await settle(harness, 15);
+    const el = harness.routeNativeElement as HTMLElement;
+    expect((el.querySelector('[formcontrolname="email"]') as HTMLInputElement).value).toBe(DEMO_ACCOUNTS[0].email);
+    expect((el.querySelector('[formcontrolname="line1"]') as HTMLInputElement).value).toBe('5 Park Street');
+    expect(el.querySelector('#saved-address')).not.toBeNull();
+
+    // A new address can be chosen instead, and offers to be saved.
+    const select = el.querySelector<HTMLSelectElement>('#saved-address');
+    if (select) {
+      select.value = '';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    await settle(harness);
+    expect(el.textContent).toContain('Save this address to my account');
+    fill(el, 'line1', '12 MG Road');
+    fill(el, 'city', 'Bengaluru');
+    fill(el, 'state', 'Karnataka');
+    fill(el, 'pincode', '560001');
+    button(el, 'Continue to delivery')?.click();
+    await settle(harness);
+    button(el, 'Continue to payment')?.click();
+    await settle(harness);
+    el.querySelectorAll<HTMLInputElement>('input[name="payment"]')[1].click();
+    await settle(harness);
+    button(el, 'Review order')?.click();
+    await settle(harness);
+    button(el, 'Place order')?.click();
+    await settle(harness, 25);
+
+    const orders = await firstValueFrom(TestBed.inject(OrderApi).list());
+    expect(orders).toHaveLength(1);
+    expect(orders[0].userId).toBeDefined();
+    const saved = await firstValueFrom(TestBed.inject(AddressBookApi).list());
+    expect(saved.map((a) => a.address.line1)).toContain('12 MG Road');
   }, 30000);
 });
