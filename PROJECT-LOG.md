@@ -90,6 +90,11 @@ A plain-English diary of what is being built, why, and which commands were used.
 - Wrote `docs/RUNBOOK.md` with all everyday commands and troubleshooting.
 - Not verified: the Kubernetes manifests were only checked by rendering (no cluster on this machine), and the CI file has not run yet (no GitHub remote).
 
+### Step 9: Planning the rest (2026-09-27)
+- Drafted BRDs 09 to 25 (planned, not built): phase 1 completion (content and SEO, notifications, inventory operations, hardening), phase 2 and 3 frontend (returns, promotions, recommendations, analytics, marketplace, localisation and PWA) and the backend track (foundation, catalog and search, commerce, caching and rate limiting, messaging, observability, Kubernetes and cloud).
+- Updated the BRD index with status, dependencies and a recommended order.
+- Wrote `docs/VERIFICATION-CHECKLIST.md`: what to run and click to verify everything built so far, the inputs needed from the owner, setup tasks, known limitations and the phase 1 sign-off rule.
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -144,3 +149,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRD 06 (admin console) built and committed |
 | 2026-09-27 | BRD 07 (reviews) built and committed |
 | 2026-09-27 | BRD 08 (DevOps foundation) built and committed |
+| 2026-09-27 | BRDs 09 to 25 drafted; verification checklist written |
