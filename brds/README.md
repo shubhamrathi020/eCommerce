@@ -2,29 +2,45 @@
 
 Detailed business requirements per major functionality. The master `../BR-eCommerce-Platform.md` stays the high-level baseline; each module BRD refines its requirement IDs into user stories and acceptance criteria.
 
-## Naming
-`NN-<module>.md` (e.g. `01-catalog.md`, `02-search.md`, `03-cart.md`).
+## How a BRD is written
+1. Pick the master BR requirement IDs the module covers.
+2. Follow the template below, using `steering/design.md`, `architecture.md` and `security.md` for shape and rules.
+3. Build in vertical slices; when done, add a change log entry describing anything that differed from the plan and commit before starting the next BRD.
 
-## Template
-1. Purpose and scope (master BR IDs covered, e.g. CAT-01..CAT-11)
-2. Personas and user stories
-3. Functional requirements and acceptance criteria (Given/When/Then)
-4. Screens and flows (list, wireframe notes)
-5. Data model / DTO contract (used by mock adapters and future API)
-6. Business rules and edge cases
-7. Non-functional notes (performance, a11y, SEO, security)
-8. Mock-data needs
-9. Open questions
-10. Change log (date, what changed, why)
+**Template:** purpose and scope, user stories, requirements with acceptance criteria, screens or deliverables, data contracts, business rules, non-functional notes, mock-data needs or prerequisites, open questions, change log.
 
-## Index
-| BRD | Status |
-|---|---|
-| [01-shell-design-system](01-shell-design-system.md) | Implemented (storefront shell) |
-| [02-catalog](02-catalog.md) | Implemented (mock data) |
-| [03-search](03-search.md) | Implemented (mock engine) |
-| [04-cart-checkout](04-cart-checkout.md) | Implemented (mock adapters) |
-| [05-accounts](05-accounts.md) | Implemented (mock identity) |
-| [06-admin-console](06-admin-console.md) | Implemented (mock, separate seeded data) |
-| [07-reviews](07-reviews.md) | Implemented (mock) |
-| [08-devops-foundation](08-devops-foundation.md) | Implemented (Docker verified; Kubernetes render-checked) |
+## Index and status
+
+| # | BRD | Phase | Status | Depends on |
+|---|---|---|---|---|
+| 01 | [Shell and design system](01-shell-design-system.md) | 1 | Built | none |
+| 02 | [Catalog](02-catalog.md) | 1 | Built (mock) | 01 |
+| 03 | [Search](03-search.md) | 1 | Built (mock engine) | 01, 02 |
+| 04 | [Cart and checkout](04-cart-checkout.md) | 1 | Built (mock) | 01, 02 |
+| 05 | [Accounts](05-accounts.md) | 1 | Built (mock identity) | 01, 02, 04 |
+| 06 | [Admin console](06-admin-console.md) | 1 | Built (mock, separate seeded data) | 01, 02, 04, 05 |
+| 07 | [Reviews](07-reviews.md) | 1 | Built (mock) | 02, 04, 05, 06 |
+| 08 | [DevOps foundation](08-devops-foundation.md) | 1 | Built (Docker verified; Kubernetes render-checked only) | all apps |
+| 09 | [Content and SEO management](09-content-seo.md) | 1 | **Draft, recommended next** | 01, 02, 06 |
+| 10 | [Notifications and preferences](10-notifications-preferences.md) | 1 | Draft | 04, 05, 06 |
+| 11 | [Inventory operations](11-inventory-operations.md) | 1 | Draft | 02, 04, 06 |
+| 12 | [Frontend hardening and polish](12-frontend-hardening.md) | 1 | Draft (do last in phase 1) | 01 to 11 |
+| 13 | [Returns, refunds and support](13-returns-refunds-support.md) | 2 | Draft | 04, 05, 06, 10, 11 |
+| 14 | [Promotions engine and deals](14-promotions-deals.md) | 2 | Draft | 04, 06 |
+| 15 | [Recommendations and personalisation](15-recommendations.md) | 2 | Draft | 02, 03, 05, 10 |
+| 16 | [Analytics and reporting](16-analytics-reporting.md) | 2 | Draft | 06, 15 |
+| 17 | [Marketplace and seller portal](17-marketplace-seller-portal.md) | 2 | Draft | 05, 06, 11, 13 |
+| 18 | [Localisation, theming and PWA](18-localisation-theming-pwa.md) | 3 | Draft | 01 to 12 |
+| 19 | [Backend foundation and identity API](19-backend-foundation.md) | Backend | Draft | 05, 08 |
+| 20 | [Catalog and search services](20-catalog-search-services.md) | Backend | Draft | 19, 09, 11 |
+| 21 | [Commerce services](21-commerce-services.md) | Backend | Draft | 19, 20, 11 |
+| 22 | [Caching and rate limiting](22-caching-rate-limiting.md) | Backend | Draft | 19, 20, 21 |
+| 23 | [Messaging, jobs and notifications backend](23-messaging-notifications-backend.md) | Backend | Draft | 19 to 21, 10 |
+| 24 | [Observability and reliability](24-observability-reliability.md) | Backend | Draft | 19 to 23 |
+| 25 | [Kubernetes, cloud and load testing](25-kubernetes-cloud-load-testing.md) | Backend | Draft | 08, 19 to 24 |
+
+## Recommended order from here
+1. **Finish phase 1 of the frontend:** 09 Content and SEO, then 11 Inventory operations, then 10 Notifications, then 12 Hardening (last, so it measures everything). These close the remaining "Must" items from the master BR (banners and content, sitemap, notification preferences, stock reasons and real stock reduction).
+2. **Sign-off gate:** you verify phase 1 with `docs/VERIFICATION-CHECKLIST.md`.
+3. **Backend track:** 19, 20, 21 in order (each swaps mock adapters for real ones), then 22 and 23 (performance and messaging), 24 (observability), 25 (Kubernetes, cloud, load tests).
+4. **Phase 2 and 3 frontend (13 to 18)** can run in parallel with the backend track once phase 1 is signed off; 13, 14 and 17 depend on backend rules being real for full value.
