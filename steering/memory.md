@@ -21,6 +21,7 @@ Living record of decisions, facts and learned patterns. Append only; correct wit
 | 2026-09-26 | Frontend on mock data behind swappable API interfaces (architecture.md 2.2) | Backend not started; swap by config |
 | 2026-09-26 | Steering docs v0.1 reviewed and confirmed | Consistency across tasks |
 | 2026-09-27 | Scaffolded with Nx 23.2 + Angular 22.1 (zoneless, SSR, esbuild), TypeScript 6, Vitest (analog) for unit tests, Playwright e2e for storefront, Tailwind 4 + CDK, pnpm as package manager | `npm` install crashed (npm arborist bug) so pnpm was used; Nx `angular-monorepo` preset also generated an unwanted `api` app, so an empty workspace + Angular generators was used |
+| 2026-09-27 | BRD 11 (inventory) implemented: append-only stock ledger, reservations with expiry, two seeded locations, backorder, CSV import and export | Tenth slice |
 | 2026-09-27 | BRD 09 (content and SEO) implemented with placeholder brand and content; content store shared by storefront and admin mocks | Ninth slice |
 | 2026-09-27 | BRD 08 (DevOps) implemented: Docker verified, Kubernetes manifests render-checked only | Eighth slice |
 | 2026-09-27 | BRD 07 (reviews) implemented: review store overlay, ratings recomputed on every catalog call | Seventh slice |
@@ -51,6 +52,7 @@ Living record of decisions, facts and learned patterns. Append only; correct wit
 - Never run broad process killers (for example `taskkill /IM node.exe`); stop a dev server by the port it listens on.
 - Python patch scripts: write regexes containing `` with `chr(92)` or a raw string, or use the Edit tool; a plain string turns `` into an invisible backspace.
 - Anything a spec imports from `@ecom/shared/data-access` must be exported from its index (a missing export shows up as `Cannot convert undefined or null to object` in TestBed.inject).
+- Stock: `MockInventoryStore` is the single source of stock in the mocks. Shop reads (catalog, search, cart) call `inventory.apply(products)` for available units; admin calls `apply(products, 'onHand')`. Never write stock into a product; add a ledger movement (`sell`, `restore`, `adjust`, `transfer`) so on hand always equals baseline plus movements.
 - Zoneless tests: drive test hosts with signals and `await fixture.whenStable()`.
 
 ## Skills index

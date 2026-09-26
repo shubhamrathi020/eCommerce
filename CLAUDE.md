@@ -11,6 +11,7 @@ Full-stack eCommerce app (Angular, Node.js, PostgreSQL/MongoDB, Redis, RabbitMQ,
 ## After every task
 - Update `PROJECT-LOG.md` (plain-English decisions, work brief, new commands, problems solved, change history). This is mandatory, not optional.
 - Commit after each finished BRD before starting the next one.
+- Update `docs/SESSION-CONTEXT-*.md` (the saved session snapshot) with new context: status, decisions, errors and fixes, next steps. Include it in that BRD's commit.
 - If scope or behaviour changed, update the affected BRD (and the master BR if needed).
 - If you noticed a repeated pattern, or a new decision was made, propose an update to the steering docs or a new skill. Show the proposed diff and wait for review; do not edit steering docs unilaterally.
 

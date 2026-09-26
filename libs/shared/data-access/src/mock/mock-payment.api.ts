@@ -3,10 +3,12 @@ import type { Order, PaymentResult, PaymentSession } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
 import { PaymentApi } from '../lib/commerce.api';
 import { EMPTY_STORED_CART } from './cart-engine';
+import { loadCatalogData } from './catalog-data';
+import { MockInventoryStore } from './inventory-store';
 import { MockCartState } from './mock-cart-state';
 import { createMockResponder } from './mock-latency';
 import { MockMailbox } from './mock-mailbox';
-import { MockOrderStore } from './mock-order-store';
+import { MockOrderStore, cancelExpiredOrders } from './mock-order-store';
 
 /** Public test key id (never a secret). */
 export const MOCK_RAZORPAY_KEY_ID = 'rzp_test_mock';
@@ -27,6 +29,7 @@ export class MockPaymentApi extends PaymentApi {
   private readonly store = inject(MockOrderStore);
   private readonly cart = inject(MockCartState);
   private readonly mailbox = inject(MockMailbox);
+  private readonly inventory = inject(MockInventoryStore);
 
   private orderOrThrow(orderId: string): Order {
     const order = this.store.find(orderId);
@@ -44,11 +47,16 @@ export class MockPaymentApi extends PaymentApi {
 
   confirm(orderId: string, result: PaymentResult) {
     return this.respond.okAsync<Order>(async () => {
+      const { products } = await loadCatalogData();
+      cancelExpiredOrders(this.store, this.inventory, products);
       const order = this.orderOrThrow(orderId);
       if (order.paymentStatus === 'paid') return order;
+      if (order.status === 'cancelled') throw new ApiException('validation', 'The payment window for this order expired and its items were released. Please place the order again.');
       if (order.status !== 'pending_payment') throw new ApiException('validation', 'This order can no longer be paid.');
       const valid = result.providerOrderId === `order_mock_${orderId}` && result.signature === mockSignature(result.providerOrderId, result.providerPaymentId);
       if (!valid) throw new ApiException('validation', 'Payment verification failed. If money was deducted it will be refunded.');
+      // Paid: the reserved units become a sale. After a failed attempt the hold was released, so availability is checked again.
+      this.inventory.sell(orderId, order.lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })), products, 'Payment');
       const now = new Date().toISOString();
       const paid: Order = {
         ...order,
@@ -67,6 +75,8 @@ export class MockPaymentApi extends PaymentApi {
     return this.respond.okAsync<Order>(async () => {
       const order = this.orderOrThrow(orderId);
       if (order.paymentStatus === 'paid') return order;
+      // A failed payment gives its stock back; a retry claims it again.
+      this.inventory.release(orderId, (await loadCatalogData()).products);
       const failed: Order = { ...order, paymentStatus: 'failed' };
       this.store.save(failed);
       return failed;

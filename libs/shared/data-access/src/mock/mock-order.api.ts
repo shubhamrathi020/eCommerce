@@ -3,11 +3,13 @@ import type { Order, PlaceOrderRequest } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
 import { OrderApi } from '../lib/commerce.api';
 import { EMPTY_STORED_CART } from './cart-engine';
+import { loadCatalogData } from './catalog-data';
+import { MockInventoryStore } from './inventory-store';
 import { codEligibility, validateDeliverable } from './mock-checkout.api';
 import { MockCartState } from './mock-cart-state';
 import { createMockResponder } from './mock-latency';
 import { MockMailbox } from './mock-mailbox';
-import { MockOrderStore, withProgress } from './mock-order-store';
+import { MockOrderStore, cancelExpiredOrders, withProgress } from './mock-order-store';
 import { MockUserStore } from './mock-user-store';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -24,9 +26,18 @@ export class MockOrderApi extends OrderApi {
   private readonly store = inject(MockOrderStore);
   private readonly users = inject(MockUserStore);
   private readonly mailbox = inject(MockMailbox);
+  private readonly inventory = inject(MockInventoryStore);
+
+  /** Frees the stock of unpaid orders whose reservation expired; returns the seeded catalog for stock work. */
+  private async sweep() {
+    const { products } = await loadCatalogData();
+    cancelExpiredOrders(this.store, this.inventory, products);
+    return products;
+  }
 
   place(request: PlaceOrderRequest) {
     return this.respond.okAsync<Order>(async () => {
+      const products = await this.sweep();
       // Idempotency: the same key always returns the same order.
       const existingId = this.store.orderIdForKey(request.idempotencyKey);
       const existing = existingId ? this.store.find(existingId) : undefined;
@@ -70,6 +81,10 @@ export class MockOrderApi extends OrderApi {
           ...(cod ? [{ status: 'confirmed' as const, label: 'Order confirmed', at: now }] : []),
         ],
       };
+      // Stock is claimed before the order exists, so two shoppers can never both get the last unit.
+      const stockLines = cart.lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity }));
+      if (cod) this.inventory.sell(order.id, stockLines, products, 'Checkout');
+      else this.inventory.reserve(order.id, stockLines, products);
       this.store.save(order);
       this.store.rememberKey(request.idempotencyKey, order.id);
       if (cod) {
@@ -82,6 +97,7 @@ export class MockOrderApi extends OrderApi {
 
   get(orderId: string) {
     return this.respond.okAsync<Order>(async () => {
+      await this.sweep();
       const order = this.store.find(orderId);
       if (!order) throw new ApiException('not_found', 'Order not found');
       return withProgress(order, Date.now());
@@ -90,6 +106,7 @@ export class MockOrderApi extends OrderApi {
 
   list() {
     return this.respond.okAsync<Order[]>(async () => {
+      await this.sweep();
       // Signed-in customers see their own orders; guests see the orders placed on this device.
       const userId = this.users.currentUserId();
       return this.store.all().filter((o) => (userId ? o.userId === userId : !o.userId)).map((o) => withProgress(o, Date.now()));
@@ -98,11 +115,15 @@ export class MockOrderApi extends OrderApi {
 
   cancel(orderId: string) {
     return this.respond.okAsync<Order>(async () => {
+      const products = await this.sweep();
       const found = this.store.find(orderId);
       if (!found) throw new ApiException('not_found', 'Order not found');
       const order = withProgress(found, Date.now());
       if (order.status === 'cancelled') return order;
       if (order.status === 'shipped' || order.status === 'delivered') throw new ApiException('validation', 'This order has already shipped and can no longer be cancelled.');
+      // Unpaid orders only hold a reservation; paid or cash-on-delivery orders have sold units to put back.
+      if (found.status === 'pending_payment') this.inventory.release(orderId, products);
+      else this.inventory.restore(orderId, products);
       const cancelled: Order = {
         ...found,
         status: 'cancelled',

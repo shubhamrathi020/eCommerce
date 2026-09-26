@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { RESPONSE_INIT } from '@angular/core';
@@ -26,6 +27,7 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
 @Component({
   selector: 'app-product-page',
   imports: [
+    DatePipe,
     BadgeComponent,
     BreadcrumbComponent,
     ButtonComponent,
@@ -67,7 +69,10 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
               <p class="text-xs text-text-muted">Inclusive of all taxes</p>
             </div>
             <p aria-live="polite">
-              @if (v.stock === 0) {
+              @if (v.stock === 0 && v.backorder) {
+                <ui-badge tone="warning">Backorder</ui-badge>
+                <span class="ml-2 text-sm">{{ v.backorder.expectedDate ? 'Ships around ' + (v.backorder.expectedDate | date: 'd MMM y') : 'Ships when it is back in stock' }}</span>
+              } @else if (v.stock === 0) {
                 <ui-badge tone="danger">Out of stock</ui-badge>
               } @else if (v.stock <= lowStock) {
                 <ui-badge tone="warning">Only {{ v.stock }} left</ui-badge>
@@ -228,8 +233,8 @@ export class ProductPageComponent {
     return p?.variants.find((v) => p.variantAxes.every((axis) => v.options[axis] === sel[axis]));
   });
   protected readonly images = computed(() => this.variant()?.images ?? this.product()?.images ?? []);
-  protected readonly maxQuantity = computed(() => Math.max(1, Math.min(10, this.variant()?.stock ?? 1)));
-  protected readonly canBuy = computed(() => (this.variant()?.stock ?? 0) > 0);
+  protected readonly maxQuantity = computed(() => (this.variant()?.backorder ? 10 : Math.max(1, Math.min(10, this.variant()?.stock ?? 1))));
+  protected readonly canBuy = computed(() => (this.variant()?.stock ?? 0) > 0 || !!this.variant()?.backorder);
   protected readonly wishlisted = computed(() => {
     const p = this.product();
     return !!p && this.wishlist.ids().includes(p.id);
@@ -345,7 +350,7 @@ export class ProductPageComponent {
   }
 
   protected optionOutOfStock(p: Product, axis: string, value: string): boolean {
-    return !p.variants.some((v) => v.options[axis] === value && v.stock > 0);
+    return !p.variants.some((v) => v.options[axis] === value && (v.stock > 0 || v.backorder));
   }
 
   protected optionClass(p: Product, axis: string, value: string): string {
@@ -366,14 +371,14 @@ export class ProductPageComponent {
 
   protected addToCart(p: Product): void {
     const v = this.variant();
-    if (!v || v.stock === 0) return;
+    if (!v || (v.stock === 0 && !v.backorder)) return;
     void this.cart.add({ productId: p.id, variantId: v.id, quantity: this.quantity(), title: p.title });
   }
 
   /** Adds the item, then goes straight to checkout. */
   protected async buyNow(p: Product): Promise<void> {
     const v = this.variant();
-    if (!v || v.stock === 0) return;
+    if (!v || (v.stock === 0 && !v.backorder)) return;
     const added = await this.cart.add({ productId: p.id, variantId: v.id, quantity: this.quantity(), title: p.title, openMiniCart: false });
     if (added) await this.router.navigate(['/checkout']);
   }

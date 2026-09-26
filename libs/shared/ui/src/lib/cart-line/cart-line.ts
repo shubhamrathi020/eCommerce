@@ -1,4 +1,4 @@
-import { NgOptimizedImage } from '@angular/common';
+import { DatePipe, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { CartLine } from '@ecom/shared/models';
@@ -9,7 +9,7 @@ import { QuantityStepperComponent } from '../quantity-stepper/quantity-stepper';
 /** One cart line: image, title, chosen options, price, quantity controls (optional) and remove. */
 @Component({
   selector: 'ui-cart-line',
-  imports: [NgOptimizedImage, RouterLink, MoneyPipe, PriceComponent, QuantityStepperComponent],
+  imports: [DatePipe, NgOptimizedImage, RouterLink, MoneyPipe, PriceComponent, QuantityStepperComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -30,6 +30,9 @@ import { QuantityStepperComponent } from '../quantity-stepper/quantity-stepper';
             <p class="mt-1 text-sm text-warning">Price updated from {{ line().previousUnitPrice | money }}</p>
           } @else if (line().issue === 'quantity_reduced') {
             <p class="mt-1 text-sm text-warning">Quantity reduced to available stock</p>
+          }
+          @if (line().backorder; as back) {
+            <p class="mt-1 text-sm text-warning">On backorder{{ back.expectedDate ? ': ships around ' + (back.expectedDate | date: 'd MMM y') : '' }}</p>
           }
           <div class="mt-1 flex flex-wrap items-center justify-between gap-2">
             <ui-price [price]="line().unitPrice" [mrp]="line().mrp" />

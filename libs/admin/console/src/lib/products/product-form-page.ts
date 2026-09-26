@@ -105,7 +105,7 @@ const variantGroup = () =>
                 <ui-form-field #v4="uiFormField" label="MRP (₹)" [error]="verr(i, 'mrp')">
                   <input uiInput inputmode="decimal" [id]="v4.id" formControlName="mrp" [attr.aria-describedby]="v4.describedBy()" [attr.aria-invalid]="verr(i, 'mrp') ? 'true' : null" />
                 </ui-form-field>
-                <ui-form-field #v5="uiFormField" label="Stock" [required]="true" [error]="verr(i, 'stock')">
+                <ui-form-field #v5="uiFormField" [label]="group.controls.id.value ? 'Stock (change in Inventory)' : 'Opening stock'" [required]="true" [error]="verr(i, 'stock')">
                   <input uiInput inputmode="numeric" [id]="v5.id" formControlName="stock" [attr.aria-describedby]="v5.describedBy()" [attr.aria-invalid]="verr(i, 'stock') ? 'true' : null" />
                 </ui-form-field>
                 @if (variants.length > 1) {
@@ -176,6 +176,8 @@ export class ProductFormPageComponent {
         for (const v of d.variants) {
           const g = variantGroup();
           g.setValue({ id: v.id ?? '', sku: v.sku, options: formatOptions(v.options), price: paiseToRupees(v.price), mrp: paiseToRupees(v.mrp), stock: String(v.stock) });
+          // Stock of an existing variant only changes through the inventory ledger, with a reason.
+          if (v.id) g.controls.stock.disable();
           this.form.controls.variants.push(g);
         }
         this.form.patchValue({ title: d.title, brandName: d.brandName, categoryId: d.categoryId, status: d.status, tags: d.tags.join(', '), description: d.description, highlights: d.highlights.join('\n') });

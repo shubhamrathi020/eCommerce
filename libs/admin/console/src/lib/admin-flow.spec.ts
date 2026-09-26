@@ -327,4 +327,67 @@ describe('admin console', () => {
     await settle(out.harness, 15);
     expect(root.textContent).toContain('Creates a redirect loop');
   }, 60000);
+
+  it('inventory: stock table, adjustment with a required reason, ledger, import report and settings', async () => {
+    const out = await setup();
+    await out.harness.navigateByUrl('/inventory');
+    await settle(out.harness, 15);
+    expect(out.router.url).toBe('/inventory/stock');
+    let root = el(out.harness);
+    expect(root.querySelectorAll('tbody tr')).toHaveLength(20);
+    expect(await violations(root)).toEqual([]);
+
+    // open the editor for the first row and try to save without a reason
+    (Array.from(root.querySelectorAll('tbody button')).find((b) => b.textContent?.startsWith('Manage')) as HTMLButtonElement).click();
+    await settle(out.harness);
+    fill(root, '[formcontrolname="quantity"]', '5');
+    button(root, 'Record change')?.click();
+    await settle(out.harness, 15);
+    expect(root.textContent).toContain('Please check the highlighted fields.');
+    expect(root.textContent).toContain('Choose a reason');
+    expect(await violations(root)).toEqual([]);
+
+    const reason = root.querySelector<HTMLSelectElement>('[formcontrolname="reason"]') as HTMLSelectElement;
+    reason.value = 'received_shipment';
+    reason.dispatchEvent(new Event('change', { bubbles: true }));
+    button(root, 'Record change')?.click();
+    await settle(out.harness, 20);
+    expect(root.querySelector('[aria-label="Adjust stock"]')).toBeNull(); // editor closes after saving
+
+    // the ledger shows the entry
+    await out.harness.navigateByUrl('/inventory/ledger');
+    await settle(out.harness, 15);
+    root = el(out.harness);
+    expect(root.querySelectorAll('tbody tr')).toHaveLength(1);
+    expect(root.textContent).toContain('Received shipment');
+    expect(root.textContent).toContain('+5');
+    expect(await violations(root)).toEqual([]);
+
+    // import: a bad row is reported
+    await out.harness.navigateByUrl('/inventory/import');
+    await settle(out.harness, 15);
+    root = el(out.harness);
+    expect(await violations(root)).toEqual([]);
+    const csv = root.querySelector<HTMLTextAreaElement>('#csv') as HTMLTextAreaElement;
+    csv.value = 'sku,location,on_hand\nNOPE-1,Main warehouse,3';
+    csv.dispatchEvent(new Event('input', { bubbles: true }));
+    button(root, 'Import stock levels')?.click();
+    await settle(out.harness, 15);
+    expect(root.textContent).toContain('0 row(s) applied, 1 skipped');
+    expect(root.textContent).toContain('Unknown SKU');
+
+    // settings
+    await out.harness.navigateByUrl('/inventory/settings');
+    await settle(out.harness, 15);
+    root = el(out.harness);
+    expect(await violations(root)).toEqual([]);
+    fill(root, '[formcontrolname="reservationMinutes"]', '0');
+    button(root, 'Save settings')?.click();
+    await settle(out.harness, 15);
+    expect(root.textContent).toContain('Use a whole number from 1 to 1,440 minutes');
+    fill(root, '[formcontrolname="reservationMinutes"]', '20');
+    button(root, 'Save settings')?.click();
+    await settle(out.harness, 15);
+    expect(root.textContent).not.toContain('Use a whole number');
+  }, 60000);
 });

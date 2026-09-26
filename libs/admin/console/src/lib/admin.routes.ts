@@ -35,6 +35,18 @@ export const adminRoutes: Route[] = [
           { path: 'redirects', loadComponent: () => import('./content/redirects-page').then((m) => m.RedirectsPageComponent) },
         ],
       },
+      {
+        path: 'inventory',
+        canActivate: [permissionGuard('inventory:write')],
+        loadComponent: () => import('./inventory/inventory-layout').then((m) => m.InventoryLayoutComponent),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'stock' },
+          { path: 'stock', loadComponent: () => import('./inventory/stock-page').then((m) => m.StockPageComponent) },
+          { path: 'ledger', loadComponent: () => import('./inventory/ledger-page').then((m) => m.LedgerPageComponent) },
+          { path: 'import', loadComponent: () => import('./inventory/import-page').then((m) => m.ImportPageComponent) },
+          { path: 'settings', loadComponent: () => import('./inventory/settings-page').then((m) => m.SettingsPageComponent) },
+        ],
+      },
       { path: 'reviews', canActivate: [permissionGuard('review:moderate')], loadComponent: () => import('./pages/reviews-page').then((m) => m.ReviewsPageComponent) },
       { path: 'coupons', canActivate: [permissionGuard('coupon:write')], loadComponent: () => import('./pages/coupons-page').then((m) => m.CouponsPageComponent) },
       { path: 'users', canActivate: [permissionGuard('user:read')], loadComponent: () => import('./pages/users-page').then((m) => m.UsersPageComponent) },

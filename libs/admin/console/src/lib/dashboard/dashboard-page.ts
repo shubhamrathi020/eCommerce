@@ -69,7 +69,7 @@ import { RevenueChartComponent } from './revenue-chart';
               }
             </ul>
           }
-          <a routerLink="/products" [queryParams]="{ sort: 'stock', dir: 'asc' }" class="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline">Manage stock</a>
+          <a routerLink="/inventory/stock" [queryParams]="{ filter: 'low' }" class="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline">Manage stock</a>
         </section>
       </div>
     } @else if (metrics.status() === 'error') {

@@ -24,3 +24,5 @@ export { DEFAULT_SECTIONS } from './mock/content-store';
 export { normalisePath } from './mock/mock-content.api';
 export { loadSitemapSource } from './mock/catalog-data';
 export { MockContentStore } from './mock/content-store';
+export * from './lib/inventory.api';
+export { MockInventoryStore, LOCATIONS, MAIN_LOCATION, DEFAULT_SETTINGS as DEFAULT_INVENTORY_SETTINGS } from './mock/inventory-store';

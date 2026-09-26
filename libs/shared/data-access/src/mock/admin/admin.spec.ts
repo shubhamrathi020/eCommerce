@@ -71,7 +71,8 @@ describe('admin console (mock)', () => {
 
     const saved = await firstValueFrom(products.update(row.id, { ...input, title: 'Renamed <b>Item</b>', variants: [{ ...input.variants[0], stock: 77 }] }));
     expect(saved.title).toBe('Renamed <b>Item</b>');
-    expect(saved.variants[0].stock).toBe(77);
+    // Stock of an existing variant is managed through the inventory ledger, so the product form cannot change it.
+    expect(saved.variants[0].stock).toBe(detail.variants[0].stock);
     const entries = (await firstValueFrom(audit.list({ page: 1, pageSize: 10 }))).items;
     expect(entries[0]).toMatchObject({ action: 'product.update', actor: admin.name });
     expect(entries[0].detail).toContain('title');

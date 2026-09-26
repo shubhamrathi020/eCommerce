@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
 import type { AdminCoupon, AuditEntry, OrderNote, OrderStatus, Product, ProductStatus, Role, TimelineEntry } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
+import { MockInventoryStore } from '../inventory-store';
 import { MockUserStore } from '../mock-user-store';
 
 const KEY = 'ecom.mock.admin.v1';
@@ -39,6 +40,8 @@ const empty = (): AdminOverlay => ({ editedProducts: {}, createdProducts: [], de
 export class MockAdminState {
   private readonly storage = inject(STORAGE);
   private readonly users = inject(MockUserStore);
+  /** Stock ledger shared with the shop mocks; admin product lists show its physical counts. */
+  readonly inventory = inject(MockInventoryStore);
 
   read(): AdminOverlay {
     try {

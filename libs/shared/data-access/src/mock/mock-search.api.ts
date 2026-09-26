@@ -1,19 +1,23 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import type { SearchSuggestions } from '@ecom/shared/models';
 import { SearchApi } from '../lib/search.api';
 import { loadCatalogData } from './catalog-data';
 import { sortProducts, toSummary } from './catalog-engine';
 import { POPULAR_SEARCHES, buildIndex, cleanQuery, matchNames, searchProducts, suggestQueries } from './search-engine';
+import { MockInventoryStore } from './inventory-store';
 import { createMockResponder } from './mock-latency';
 
 @Injectable()
 export class MockSearchApi extends SearchApi {
   private readonly respond = createMockResponder();
+  private readonly inventory = inject(MockInventoryStore);
 
   suggest(query: string) {
     return this.respond.okAsync<SearchSuggestions>(async () => {
       const q = cleanQuery(query);
-      const { products, categories, brands } = await loadCatalogData();
+      const data = await loadCatalogData();
+      const { categories, brands } = data;
+      const products = this.inventory.apply(data.products);
       if (!q) return { queries: POPULAR_SEARCHES.slice(0, 5), products: [], categories: [], brands: [] };
       const matches = searchProducts(buildIndex(products), products, q);
       const top = sortProducts(matches.products, 'relevance', matches.scores).slice(0, 4).map(toSummary);

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { Order, OrderStatus, TimelineEntry } from '@ecom/shared/models';
+import type { Order, OrderStatus, Product, TimelineEntry } from '@ecom/shared/models';
+import type { MockInventoryStore } from './inventory-store';
 
 const ORDERS_KEY = 'ecom.mock.orders.v1';
 const IDEMPOTENCY_KEY = 'ecom.mock.idempotency.v1';
@@ -64,6 +65,15 @@ export class MockOrderStore {
     } catch {
       // Storage full or blocked.
     }
+  }
+}
+
+/** Cancels unpaid orders whose stock reservation ran out, so abandoned payments free their units. */
+export function cancelExpiredOrders(orders: MockOrderStore, inventory: MockInventoryStore, products: Product[], now = Date.now()): void {
+  for (const id of inventory.expire(products, now)) {
+    const order = orders.find(id);
+    if (order?.status !== 'pending_payment') continue;
+    orders.save({ ...order, status: 'cancelled', paymentStatus: 'failed', timeline: [...order.timeline, { status: 'cancelled', label: 'Cancelled: payment window expired', at: new Date(now).toISOString() }] });
   }
 }
 

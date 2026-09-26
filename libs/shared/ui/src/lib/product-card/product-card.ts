@@ -43,6 +43,8 @@ import { RatingComponent } from '../rating/rating';
           }
           @if (product().stockStatus === 'out_of_stock') {
             <ui-badge tone="danger">Out of stock</ui-badge>
+          } @else if (product().stockStatus === 'backorder') {
+            <ui-badge tone="warning">Backorder</ui-badge>
           } @else if (product().stockStatus === 'low_stock') {
             <ui-badge tone="warning">Only {{ product().stockLeft }} left</ui-badge>
           }

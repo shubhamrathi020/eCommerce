@@ -22,6 +22,8 @@ export interface CartLine {
   /** GST included in `lineTotal`. */
   taxIncluded: Money;
   issue?: CartLineIssue;
+  /** Set when part or all of the line ships later because the item is on backorder. */
+  backorder?: { expectedDate?: string };
   /** Present when `issue` is `price_changed`. */
   previousUnitPrice?: Money;
 }

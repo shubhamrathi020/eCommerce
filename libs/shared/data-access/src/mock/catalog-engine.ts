@@ -29,7 +29,7 @@ const totalStock = (p: Product): number => p.variants.reduce((sum, v) => sum + v
 
 export function stockStatusOf(p: Product): { status: StockStatus; left?: number } {
   const stock = totalStock(p);
-  if (stock === 0) return { status: 'out_of_stock' };
+  if (stock === 0) return { status: p.variants.some((v) => v.backorder) ? 'backorder' : 'out_of_stock' };
   if (stock <= LOW_STOCK_THRESHOLD) return { status: 'low_stock', left: stock };
   return { status: 'in_stock' };
 }
@@ -47,7 +47,7 @@ export function toSummary(p: Product): ProductSummary {
   const cheapest = cheapestVariant(p);
   const prices = p.variants.map((v) => v.price.amount);
   const { status, left } = stockStatusOf(p);
-  const buyable = p.variants.filter((v) => v.stock > 0);
+  const buyable = p.variants.filter((v) => v.stock > 0 || v.backorder);
   const summary: ProductSummary = {
     id: p.id,
     slug: p.slug,

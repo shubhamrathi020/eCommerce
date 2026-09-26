@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
 import { loadCatalogData } from './catalog-data';
+import { MockInventoryStore } from './inventory-store';
 import { EMPTY_STORED_CART, MAX_LINE_QUANTITY, type PricedCart, type StoredCart, priceCart } from './cart-engine';
 import { MockUserStore } from './mock-user-store';
 
@@ -12,6 +13,7 @@ const userKey = (userId: string) => `ecom.mock.cart.user.${userId}.v1`;
 export class MockCartState {
   private readonly storage = inject(STORAGE);
   private readonly users = inject(MockUserStore);
+  private readonly inventory = inject(MockInventoryStore);
 
   /** Guests use one device-wide cart; signed-in customers have their own. */
   private key(): string {
@@ -68,7 +70,7 @@ export class MockCartState {
   /** Prices the stored cart against the catalog and saves the cleaned-up result. */
   async priced(): Promise<PricedCart> {
     const { products } = await loadCatalogData();
-    const result = priceCart(this.read(), products, Date.now());
+    const result = priceCart(this.read(), this.inventory.apply(products), Date.now());
     this.write(result.stored);
     return result;
   }
@@ -78,7 +80,8 @@ export class MockCartState {
    * and returns the freshly priced cart.
    */
   async mutate(change: (stored: StoredCart, catalog: Awaited<ReturnType<typeof loadCatalogData>>) => StoredCart): Promise<PricedCart> {
-    const catalog = await loadCatalogData();
+    const loaded = await loadCatalogData();
+    const catalog = { ...loaded, products: this.inventory.apply(loaded.products) };
     const next = change(this.read(), catalog);
     const acknowledged: StoredCart = {
       ...next,

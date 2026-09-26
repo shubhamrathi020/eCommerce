@@ -18,7 +18,7 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
 ];
 
 const CUSTOMER_PERMISSIONS = ['profile:write:own', 'address:write:own', 'order:read:own', 'order:cancel:own'];
-const ADMIN_PERMISSIONS = ['product:read', 'product:write', 'order:read:any', 'order:refund', 'user:read', 'coupon:write', 'review:moderate', 'content:write'];
+const ADMIN_PERMISSIONS = ['product:read', 'product:write', 'order:read:any', 'order:refund', 'user:read', 'coupon:write', 'review:moderate', 'content:write', 'inventory:write'];
 
 export function permissionsFor(roles: Role[]): string[] {
   const set = new Set<string>(CUSTOMER_PERMISSIONS);

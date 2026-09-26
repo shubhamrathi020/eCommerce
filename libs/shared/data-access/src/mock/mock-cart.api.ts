@@ -20,9 +20,9 @@ export class MockCartApi extends CartApi {
       const result = await this.state.mutate((stored, { products }) => {
         const variant = products.flatMap((p) => p.variants).find((v) => v.id === variantId);
         if (!variant) throw new ApiException('not_found', 'This product is no longer available.');
-        if (variant.stock === 0) throw new ApiException('validation', 'Sorry, this item is out of stock.');
+        if (variant.stock === 0 && !variant.backorder) throw new ApiException('validation', 'Sorry, this item is out of stock.');
         const existing = stored.items.find((i) => i.variantId === variantId);
-        const max = Math.min(MAX_LINE_QUANTITY, variant.stock);
+        const max = variant.backorder ? MAX_LINE_QUANTITY : Math.min(MAX_LINE_QUANTITY, variant.stock);
         if (existing && existing.quantity >= max) throw new ApiException('validation', `You already have the maximum quantity (${max}) of this item.`);
         const items = existing
           ? stored.items.map((i) => (i.variantId === variantId ? { ...i, quantity: Math.min(max, i.quantity + quantity) } : i))

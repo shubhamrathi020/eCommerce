@@ -29,11 +29,14 @@ export interface Variant {
   options: Record<string, string>;
   price: Money;
   mrp?: Money;
+  /** Units available to buy (on hand minus units held for unpaid orders). */
   stock: number;
+  /** Present when the variant can be bought at zero stock; `expectedDate` is when it ships. */
+  backorder?: { expectedDate?: string };
   images?: ImageRef[];
 }
 
-export type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
+export type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock' | 'backorder';
 
 export interface RatingSummary {
   average: number;

@@ -81,12 +81,12 @@ export function priceCart(stored: StoredCart, products: Product[], now: number):
       notices.push('An item in your cart is no longer available and was removed.');
       continue;
     }
-    const max = Math.min(MAX_LINE_QUANTITY, variant.stock);
+    const max = variant.backorder ? MAX_LINE_QUANTITY : Math.min(MAX_LINE_QUANTITY, variant.stock);
     let quantity = Math.min(item.quantity, Math.max(max, 1));
     let issue: CartLine['issue'];
     let previousUnitPrice: Money | undefined;
 
-    if (variant.stock === 0) {
+    if (variant.stock === 0 && !variant.backorder) {
       issue = 'out_of_stock';
       quantity = item.quantity;
       notices.push(`${product.title} is out of stock. Remove it to continue.`);
@@ -117,6 +117,7 @@ export function priceCart(stored: StoredCart, products: Product[], now: number):
       taxIncluded: inr(lineTotal - lineTotal / (1 + rate)),
     };
     if (variant.mrp && variant.mrp.amount > variant.price.amount) line.mrp = variant.mrp;
+    if (variant.backorder && quantity > variant.stock) line.backorder = { ...variant.backorder };
     if (issue) line.issue = issue;
     if (previousUnitPrice) line.previousUnitPrice = previousUnitPrice;
     lines.push(line);

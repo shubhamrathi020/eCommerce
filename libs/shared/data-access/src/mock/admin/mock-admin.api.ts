@@ -49,19 +49,23 @@ const STATUS_LABEL: Record<string, string> = { packed: 'Packed', shipped: 'Shipp
 
 // ---------- shared data helpers ----------
 
-interface AdminProduct {
+export interface AdminProduct {
+  /** With physical stock (on hand) from the ledger applied. */
   product: Product;
+  /** As stored: variant stock is the opening baseline, before any ledger movement. */
+  baseline: Product;
   status: ProductStatus;
   updatedAt: string;
 }
 
-/** Seeded catalog with the admin's edits, creations and deletions applied. */
-async function loadProducts(state: MockAdminState): Promise<AdminProduct[]> {
+/** Seeded catalog with the admin's edits, creations and deletions applied, and live stock counts from the ledger. */
+export async function loadProducts(state: MockAdminState): Promise<AdminProduct[]> {
   const { products } = await loadCatalogData();
   const o = state.read();
   const deleted = new Set(o.deletedProducts);
   const all = [...products.filter((p) => !deleted.has(p.id)).map((p) => o.editedProducts[p.id] ?? p), ...o.createdProducts];
-  return all.map((p) => ({ product: p, status: o.productMeta[p.id]?.status ?? 'published', updatedAt: o.productMeta[p.id]?.updatedAt ?? p.createdAt }));
+  const stocked = state.inventory.apply(all, 'onHand');
+  return all.map((baseline, i) => ({ product: stocked[i], baseline, status: o.productMeta[baseline.id]?.status ?? 'published', updatedAt: o.productMeta[baseline.id]?.updatedAt ?? baseline.createdAt }));
 }
 
 /** Seeded demo orders with the admin's status changes and notes applied. */
@@ -111,7 +115,9 @@ function buildVariants(productId: string, input: AdminProductInput, existing: Va
       options: v.options,
       price: inr(v.price),
       ...(v.mrp && v.mrp > v.price ? { mrp: inr(v.mrp) } : {}),
-      stock: v.stock,
+      // Stock is managed through the inventory ledger: existing variants keep their baseline, new ones start at 0
+      // and get an opening "receive" movement for the quantity typed in the form.
+      stock: previous ? previous.stock : 0,
       ...(previous?.images ? { images: previous.images } : {}),
     };
   });
@@ -241,6 +247,8 @@ export class MockAdminProductApi extends AdminProductApi {
         o.createdProducts.push(created);
         o.productMeta[id] = { status: input.status, updatedAt: nowIso() };
       });
+      const actor = this.state.require('product:write');
+      created.variants.forEach((v, i) => this.state.inventory.receiveOpening(v.id, input.variants[i].stock, [created], actor.name));
       this.state.record('product.create', created.title, `Created as ${input.status}`);
       const entry = (await loadProducts(this.state)).find((e) => e.product.id === id) as AdminProduct;
       return toDetailProduct(entry, leaf.name);
@@ -255,7 +263,7 @@ export class MockAdminProductApi extends AdminProductApi {
       const entry = all.find((e) => e.product.id === id);
       if (!entry) throw new ApiException('not_found', 'Product not found');
       validateProduct(input, new Set(categories.filter((c) => c.parentId).map((c) => c.id)), all.filter((e) => e.product.id !== id).flatMap((e) => e.product.variants));
-      const old = entry.product;
+      const old = entry.baseline;
       const updated: Product = {
         ...old,
         title: input.title.trim(),
@@ -267,13 +275,20 @@ export class MockAdminProductApi extends AdminProductApi {
       };
       const changes: string[] = [];
       if (old.title !== updated.title) changes.push('title');
-      if (JSON.stringify(old.variants.map((v) => [v.price.amount, v.stock])) !== JSON.stringify(updated.variants.map((v) => [v.price.amount, v.stock]))) changes.push('price or stock');
+      if (JSON.stringify(old.variants.map((v) => v.price.amount)) !== JSON.stringify(updated.variants.map((v) => v.price.amount))) changes.push('price');
+      const addedVariants = updated.variants.filter((v) => !old.variants.some((e) => e.id === v.id));
+      if (addedVariants.length) changes.push(`${addedVariants.length} new variant(s)`);
       if (entry.status !== input.status) changes.push(`status ${entry.status} to ${input.status}`);
       this.state.update((o) => {
         const isCreated = o.createdProducts.findIndex((p) => p.id === id);
         if (isCreated >= 0) o.createdProducts[isCreated] = updated;
         else o.editedProducts[id] = updated;
         o.productMeta[id] = { status: input.status, updatedAt: nowIso() };
+      });
+      const actor = this.state.require('product:write');
+      // Variants keep the order of the form, so the typed quantity of a new variant sits at the same index.
+      updated.variants.forEach((v, i) => {
+        if (addedVariants.includes(v)) this.state.inventory.receiveOpening(v.id, input.variants[i].stock, [updated], actor.name);
       });
       this.state.record('product.update', updated.title, changes.length ? `Changed ${changes.join(', ')}` : 'Saved without changes');
       const fresh = (await loadProducts(this.state)).find((e) => e.product.id === id) as AdminProduct;
@@ -357,6 +372,12 @@ export class MockAdminOrderApi extends AdminOrderApi {
       const order = found.order;
       if (!ORDER_TRANSITIONS[order.status].includes(status)) throw new ApiException('validation', `An order that is ${order.status.replace('_', ' ')} cannot move to ${status}.`);
       const timeline = [...order.timeline.filter((t) => t.at), { status, label: STATUS_LABEL[status] ?? status, at: nowIso() }];
+      if (status === 'cancelled') {
+        // Cancelling gives the units back: unpaid orders only held a reservation, the rest had sold units.
+        const baselines = (await loadProducts(this.state)).map((e) => e.baseline);
+        if (order.status === 'pending_payment') this.state.inventory.release(id, baselines);
+        else this.state.inventory.restore(id, baselines, order.lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })), this.state.require('order:refund').name);
+      }
       this.state.update((o) => {
         o.orders[id] = { ...(o.orders[id] ?? { notes: [] }), status, timeline };
       });
@@ -534,10 +555,11 @@ export class MockAdminDashboardApi extends AdminDashboardApi {
         }
       }
       const products = await loadProducts(this.state);
-      const lowStock = products
-        .filter((e) => e.status === 'published')
-        .flatMap((e) => e.product.variants.map((v) => ({ title: e.product.title, sku: v.sku, stock: v.stock })))
-        .filter((v) => v.stock <= 5)
+      // Per-variant thresholds and reservations come from the inventory ledger.
+      const lowStock = this.state.inventory
+        .rows(products.filter((e) => e.status === 'published').map((e) => e.baseline))
+        .filter((r) => r.low)
+        .map((r) => ({ title: r.title, sku: r.sku, stock: Math.max(r.available, 0) }))
         .sort((a, b) => a.stock - b.stock || a.title.localeCompare(b.title))
         .slice(0, 8);
 

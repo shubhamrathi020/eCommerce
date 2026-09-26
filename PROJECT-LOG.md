@@ -102,6 +102,14 @@ A plain-English diary of what is being built, why, and which commands were used.
 - The shop server now serves `/robots.txt` and `/sitemap.xml` (380 public URLs; cart, checkout, account and search are excluded).
 - Try it: `pnpm start:admin`, sign in as the demo admin, open Content. Note the admin and shop keep separate mock data in development.
 
+### Step 11: Inventory operations, BRD 11 (2026-09-27)
+- Stock is now trustworthy. Every change is a permanent ledger entry (who, what, why, when); stock on hand is the starting stock plus all entries.
+- Shop side: cash-on-delivery orders take their stock at once. Online orders hold stock for 15 minutes while unpaid, turn it into a sale when payment is verified, and give it back on failure, cancellation or timeout (the unpaid order is then cancelled). Two shoppers can no longer buy the last unit.
+- Admin side: a new Inventory area with the stock table (on hand, reserved, available, low and out of stock), adjust, transfer between two warehouses, low-stock threshold and backorder per variant, the ledger, CSV import and export with an error report, and settings (reservation minutes, default threshold). Low-stock alerts show once per item until restocked.
+- Backorder: a flagged item can be bought at zero stock and the shop says when it ships.
+- Try it: `pnpm start:admin`, sign in as the demo admin, open Inventory. Note the shop and admin keep separate mock data in development.
+- Not done here: emailing staff about low stock (BRD 10), pre-orders as a separate type.
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -158,3 +166,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRD 08 (DevOps foundation) built and committed |
 | 2026-09-27 | BRDs 09 to 25 drafted; verification checklist written |
 | 2026-09-27 | BRD 09 (content and SEO) built and committed |
+| 2026-09-27 | BRD 11 (inventory operations) built and committed; session context file added and kept up to date |

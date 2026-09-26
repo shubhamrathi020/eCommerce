@@ -22,8 +22,8 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | 07 | [Reviews](07-reviews.md) | 1 | Built (mock) | 02, 04, 05, 06 |
 | 08 | [DevOps foundation](08-devops-foundation.md) | 1 | Built (Docker verified; Kubernetes render-checked only) | all apps |
 | 09 | [Content and SEO management](09-content-seo.md) | 1 | Built (mock, placeholders) | 01, 02, 06 |
-| 10 | [Notifications and preferences](10-notifications-preferences.md) | 1 | Draft | 04, 05, 06 |
-| 11 | [Inventory operations](11-inventory-operations.md) | 1 | **Draft, recommended next** | 02, 04, 06 |
+| 10 | [Notifications and preferences](10-notifications-preferences.md) | 1 | **Draft, recommended next** | 04, 05, 06 |
+| 11 | [Inventory operations](11-inventory-operations.md) | 1 | Built (mock) | 02, 04, 06 |
 | 12 | [Frontend hardening and polish](12-frontend-hardening.md) | 1 | Draft (do last in phase 1) | 01 to 11 |
 | 13 | [Returns, refunds and support](13-returns-refunds-support.md) | 2 | Draft | 04, 05, 06, 10, 11 |
 | 14 | [Promotions engine and deals](14-promotions-deals.md) | 2 | Draft | 04, 06 |

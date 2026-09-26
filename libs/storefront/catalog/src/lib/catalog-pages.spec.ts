@@ -4,8 +4,8 @@ import axe from 'axe-core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { APP_CONFIG } from '@ecom/shared/core';
-import { provideDataAccess } from '@ecom/shared/data-access';
-import { MockContentStore } from '@ecom/shared/data-access';
+import { firstValueFrom } from 'rxjs';
+import { CatalogApi, MockContentStore, MockInventoryStore, provideDataAccess } from '@ecom/shared/data-access';
 import { catalogRoutes, homeRoute } from './catalog.routes';
 
 const config = { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop', siteUrl: 'http://x', features: {} };
@@ -17,11 +17,12 @@ async function seriousViolations(root: HTMLElement): Promise<string[]> {
   return results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${v.id}: ${v.nodes[0]?.html.slice(0, 120)}`);
 }
 
-async function open(url: string) {
+async function open(url: string, prepare?: () => Promise<void>) {
   localStorage.clear();
   TestBed.configureTestingModule({
     providers: [provideZonelessChangeDetection(), provideRouter([homeRoute, ...catalogRoutes], withComponentInputBinding()), { provide: APP_CONFIG, useValue: config }, provideDataAccess({ useMocks: true })],
   });
+  await prepare?.();
   const harness = await RouterTestingHarness.create();
   await harness.navigateByUrl(url);
   // Mock data loads through dynamic imports, so allow the resources to settle.
@@ -75,6 +76,28 @@ describe('catalog pages', () => {
     expect(el.textContent?.match(/SKU [\w-]+/)?.[0]).not.toBe(before);
     expect(document.getElementById('seo-jsonld')?.textContent).toContain('"Product"');
   });
+
+  it('product page shows a backorder message and still allows adding to the cart when stock is zero', async () => {
+    const list = await open('/c/laptops');
+    const slug = (list.el.querySelector('ui-product-card h3 a')?.getAttribute('href') ?? '').replace('/p/', '');
+    TestBed.resetTestingModule();
+    const { el } = await open(`/p/${slug}`, async () => {
+      const catalog = TestBed.inject(CatalogApi);
+      const listing = await firstValueFrom(catalog.listing({ categorySlug: 'laptops', filters: {}, sort: 'featured', page: 1, pageSize: 20 }));
+      const summary = listing.items.find((i) => i.slug === slug);
+      const product = (await firstValueFrom(catalog.productsByIds([summary?.id ?? ''])))[0];
+      const store = TestBed.inject(MockInventoryStore);
+      for (const v of product.variants) {
+        if (v.stock > 0) store.adjust({ variantId: v.id, locationId: 'loc-main', kind: 'correction', quantity: -v.stock, reason: 'count_correction' }, [product], 'Test');
+        store.setPolicy(v.id, { backorder: true, expectedDate: '2026-12-01' }, [product]);
+      }
+    });
+    expect(el.textContent).toContain('Backorder');
+    expect(el.textContent).toContain('Ships around 1 Dec 2026');
+    expect(el.textContent).not.toContain('Out of stock');
+    const add = Array.from(el.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Add to cart') as HTMLButtonElement;
+    expect(add.disabled).toBe(false);
+  }, 30000);
 
   it('unknown product shows the not-found page', async () => {
     const { el } = await open('/p/nope');
