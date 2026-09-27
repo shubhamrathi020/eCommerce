@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import type { AccountExport, RegisterRequest, Session, User } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import { ApiException, passwordProblem } from '@ecom/shared/models';
 import { AuthApi } from '../lib/account.api';
 import { MockAddressStore } from './mock-address-book.api';
 import { MockCartState } from './mock-cart-state';
@@ -14,12 +14,8 @@ const PHONE = /^[6-9][0-9]{9}$/;
 const RESET_MINUTES = 30;
 const MINUTE = 60_000;
 
-/** At least 8 characters with upper case, lower case and a digit. */
-export function passwordProblem(password: string): string | null {
-  if (password.length < 8) return 'Use at least 8 characters.';
-  if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) return 'Use upper case, lower case and a number.';
-  return null;
-}
+/** The policy lives in `@ecom/shared/models` so the real API enforces exactly the same rule. */
+export { passwordProblem };
 
 @Injectable()
 export class MockAuthApi extends AuthApi {

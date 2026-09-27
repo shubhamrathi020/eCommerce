@@ -3,7 +3,13 @@ export interface AppConfig {
   useMocks: boolean;
   /** Simulated latency for mock adapters (ms); ignored on the server. */
   mockLatencyMs?: number;
+  /** Base URL of the backend API (e.g. `http://localhost:3333`). Used only by the HTTP adapters. */
   apiBaseUrl: string;
+  /**
+   * Sign-in, account and address book go to the real API (BRD 19) while everything not yet built on the
+   * backend keeps using the mock adapters. `false` (the default) keeps the app fully on mocks.
+   */
+  realAuth?: boolean;
   /** Public Razorpay key id only. Secrets never live in the frontend. */
   razorpayKeyId?: string;
   siteName: string;

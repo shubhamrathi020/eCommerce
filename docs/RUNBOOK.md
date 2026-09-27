@@ -8,7 +8,7 @@ Everyday commands for building, running, testing and deploying the shop. Command
 pnpm install
 ```
 
-Needs Node 22 and pnpm (`corepack enable` picks the pinned version). Docker Desktop is needed for containers.
+Needs Node 22 and pnpm (`corepack enable` picks the pinned version). Docker Desktop is needed for containers and for the database. Copy `apps/api/.env.example` to `apps/api/.env` if you plan to run the API (dev-only values; never real secrets).
 
 ## 2. Run for development
 
@@ -16,6 +16,7 @@ Needs Node 22 and pnpm (`corepack enable` picks the pinned version). Docker Desk
 |---|---|
 | `pnpm start:storefront` | Shop at http://localhost:4200 (live reload, server-side rendering) |
 | `pnpm start:admin` | Admin console at http://localhost:4201 |
+| `pnpm start:api` | Backend API at http://localhost:3333 (needs Postgres running, see §4a) |
 
 Development-only helpers: on the sign-in pages a "Development only: fill demo ..." button fills the seeded demo accounts, and `/dev/mailbox` (storefront) shows the emails the shop would send.
 
@@ -28,6 +29,21 @@ Development-only helpers: on the sign-in pages a "Development only: fill demo ..
 | `pnpm e2e` | Smoke tests in a real browser (Microsoft Edge locally; starts the dev servers if needed) |
 | `pnpm mock-data` | Regenerate the seeded mock catalog, reviews and images |
 
+## 4a. The backend API (BRD 19)
+
+Only sign-in, your profile and your saved addresses run on the real API so far; everything else is still mock data.
+
+```bash
+docker compose up -d postgres redis   # or your own local Postgres/Redis
+pnpm db:migrate                        # first time and after schema changes (prompts for a migration name)
+pnpm db:seed                           # seeds the same demo accounts as the frontend mock
+pnpm start:api                         # http://localhost:3333, docs at /docs, dev mailbox at /dev/outbox
+```
+
+Then set `realAuth: true` in `apps/storefront/src/app/app-config.values.ts` (or `apps/admin/src/app/app.config.ts`) and start that app as usual. Set it back to `false` (the default) to go back to the mock.
+
+`pnpm exec nx test api` runs the API's own integration tests against a **separate** `..._test` database (created automatically); it needs Postgres running but never touches your development data.
+
 ## 4. Containers (Docker)
 
 ```bash
@@ -39,6 +55,9 @@ pnpm docker:down    # stops and removes them
 |---|---|---|---|
 | Storefront (Node, server-side rendering) | http://localhost:4000 | node (uid 1000), read-only filesystem | `/healthz`, `/readyz` |
 | Admin console (nginx, static) | http://localhost:4001 | nginx (uid 101) | `/healthz` |
+| API (NestJS) | http://localhost:3333 | node (uid 1000), read-only filesystem | `/healthz`, `/readyz` |
+| PostgreSQL | localhost:5432 | — | `pg_isready` |
+| Redis | localhost:6379 | — | `redis-cli ping` |
 
 Notes
 - The storefront only answers to hosts listed in `ALLOWED_HOSTS` (comma separated, wildcards like `*.example.com` allowed). Set it for real domains.
@@ -67,6 +86,9 @@ HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop
 
 | Symptom | Likely cause and fix |
 |---|---|
+| API: "Invalid API configuration" on start | A required `.env` value is missing; copy `apps/api/.env.example` to `apps/api/.env` |
+| `pnpm exec nx test api` fails to connect | Postgres is not running: `docker compose up -d postgres` |
+| Docker `shop-api` image: "Cannot find module 'tslib'" | Fixed by `"importHelpers": false` in `apps/api/tsconfig.app.json`; if it recurs, something reintroduced a `tslib` import and the pruned production install has no dev dependencies |
 | `docker` says it cannot connect to the daemon | Docker Desktop is not running; start it and retry |
 | Storefront returns `400 Bad Request` with a "host is not allowed" message | The host name is missing from `ALLOWED_HOSTS` |
 | Admin container keeps restarting | Check `docker compose logs admin` (usually an nginx config error) |
@@ -76,4 +98,4 @@ HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop
 
 ## 7. Not covered yet
 
-Backend services and databases, cloud deployment, Helm, secrets management and observability stacks arrive with the backend phase.
+Catalog, cart, orders and search still run on mock data (BRD 20, 21 move them to the real API). Cloud deployment, Helm, secrets management and observability stacks arrive later in the backend phase (BRD 24, 25).

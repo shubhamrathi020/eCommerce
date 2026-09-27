@@ -32,10 +32,25 @@ services:
       timeout: 3s
       retries: 5
 
+  # One-shot: applies database migrations and seeds the demo accounts, then exits. The API waits for it.
+  api-migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: migrate
+    image: shop-api-migrate:local
+    environment:
+      DATABASE_URL: "postgresql://ecommerce:ecommerce@postgres:5432/ecommerce?schema=public"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+      target: runtime
     image: shop-api:local
     ports:
       - "3333:3333"
@@ -51,6 +66,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      api-migrate:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+      - /tmp
     cap_drop:
       - ALL
     security_opt:

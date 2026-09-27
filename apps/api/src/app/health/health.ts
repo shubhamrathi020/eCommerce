@@ -1,0 +1,48 @@
+import { Controller, Get, HttpCode, Inject, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { ApiExcludeController } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
+import { MailService, type OutboxMail } from '../auth/mail.service';
+import { API_CONFIG, type ApiConfig } from '../config';
+import { PrismaService } from '../prisma/prisma.service';
+
+/** Liveness and readiness for Docker and Kubernetes probes (BF-06). Same paths as the storefront server. */
+@ApiExcludeController()
+@SkipThrottle()
+@Controller()
+export class HealthController {
+  constructor(private readonly db: PrismaService) {}
+
+  /** The process is up. Never touches dependencies, so a database outage does not restart every pod. */
+  @Get('healthz')
+  @HttpCode(200)
+  healthz(): string {
+    return 'ok';
+  }
+
+  /** Ready for traffic only when the database answers. */
+  @Get('readyz')
+  async readyz(): Promise<string> {
+    try {
+      await this.db.$queryRaw`SELECT 1`;
+      return 'ok';
+    } catch {
+      throw new ServiceUnavailableException('database unavailable');
+    }
+  }
+}
+
+/** Development only: the mails the API would have sent (verification and reset links). 404 in production. */
+@ApiExcludeController()
+@Controller('dev')
+export class DevOutboxController {
+  constructor(
+    private readonly mail: MailService,
+    @Inject(API_CONFIG) private readonly config: ApiConfig,
+  ) {}
+
+  @Get('outbox')
+  outbox(): OutboxMail[] {
+    if (this.config.production) throw new NotFoundException();
+    return this.mail.list();
+  }
+}

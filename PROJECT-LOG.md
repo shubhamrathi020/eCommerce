@@ -130,6 +130,14 @@ A plain-English diary of what is being built, why, and which commands were used.
 - While checking that, I re-verified a claim I had made in BRD 12 ("forms are already safe from an accidental early submit") instead of leaving it as an assumption, and it turned out to be wrong under a real, slow-loading test. Fixed properly: a submit button now stays disabled, starting from the very first HTML the server sends, until the app has actually finished loading. Confirmed with the same test that it now works, and that a normally-timed sign-in is unaffected.
 - Your setup checklist (F1 to F4): F2 (Kubernetes) is verified as above. F4 (MongoDB + PostgreSQL) was already the settled decision, nothing to change. F1 (GitHub remote) is configured and reachable; two commits (BRD 10, BRD 12) are not pushed yet — see the note to you. F3 (Razorpay) is ready for when the backend track starts.
 
+### Step 15: Backend foundation and identity API, BRD 19 (2026-09-28) — the backend track begins
+- A real server now exists: `apps/api` (NestJS) with a real PostgreSQL database (Prisma). Sign-in, your profile and your saved addresses can run against it instead of the browser-only mock, one flag away (`realAuth: true` in the storefront/admin config) — everything else keeps using mock data until its own turn.
+- Passwords are properly hashed (Argon2id), sign-in tokens are short-lived and rotate on every refresh, and a stolen/copied refresh token gets caught and signs out that whole sign-in — not just something described in the plan, built and tested.
+- Verified for real, not just with automated tests: ran the storefront against the live API in a browser, signed in, saved an address, and confirmed the row landed in the real database.
+- `docker compose up` now also brings up the database, cache and the API (with a one-time migration-and-seed step first).
+- Try it: `docker compose up -d postgres redis`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm start:api`, then flip `realAuth: true` in `apps/storefront/src/app/app-config.values.ts` and `pnpm start:storefront`.
+- Not built yet: the catalog, cart, orders, search and everything else still run on mock data (that is BRD 20 and 21); no cloud deployment yet.
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -190,3 +198,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRD 10 (notifications and preferences) built and committed |
 | 2026-09-27 | BRD 12 (frontend hardening) built and committed; phase 1 of the frontend complete |
 | 2026-09-27 | Kubernetes manifests applied and verified on a real local cluster; a wrong "already safe" claim about early form submits found and fixed for real |
+| 2026-09-28 | BRD 19 (backend foundation and identity API) built, verified against a real database and a real browser session, and committed — first backend slice |

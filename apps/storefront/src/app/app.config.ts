@@ -1,3 +1,4 @@
+import { provideHttpClient, withFetch } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -17,7 +18,8 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
     ),
     provideCore(APP_CONFIG_VALUES),
-    provideDataAccess({ useMocks: APP_CONFIG_VALUES.useMocks }),
+    provideHttpClient(withFetch()),
+    provideDataAccess({ useMocks: APP_CONFIG_VALUES.useMocks, realAuth: APP_CONFIG_VALUES.realAuth }),
     provideCartFacade(),
   ],
 };

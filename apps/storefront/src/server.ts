@@ -70,6 +70,12 @@ function staticScriptHashes(): string[] | undefined {
 }
 const scriptHashes = staticScriptHashes();
 
+/**
+ * Origin of the backend API when it is not served from this same origin (e.g. `http://localhost:3333` with
+ * `realAuth` on). Only a bare `scheme://host[:port]` is accepted, so the setting cannot widen the policy further.
+ */
+const apiOrigin = /^https?:\/\/[a-z0-9.-]+(:\d+)?$/i.test(process.env['API_ORIGIN'] ?? '') ? process.env['API_ORIGIN'] : undefined;
+
 function buildCsp(nonce: string): string {
   return [
     "default-src 'self'",
@@ -78,7 +84,7 @@ function buildCsp(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self'",
-    "connect-src 'self'",
+    `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

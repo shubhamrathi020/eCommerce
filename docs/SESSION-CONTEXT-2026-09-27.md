@@ -186,3 +186,31 @@ Status now: phase 1 (BRDs 01–12) still complete, and now BRD 08's Kubernetes p
 
 User messages since the previous update:
 - Pasted back checklist items F1–F4 marked "DONE": GitHub repo created, Docker Desktop Kubernetes turned on, Razorpay test account created, and confirmed "MongoDB plus PostgreSQL" for F4.
+
+### After BRD 19: the backend track begins — a real NestJS + PostgreSQL identity API
+
+Trigger: the user confirmed F1–F4 done (GitHub remote created and pushed by the user, Docker Desktop Kubernetes on, Razorpay test account created, MongoDB+PostgreSQL confirmed) — exactly BRD 19's prerequisites — then said "i pushed the commits, now tell me next step." BRD 19 (Backend foundation and identity API) was the clear next step and was built under the user's standing advance approval.
+
+What was built:
+- `apps/api`, a real NestJS server (Nx-generated, tagged `scope:api`, a new eslint boundary rule so it can only ever import `@ecom/shared/models`, never the Angular-only shared libs).
+- Real PostgreSQL via Prisma 7 (the new driver-adapter model: connection config lives in `apps/api/prisma.config.ts`, not in the schema — `datasource.url` in `schema.prisma` is a hard error in Prisma 7 now). Migrations applied with `prisma migrate diff --script` + `prisma migrate deploy` (this shell is non-interactive, so `migrate dev` refuses to run).
+- Auth: register/login/refresh/logout/me/verify-email/password-reset, Argon2id password hashing with a timing-safe dummy-hash comparison for unknown emails, 15-minute JWT access tokens, rotating refresh tokens stored only as SHA-256 hashes and grouped by a "family" — reusing an already-rotated token revokes the whole family (a stolen, copied cookie gets caught). Same lockout policy as the mock (5 attempts / 15 minutes).
+- `permissionsFor()` and `passwordProblem()` relocated out of the mock-only frontend code into `@ecom/shared/models`, so the real backend and the mock frontend now read the exact same source of truth for permissions and password rules.
+- Accounts and address-book endpoints, every query scoped by the signed-in user's own id (tested that one customer cannot reach another's address by guessing an id), account export/delete.
+- Cross-cutting: a global error filter that always returns the existing `ApiError` shape, request-correlation IDs and structured JSON access logs, `/healthz` (no DB) vs `/readyz` (does `SELECT 1`), rate limiting (300/min global, 10/min on auth endpoints), Helmet, an explicit CORS allow-list with credentials, a custom `x-csrf` header required on cookie-authenticated endpoints, OpenAPI docs at `/docs`.
+- Frontend wiring: a new `AppConfig.realAuth` flag (default `false`); when true, only `AuthApi`/`AddressBookApi` switch to real `Http*Api` adapters (a new `ApiClient` holding the access token in memory only, with one transparent refresh-and-retry on 401) — every other module keeps using mocks, bridged by a new `MockUserStore.mirrorSession()`.
+- Docker: `apps/api/Dockerfile` (build/migrate/runtime stages) and new `postgres`/`redis`/`api-migrate`/`api` services in `docker-compose.yml`.
+- Tests: 22 new integration tests in `apps/api` (Vitest + `supertest`, against a real `ecommerce_test` Postgres database) including a dedicated contract suite (`apps/api/test/contract.spec.ts`) that types response-key lists against the shared frontend models, so a field rename on one side that isn't mirrored on the other fails to compile.
+
+Real end-to-end verification, not just automated tests: ran the storefront in a browser with `realAuth: true` against the live API, signed in as the demo customer, added a real address through the UI, and confirmed the row landed in the actual Postgres database with a direct `psql` query; confirmed via the API's own logs that the 401 → refresh → 200 sequence and the address `POST` both really happened. Also ran the full workspace (`lint`, `test`, `build`) across all 16 projects including `api` — green.
+
+Errors hit and fixed along the way (recorded in `steering/memory.md` for next time): Prisma 7's `datasource.url` removal, `dotenv/config`'s cwd resolving to the workspace root instead of `apps/api` under `pnpm exec`, `migrate dev` refusing non-interactive shells, a missing `@prisma/client-runtime-utils` dependency under pnpm's strict `node_modules`, eslint scanning the generated Prisma client by mistake, and a missing `tslib` in the production Docker image (fixed with `"importHelpers": false`).
+
+Files touched this round: the whole new `apps/api/**` tree; `libs/shared/models/src/lib/user.ts` (relocated `permissionsFor`); `libs/shared/data-access/src/mock/demo-accounts.ts` (re-exports it), `.../mock/mock-user-store.ts` (`mirrorSession`), `.../http/api-client.ts` and `.../http/http-auth.api.ts` (new), `.../lib/provide-data-access.ts` (`realAuth` wiring); `apps/storefront/src/app/app-config.values.ts`, `apps/storefront/src/app/app.config.ts`, `apps/storefront/src/server.ts` (CSP), `apps/admin/src/app/app.config.ts`; `docker-compose.yml`, `eslint.config.mjs`, `.gitignore`, `.dockerignore`, `package.json`/`pnpm-lock.yaml`; docs: `brds/19-backend-foundation.md`, `brds/README.md`, `PROJECT-LOG.md`, `steering/memory.md`, `docs/RUNBOOK.md`, `docs/VERIFICATION-CHECKLIST.md`.
+
+Status now: BRD 19 built and verified for identity, accounts and addresses only. Catalog, cart, orders, search and admin data still run entirely on mocks (BRD 20, 21). No Kubernetes manifests for the API yet (left for BRD 25, recorded as a known gap, not silently skipped). Commits are local only, not pushed — per standing instruction, the user pushes.
+
+User messages since the previous update:
+- "i pushed the commits, now tell me next step" (after F1–F4 were confirmed done).
+- (Usage-limit interruption and a model switch mid-session, both handled transparently — see the assistant's own running notes; no separate user decision was needed once told to continue.)
+- "continue" / "Try again" (resuming after the interruptions above).

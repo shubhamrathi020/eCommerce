@@ -87,6 +87,10 @@ Sign in with "fill demo admin" at http://localhost:4201 (admin data is separate 
 | F5 | Choose the cloud provider and rough budget | BRD 25 |
 | F6 | An email sender domain and provider choice | BRD 23 |
 
+## G0. The backend has started (BRD 19, new)
+
+Optional to check now (the frontend still works entirely on mocks without it): `docker compose up -d postgres redis`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm start:api`, set `realAuth: true` in `apps/storefront/src/app/app-config.values.ts`, `pnpm start:storefront`. Sign in as the demo customer, add an address, then check it is really in Postgres: `docker exec -it shop-postgres-1 psql -U ecommerce -d ecommerce -c "select * from saved_addresses;"`. Set `realAuth` back to `false` when done.
+
 ## G. Known limitations to acknowledge (already recorded in each BRD)
 
 1. The admin (port 4201) and the shop (port 4200) have separate mock data, so admin actions do not change the shop in development. A real backend fixes this. (Stock is the one exception: it is shared, so admin stock changes and back-in-stock alerts do work across both.)

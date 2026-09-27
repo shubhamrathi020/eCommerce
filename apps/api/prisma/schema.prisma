@@ -22,18 +22,18 @@ model User {
   email         String    @unique
   phone         String?
   roles         Role[]    @default([customer])
+  /// Argon2id hash (salt and parameters are encoded inside it).
   passwordHash  String
-  passwordSalt  String
   emailVerified Boolean   @default(false)
-  verifyToken   String?   @unique
-  resetToken    String?   @unique
+  /// SHA-256 of the emailed token, never the token itself, so a database leak does not leak live links.
+  verifyTokenHash String? @unique
+  resetTokenHash  String? @unique
   resetExpires  DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   addresses     SavedAddress[]
   refreshTokens RefreshToken[]
-  loginAttempts LoginAttempt?
 
   @@map("users")
 }
@@ -57,11 +57,9 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-/// Brute-force protection, one row per email address (mirrors the mock's `MockUserStore` behaviour).
+/// Brute-force protection, one row per email address whether or not an account exists (mirrors the mock).
 model LoginAttempt {
   email       String    @id
-  userId      String?   @unique
-  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   count       Int       @default(0)
   firstAt     DateTime  @default(now())
   lockedUntil DateTime?

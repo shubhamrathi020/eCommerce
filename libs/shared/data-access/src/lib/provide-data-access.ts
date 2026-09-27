@@ -22,19 +22,21 @@ import { MockCategoryApi } from '../mock/mock-category.api';
 import { MockCmsApi, MockContentApi } from '../mock/mock-content.api';
 import { MockNewsletterApi } from '../mock/mock-newsletter.api';
 import { MockAlertApi, MockNotificationApi, MockPreferenceApi } from '../mock/mock-notification.api';
+import { HttpAddressBookApi, HttpAuthApi } from '../http/http-auth.api';
 
 /**
  * Wires each API contract to its adapter. Only mock adapters exist for now;
  * HTTP adapters are added with the backend and selected by `AppConfig.useMocks`.
  */
-export function provideDataAccess(options: { useMocks: boolean }): EnvironmentProviders {
+export function provideDataAccess(options: { useMocks: boolean; realAuth?: boolean }): EnvironmentProviders {
   if (!options.useMocks) {
-    throw new Error('HTTP adapters are not implemented yet. Set useMocks: true.');
+    throw new Error('Only identity has a real API so far (BRD 19). Keep useMocks: true and set realAuth: true to use it.');
   }
   return makeEnvironmentProviders([
     { provide: CatalogApi, useClass: MockCatalogApi },
-    { provide: AuthApi, useClass: MockAuthApi },
-    { provide: AddressBookApi, useClass: MockAddressBookApi },
+    // Identity is the first module with a real backend; everything else stays on mocks until its BRD lands.
+    { provide: AuthApi, useClass: options.realAuth ? HttpAuthApi : MockAuthApi },
+    { provide: AddressBookApi, useClass: options.realAuth ? HttpAddressBookApi : MockAddressBookApi },
     { provide: ReviewApi, useClass: MockReviewApi },
     { provide: SearchApi, useClass: MockSearchApi },
     { provide: CartApi, useClass: MockCartApi },

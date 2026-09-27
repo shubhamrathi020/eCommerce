@@ -128,6 +128,19 @@ export class MockUserStore {
     this.storage.removeItem(SESSION_KEY);
   }
 
+  /**
+   * Transitional bridge while only identity runs on the real API (`realAuth`): mirrors the real session here so
+   * the mock cart, orders, reviews and admin screens still know who is signed in. The mirrored record holds no
+   * password and cannot be used to sign in to the mock.
+   */
+  mirrorSession(session: Session): void {
+    const { user } = session;
+    const existing = this.users().find((u) => u.id === user.id);
+    const mirrored: StoredUser = { ...(existing ?? { salt: '', passwordHash: '' }), id: user.id, name: user.name, email: user.email, ...(user.phone ? { phone: user.phone } : {}), roles: user.roles, emailVerified: user.emailVerified, createdAt: user.createdAt };
+    this.saveUsers([...this.users().filter((u) => u.id !== user.id), mirrored]);
+    this.write(SESSION_KEY, { userId: user.id, expiresAt: session.expiresAt });
+  }
+
   // ---- brute-force protection ----
   attemptsFor(email: string): AttemptRecord | undefined {
     return this.read<Record<string, AttemptRecord>>(ATTEMPTS_KEY, {})[email.trim().toLowerCase()];

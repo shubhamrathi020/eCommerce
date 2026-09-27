@@ -1,0 +1,22 @@
+import { loadConfig } from './config';
+
+const base = { DATABASE_URL: 'postgresql://x', JWT_ACCESS_SECRET: 'a'.repeat(32), JWT_REFRESH_SECRET: 'b'.repeat(32) };
+
+describe('loadConfig', () => {
+  it('refuses to start without the required settings, listing every problem', () => {
+    expect(() => loadConfig({})).toThrow(/DATABASE_URL is required[\s\S]*JWT_ACCESS_SECRET is required[\s\S]*JWT_REFRESH_SECRET is required/);
+  });
+
+  it('rejects short or identical secrets', () => {
+    expect(() => loadConfig({ ...base, JWT_ACCESS_SECRET: 'short' })).toThrow(/at least 32 characters/);
+    expect(() => loadConfig({ ...base, JWT_REFRESH_SECRET: base.JWT_ACCESS_SECRET })).toThrow(/must differ/);
+  });
+
+  it('parses the origin list and keeps docs off in production unless asked', () => {
+    const config = loadConfig({ ...base, CORS_ORIGINS: ' http://a , http://b ,', NODE_ENV: 'production' });
+    expect(config.corsOrigins).toEqual(['http://a', 'http://b']);
+    expect(config.docs).toBe(false);
+    expect(loadConfig({ ...base, NODE_ENV: 'production', API_DOCS: 'on' }).docs).toBe(true);
+    expect(loadConfig({ ...base, NODE_ENV: 'test' }).rateLimit).toBe(false);
+  });
+});

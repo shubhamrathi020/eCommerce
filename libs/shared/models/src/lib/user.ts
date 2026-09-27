@@ -10,6 +10,13 @@ const ADMIN_PERMISSIONS = ['product:read', 'product:write', 'order:read:any', 'o
  * backend (BRD 19) derive permissions from this, so "the same permission names the frontend already
  * handles" (BF-01, BF-04) is a guarantee, not a convention to remember.
  */
+/** Password policy shared by the mock and the real API: at least 8 characters with upper case, lower case and a digit. */
+export function passwordProblem(password: string): string | null {
+  if (password.length < 8) return 'Use at least 8 characters.';
+  if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) return 'Use upper case, lower case and a number.';
+  return null;
+}
+
 export function permissionsFor(roles: Role[]): string[] {
   const set = new Set<string>(CUSTOMER_PERMISSIONS);
   if (roles.includes('admin')) for (const p of ADMIN_PERMISSIONS) set.add(p);

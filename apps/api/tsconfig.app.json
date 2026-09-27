@@ -6,6 +6,9 @@
     "types": ["node"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    // Inline TypeScript's helpers instead of requiring `tslib`, which is only a dev dependency of the workspace
+    // and so is absent from the production image.
+    "importHelpers": false,
     "target": "es2021",
     "moduleResolution": "bundler"
   },

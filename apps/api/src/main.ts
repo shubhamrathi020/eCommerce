@@ -1,21 +1,17 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
+import 'reflect-metadata';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
+import { configureApp } from './app/configure-app';
+import { loadConfig } from './app/config';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-  Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`,
-  );
+async function bootstrap(): Promise<void> {
+  // Fails fast with a readable list when required settings are missing (never starts half-configured).
+  const config = loadConfig();
+  const app = await NestFactory.create(AppModule.forRoot(config), { bufferLogs: false, bodyParser: false });
+  configureApp(app, config);
+  await app.listen(config.port, '0.0.0.0');
+  Logger.log(`API listening on port ${config.port}${config.docs ? ` (docs at /docs)` : ''}`, 'Bootstrap');
 }
 
-bootstrap();
+void bootstrap();
