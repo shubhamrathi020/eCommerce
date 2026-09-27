@@ -1,12 +1,19 @@
+import { Component, provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import axe from 'axe-core';
 import { provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { APP_CONFIG } from '@ecom/shared/core';
 import { DEMO_ACCOUNTS, provideDataAccess } from '@ecom/shared/data-access';
 import { AuthStore } from '@ecom/shared/state';
 import { ShellLayoutComponent } from './shell-layout';
 
 const demo = DEMO_ACCOUNTS[0];
+
+@Component({ selector: 'app-stub-a', template: `<h1>Page A</h1>` })
+class StubAComponent {}
+@Component({ selector: 'app-stub-b', template: `<h1>Page B</h1>` })
+class StubBComponent {}
 
 describe('ShellLayoutComponent', () => {
   it('renders header, main landmark, footer and category navigation', async () => {
@@ -48,6 +55,31 @@ describe('ShellLayoutComponent', () => {
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('a[href="/notifications"]')).not.toBeNull();
+  });
+
+  it('moves focus to the new page heading after a route change', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideZonelessChangeDetection(),
+        provideRouter([{ path: '', component: ShellLayoutComponent, children: [{ path: '', component: StubAComponent }, { path: 'b', component: StubBComponent }] }]),
+        { provide: APP_CONFIG, useValue: { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop', siteUrl: 'http://x', features: {} } },
+        provideDataAccess({ useMocks: true }),
+      ],
+    });
+    const harness = await RouterTestingHarness.create('/');
+    document.body.appendChild(harness.fixture.nativeElement);
+    for (let i = 0; i < 5; i++) {
+      await harness.fixture.whenStable();
+      harness.detectChanges();
+    }
+
+    await harness.navigateByUrl('/b');
+    for (let i = 0; i < 5; i++) {
+      await harness.fixture.whenStable();
+      harness.detectChanges();
+    }
+    expect(document.activeElement?.textContent).toBe('Page B');
+    expect(document.activeElement?.tagName).toBe('H1');
   });
 
   it('has no serious accessibility violations (structure, names, ARIA)', async () => {

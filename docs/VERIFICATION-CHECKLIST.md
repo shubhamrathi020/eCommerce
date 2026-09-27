@@ -1,6 +1,6 @@
 # Phase 1 Frontend: Verification Checklist and Your To-Do List
 
-Use this to check everything built so far (BRDs 01 to 11) and to give the inputs needed to finish phase 1 (BRD 12). Tick items as you go and tell me anything that looks wrong.
+Phase 1 (BRDs 01 to 12) is complete. Use this to check everything built, and see `docs/ACCESSIBILITY-CHECKLIST.md` for the keyboard and screen-reader pass. Tick items as you go and tell me anything that looks wrong.
 
 ## A. Get it running (10 minutes)
 
@@ -57,8 +57,10 @@ Sign in with "fill demo admin" at http://localhost:4201 (admin data is separate 
 ## D. Look and feel (you decide)
 
 - [ ] Overall design, colours and spacing are acceptable as a base (or list changes).
-- [ ] Mobile: use your browser's phone view on home, listing, product, cart and checkout.
-- [ ] Keyboard only: can you sign in, search and add to cart without a mouse?
+- [ ] Mobile: use your browser's phone view on home, listing, product, cart and checkout. On a listing page, scroll down and use "Load more"; confirm your scroll position doesn't jump.
+- [ ] With items in Compare, open a product page on a phone-width view before deciding the cookie banner: only the cookie banner shows, nothing overlaps it.
+- [ ] Keyboard only: can you sign in, search and add to cart without a mouse? See `docs/ACCESSIBILITY-CHECKLIST.md` for the full pass.
+- [ ] Turn off your Wi-Fi for a moment: an offline banner appears under the header.
 - [ ] Anything confusing, missing or ugly? Write it down, however small.
 
 ## E. Inputs I need from you (so I can finish phase 1)
@@ -90,6 +92,8 @@ Sign in with "fill demo admin" at http://localhost:4201 (admin data is separate 
 1. The admin (port 4201) and the shop (port 4200) have separate mock data, so admin actions do not change the shop in development. A real backend fixes this. (Stock is the one exception: it is shared, so admin stock changes and back-in-stock alerts do work across both.)
 2. All data is mock and lives in your browser storage; clearing site data resets it.
 3. (Fixed in BRD 11) Stock now reduces when an order is placed. While an online order waits for payment, your own cart shows those units as unavailable.
+
+_Items 4 to 10 below were resolved in BRD 12; kept here as a record of what phase 1 closed._
 4. On mobile, the compare bar and the sticky add-to-cart bar can overlap (fixed in BRD 12).
 5. Listings use page links on mobile instead of "load more" (BRD 12).
 6. The shop's first-load JavaScript is about 570 kB (target under 500 kB, BRD 12).
@@ -97,7 +101,9 @@ Sign in with "fill demo admin" at http://localhost:4201 (admin data is separate 
 8. Colour contrast and Lighthouse scores were not measured automatically (BRD 12).
 9. A form submitted before the page finishes loading does a plain reload (BRD 12).
 10. The notification bell refreshes on sign-in, sign-out and opening the notifications page, not by a live push (BRD 10).
+11. Colour-contrast checks and Lighthouse scores are not automated (no CI pipeline exists yet); visual regression testing was left as an open decision for you (BRD 12).
+12. Firefox could not be launched in the sandboxed environment this was built in, so the Firefox browser-test project is configured but unverified here; Chromium, WebKit and three phone/tablet sizes were all confirmed green (BRD 12).
 
 ## H. Phase 1 sign-off
 
-Phase 1 of the frontend is complete when BRDs 09 to 12 are built, all of section B and C pass, section D is acceptable, and section G items 4 to 10 are resolved. Reply with what you verified and what you want changed.
+Phase 1 of the frontend is complete when BRDs 09 to 12 are built (done), all of section B and C pass, section D is acceptable, and section G items 4 to 10 are resolved (done; 11 and 12 are open decisions or environment notes, not blockers). Reply with what you verified and what you want changed — this is the sign-off point for phase 1. Reply with what you verified and what you want changed.

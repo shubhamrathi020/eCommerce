@@ -24,7 +24,7 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | 09 | [Content and SEO management](09-content-seo.md) | 1 | Built (mock, placeholders) | 01, 02, 06 |
 | 10 | [Notifications and preferences](10-notifications-preferences.md) | 1 | Built (mock) | 04, 05, 06 |
 | 11 | [Inventory operations](11-inventory-operations.md) | 1 | Built (mock) | 02, 04, 06 |
-| 12 | [Frontend hardening and polish](12-frontend-hardening.md) | 1 | **Draft, recommended next (last in phase 1)** | 01 to 11 |
+| 12 | [Frontend hardening and polish](12-frontend-hardening.md) | 1 | Built (FH-03, 04, 10 consciously deferred) | 01 to 11 |
 | 13 | [Returns, refunds and support](13-returns-refunds-support.md) | 2 | Draft | 04, 05, 06, 10, 11 |
 | 14 | [Promotions engine and deals](14-promotions-deals.md) | 2 | Draft | 04, 06 |
 | 15 | [Recommendations and personalisation](15-recommendations.md) | 2 | Draft | 02, 03, 05, 10 |
@@ -40,7 +40,7 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | 25 | [Kubernetes, cloud and load testing](25-kubernetes-cloud-load-testing.md) | Backend | Draft | 08, 19 to 24 |
 
 ## Recommended order from here
-1. **Finish phase 1 of the frontend:** 09 Content and SEO, then 11 Inventory operations, then 10 Notifications, then 12 Hardening (last, so it measures everything). These close the remaining "Must" items from the master BR (banners and content, sitemap, notification preferences, stock reasons and real stock reduction).
-2. **Sign-off gate:** you verify phase 1 with `docs/VERIFICATION-CHECKLIST.md`.
+1. ~~Finish phase 1 of the frontend: 09, 11, 10, 12~~ — done. Phase 1 (BRDs 01 to 12) is complete.
+2. **Sign-off gate:** you verify phase 1 with `docs/VERIFICATION-CHECKLIST.md` and `docs/ACCESSIBILITY-CHECKLIST.md`.
 3. **Backend track:** 19, 20, 21 in order (each swaps mock adapters for real ones), then 22 and 23 (performance and messaging), 24 (observability), 25 (Kubernetes, cloud, load tests).
 4. **Phase 2 and 3 frontend (13 to 18)** can run in parallel with the backend track once phase 1 is signed off; 13, 14 and 17 depend on backend rules being real for full value.

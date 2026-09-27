@@ -9,3 +9,5 @@ export * from './lib/provide-core';
 export * from './lib/id-list.store';
 export * from './lib/shopper-stores';
 export * from './lib/cart-facade';
+export * from './lib/bottom-bar.service';
+export * from './lib/network-status.service';

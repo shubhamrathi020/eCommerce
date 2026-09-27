@@ -117,6 +117,14 @@ A plain-English diary of what is being built, why, and which commands were used.
 - Admin "Notifications" area: edit the wording of every message with a live preview and only its own variables allowed, keep every past version and restore one, send yourself a test, and see the delivery log with retry for failures.
 - Try it: sign in as the demo customer, place a cash-on-delivery order, open the bell. As the demo admin, open Notifications to edit a template or see the delivery log.
 
+### Step 13: Frontend hardening and polish, BRD 12 (2026-09-27) — phase 1 complete
+- Fixed bars that could overlap on mobile (cookie banner, compare bar, the product page's sticky "Add to cart") now form one stack; the cookie banner always wins.
+- Mobile listings get a "Load more" button that adds results to the page instead of replacing them, keeps your scroll position, and still uses real, crawlable page links underneath. Found and fixed a real bug along the way (an image loading hint could be applied to the wrong picture once results could be appended).
+- Added an offline banner, and focus now jumps to the new page's heading after every navigation (also wrote `docs/ACCESSIBILITY-CHECKLIST.md` for the keyboard and screen-reader pass a person should still do).
+- Verified rather than assumed: measured the real bundle size (163 kB actually sent over the network, not the bigger "raw" number the build warns about) and adjusted that warning with the reasoning written down; confirmed the safe-before-hydration behaviour Angular already gives us is genuinely in effect; ran the browser test suite on Chromium, Safari (WebKit) and three phone/tablet sizes and confirmed all green (Firefox could not be launched in this sandboxed environment; recorded, not silently skipped).
+- Left undone on purpose, with the reason written in the BRD: colour-contrast checks in the automated suite, Lighthouse scores in CI (no CI pipeline exists yet), and visual regression testing (an open question for you to decide, not assumed).
+- This was the last BRD of phase 1. See `docs/VERIFICATION-CHECKLIST.md` for what to check to sign it off.
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -175,3 +183,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRD 09 (content and SEO) built and committed |
 | 2026-09-27 | BRD 11 (inventory operations) built and committed; session context file added and kept up to date |
 | 2026-09-27 | BRD 10 (notifications and preferences) built and committed |
+| 2026-09-27 | BRD 12 (frontend hardening) built and committed; phase 1 of the frontend complete |

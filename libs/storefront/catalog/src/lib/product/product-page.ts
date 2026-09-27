@@ -1,9 +1,9 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, linkedSignal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { RESPONSE_INIT } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CART_FACADE, CompareStore, RecentlyViewedStore, SeoService, ToastService, WishlistStore } from '@ecom/shared/core';
+import { BottomBarService, CART_FACADE, CompareStore, ConsentService, RecentlyViewedStore, SeoService, ToastService, WishlistStore } from '@ecom/shared/core';
 import { AlertApi, CatalogApi, CategoryApi, LOW_STOCK_THRESHOLD } from '@ecom/shared/data-access';
 import type { AlertKind, AttributeDef, CategoryNode, Product, Variant } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -175,12 +175,14 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
         <app-recently-viewed [excludeId]="p.id" />
       </div>
 
-      <div class="fixed inset-x-0 bottom-0 z-10 flex items-center gap-3 border-t border-border bg-surface p-3 md:hidden">
-        @if (variant(); as v) {
-          <ui-price class="flex-1" [price]="v.price" [mrp]="v.mrp" />
-        }
-        <button uiButton type="button" [disabled]="!canBuy()" (click)="addToCart(p)">Add to cart</button>
-      </div>
+      @if (!consent.needsDecision()) {
+        <div class="fixed inset-x-0 bottom-0 z-10 flex items-center gap-3 border-t border-border bg-surface p-3 md:hidden">
+          @if (variant(); as v) {
+            <ui-price class="flex-1" [price]="v.price" [mrp]="v.mrp" />
+          }
+          <button uiButton type="button" [disabled]="!canBuy()" (click)="addToCart(p)">Add to cart</button>
+        </div>
+      }
     } @else if (resource.status() === 'error') {
       <ui-error-state (retry)="resource.reload()" />
     } @else {
@@ -212,6 +214,8 @@ export class ProductPageComponent {
   private readonly response = inject(RESPONSE_INIT, { optional: true });
   private readonly alertApi = inject(AlertApi);
   protected readonly auth = inject(AuthStore);
+  protected readonly consent = inject(ConsentService);
+  private readonly bottomBar = inject(BottomBarService);
 
   protected readonly lowStock = LOW_STOCK_THRESHOLD;
   private readonly variantParam = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
@@ -295,6 +299,10 @@ export class ProductPageComponent {
         if (redirectedFrom) void this.router.navigate(['/p', product.slug], { replaceUrl: true, queryParamsHandling: 'preserve' });
       }
     });
+
+    // Tells the compare bar to get out of the way on mobile while this page's own sticky bar is showing.
+    effect(() => this.bottomBar.setPrimaryActionVisible(!!this.product() && !this.consent.needsDecision()));
+    inject(DestroyRef).onDestroy(() => this.bottomBar.setPrimaryActionVisible(false));
 
     effect(() => {
       const p = this.product();

@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, signal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, Scroll } from '@angular/router';
 import { RESPONSE_INIT } from '@angular/core';
+import { filter } from 'rxjs';
 import { AnalyticsService, RecentSearchesStore, SeoService } from '@ecom/shared/core';
 import { CatalogApi, SearchApi } from '@ecom/shared/data-access';
-import type { ListingQuery, ListingResult, SortKey } from '@ecom/shared/models';
+import type { ListingQuery, ListingResult, ProductSummary, SortKey } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
 import { BreadcrumbComponent, ButtonComponent, ChipComponent, DrawerComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, NotFoundComponent, PaginationComponent, ProductCardComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { ShopperActions } from '../shopper-actions';
@@ -63,12 +64,12 @@ export type ListingKind = 'category' | 'brand' | 'collection' | 'search';
           <section aria-label="Products" [attr.aria-busy]="result.isLoading()">
             @if (r.items.length) {
               <ul class="grid grid-cols-2 gap-3 transition-opacity md:grid-cols-3 md:gap-4 xl:grid-cols-4" [class.opacity-50]="result.isLoading()">
-                @for (product of r.items; track product.id; let i = $index) {
+                @for (product of listItems(); track product.id) {
                   <li>
                     <ui-product-card
                       class="h-full"
                       [product]="product"
-                      [priority]="i < 4"
+                      [priority]="priorityIds().has(product.id)"
                       [wishlisted]="actions.wishlistIds().includes(product.id)"
                       [comparing]="actions.compareIds().includes(product.id)"
                       (wishlistToggle)="actions.toggleWishlist(product)"
@@ -78,7 +79,23 @@ export type ListingKind = 'category' | 'brand' | 'collection' | 'search';
                   </li>
                 }
               </ul>
-              <ui-pagination class="mt-8" [page]="r.page" [pageSize]="r.pageSize" [total]="r.total" />
+              <ui-pagination class="mt-8 hidden lg:block" [page]="r.page" [pageSize]="r.pageSize" [total]="r.total" />
+              @if (r.page < pages()) {
+                <a
+                  uiButton
+                  variant="secondary"
+                  class="mt-8 block w-full text-center lg:hidden"
+                  [routerLink]="[]"
+                  [queryParams]="{ page: r.page + 1 }"
+                  queryParamsHandling="merge"
+                  (click)="rememberScroll()"
+                  [attr.aria-busy]="result.isLoading()"
+                >
+                  {{ result.isLoading() ? 'Loading…' : 'Load more' }}
+                </a>
+              } @else if (listItems().length > r.pageSize) {
+                <p class="mt-8 text-center text-sm text-text-muted lg:hidden">You've seen every result.</p>
+              }
             } @else {
               <ui-empty-state [title]="kind() === 'search' && !activeCount() ? 'No results for “' + (state().q ?? '') + '”' : 'No products match your filters'" description="Check the spelling, try a more general word, or remove a filter.">
                 @if (activeCount() > 0) {
@@ -157,6 +174,29 @@ export class ListingPageComponent {
     computation: (next, previous) => next ?? previous?.value,
   });
 
+  protected readonly pages = computed(() => Math.max(1, Math.ceil((this.shown()?.total ?? 0) / (this.shown()?.pageSize ?? 1))));
+
+  /** Same filters, sort and search term, ignoring the page number: identifies "still the same listing". */
+  private readonly baseQueryKey = computed(() => {
+    const { page: _page, ...rest } = this.query();
+    return JSON.stringify(rest);
+  });
+
+  /**
+   * On mobile, "Load more" keeps appending pages to this instead of replacing them, so the on-screen
+   * list grows; a real query change (new filters, sort or search) or a page going backwards (the browser
+   * back button) resets it to just that one page, which is the normal, single-page-at-a-time behaviour.
+   * `priorityIds` (the above-the-fold images `NgOptimizedImage` should preload) is fixed at that same
+   * reset and never changes while appending, so an already-rendered image's `priority` input can never
+   * flip after Angular has measured it — that is a runtime error, not just a style choice.
+   */
+  private readonly accumulated = signal<{ key: string; page: number; items: ProductSummary[]; priorityIds: ReadonlySet<string> }>({ key: '', page: 0, items: [], priorityIds: new Set() });
+  protected readonly listItems = computed<ProductSummary[]>(() => {
+    const acc = this.accumulated();
+    return acc.key === this.baseQueryKey() && acc.items.length ? acc.items : (this.shown()?.items ?? []);
+  });
+  protected readonly priorityIds = computed(() => this.accumulated().priorityIds);
+
   protected readonly notFound = computed(() => {
     const error = this.result.error();
     return this.result.status() === 'error' && error instanceof ApiException && error.code === 'not_found';
@@ -186,7 +226,31 @@ export class ListingPageComponent {
 
   protected readonly activeCount = computed(() => this.chips().length);
 
+  private pendingScrollY: number | null = null;
+
   constructor() {
+    // Builds the accumulated mobile "Load more" list; see `accumulated` above for the reset rules.
+    effect(() => {
+      if (!this.result.hasValue()) return;
+      const r = this.result.value();
+      const key = this.baseQueryKey();
+      const page = this.state().page;
+      untracked(() =>
+        this.accumulated.update((acc) => {
+          const append = acc.key === key && page === acc.page + 1;
+          return { key, page, items: append ? [...acc.items, ...r.items] : r.items, priorityIds: append ? acc.priorityIds : new Set(r.items.slice(0, 4).map((p) => p.id)) };
+        }),
+      );
+    });
+    // "Load more" is a real link (crawlable, works without JS); this only stops the router's normal
+    // scroll-to-top for that one navigation, so the shopper stays where they were.
+    this.router.events.pipe(filter((e): e is Scroll => e instanceof Scroll)).subscribe(() => {
+      if (this.pendingScrollY === null) return;
+      const y = this.pendingScrollY;
+      this.pendingScrollY = null;
+      requestAnimationFrame(() => window.scrollTo(0, y));
+    });
+
     effect(() => {
       const r = this.shown();
       const s = this.state();
@@ -238,6 +302,10 @@ export class ListingPageComponent {
   protected removeChip(chip: { key: string; value?: string }): void {
     if (chip.key === 'price') this.update({ ...this.state(), priceMin: undefined, priceMax: undefined, page: 1 });
     else if (chip.value) this.toggleOption(chip.key, chip.value);
+  }
+
+  protected rememberScroll(): void {
+    this.pendingScrollY = window.scrollY;
   }
 
   protected clearAll(): void {

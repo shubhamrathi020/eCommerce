@@ -54,6 +54,32 @@ describe('catalog pages', () => {
     expect(prices).toEqual([...prices].sort((a, b) => a - b));
   });
 
+  it('mobile "load more" appends the next page instead of replacing it, and a filter change starts over', async () => {
+    const { harness, el } = await open('/c/fashion');
+    expect(el.querySelectorAll('ui-product-card')).toHaveLength(24); // first page
+
+    const loadMore = Array.from(el.querySelectorAll('a')).find((a) => a.textContent?.trim() === 'Load more') as HTMLAnchorElement;
+    expect(loadMore.getAttribute('href')).toBe('/c/fashion?page=2'); // a real, crawlable link
+    loadMore.click();
+    for (let i = 0; i < 15; i++) {
+      await harness.fixture.whenStable();
+      await new Promise((r) => setTimeout(r, 20));
+      harness.detectChanges();
+    }
+    expect(el.querySelectorAll('ui-product-card')).toHaveLength(36); // appended, not replaced
+    expect(el.textContent).toContain("You've seen every result");
+
+    // Changing a filter is a different listing: it replaces the list rather than keeps appending.
+    await harness.navigateByUrl('/c/fashion?page=2&brand=nova');
+    for (let i = 0; i < 15; i++) {
+      await harness.fixture.whenStable();
+      await new Promise((r) => setTimeout(r, 20));
+      harness.detectChanges();
+    }
+    const afterFilter = el.querySelectorAll('ui-product-card').length;
+    expect(afterFilter).toBeLessThan(36);
+  }, 30000);
+
   it('unknown category shows the not-found page', async () => {
     const { el } = await open('/c/does-not-exist');
     expect(el.textContent).toContain('We could not find that page');
