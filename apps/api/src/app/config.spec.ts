@@ -1,10 +1,10 @@
 import { loadConfig } from './config';
 
-const base = { DATABASE_URL: 'postgresql://x', JWT_ACCESS_SECRET: 'a'.repeat(32), JWT_REFRESH_SECRET: 'b'.repeat(32) };
+const base = { DATABASE_URL: 'postgresql://x', MONGODB_URL: 'mongodb://x', MEILI_URL: 'http://x', JWT_ACCESS_SECRET: 'a'.repeat(32), JWT_REFRESH_SECRET: 'b'.repeat(32) };
 
 describe('loadConfig', () => {
   it('refuses to start without the required settings, listing every problem', () => {
-    expect(() => loadConfig({})).toThrow(/DATABASE_URL is required[\s\S]*JWT_ACCESS_SECRET is required[\s\S]*JWT_REFRESH_SECRET is required/);
+    expect(() => loadConfig({})).toThrow(/DATABASE_URL is required[\s\S]*MONGODB_URL is required[\s\S]*MEILI_URL is required[\s\S]*JWT_ACCESS_SECRET is required[\s\S]*JWT_REFRESH_SECRET is required/);
   });
 
   it('rejects short or identical secrets', () => {

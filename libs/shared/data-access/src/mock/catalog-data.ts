@@ -1,5 +1,8 @@
-import type { Banner, Brand, Category, Collection, HomeData, Product, Serviceability } from '@ecom/shared/models';
+import type { Banner, Brand, Category, Collection, HomeData, Product } from '@ecom/shared/models';
+import { computeServiceability } from '@ecom/shared/models';
 import type { CatalogData } from './catalog-engine';
+
+export { computeServiceability };
 
 export interface HomeFile {
   banners: Banner[];
@@ -22,16 +25,6 @@ export function loadCatalogData(): Promise<LoadedCatalog> {
     }),
   );
   return dataPromise;
-}
-
-const DAY_MS = 86_400_000;
-
-/** Mock delivery rules by pin-code prefix (shared by the product page and checkout). */
-export function computeServiceability(pincode: string, now = Date.now()): Serviceability {
-  const first = Number(pincode[0]);
-  if (first === 9) return { serviceable: false, pincode };
-  const days = 2 + (first % 4);
-  return { serviceable: true, pincode, estimatedDays: days, estimatedDate: new Date(now + days * DAY_MS).toISOString(), codAvailable: first % 2 === 0 };
 }
 
 /** Public URLs for the sitemap (products, categories, brands, collections and published pages). */

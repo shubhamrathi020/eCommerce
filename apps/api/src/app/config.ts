@@ -3,6 +3,14 @@ export interface ApiConfig {
   port: number;
   production: boolean;
   databaseUrl: string;
+  /** Catalog store (BRD 20): flexible product/category/brand/collection documents. */
+  mongoUrl: string;
+  mongoDbName: string;
+  /** Search engine (BRD 20): typo-tolerant, faceted product search. */
+  meiliUrl: string;
+  meiliMasterKey: string;
+  /** Suffix appended to Meilisearch index names, so `pnpm exec nx test api` never touches dev/prod data. */
+  meiliIndexSuffix: string;
   jwtAccessSecret: string;
   jwtRefreshSecret: string;
   /** Origins allowed to call the API with credentials (the storefront and admin apps). */
@@ -25,6 +33,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     return value ?? '';
   };
   const databaseUrl = need('DATABASE_URL');
+  const mongoUrl = need('MONGODB_URL');
+  const meiliUrl = need('MEILI_URL');
+  const meiliMasterKey = env['MEILI_MASTER_KEY']?.trim() ?? '';
   const jwtAccessSecret = need('JWT_ACCESS_SECRET');
   const jwtRefreshSecret = need('JWT_REFRESH_SECRET');
   for (const [key, value] of [['JWT_ACCESS_SECRET', jwtAccessSecret], ['JWT_REFRESH_SECRET', jwtRefreshSecret]] as const) {
@@ -41,6 +52,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     port: Number(env['PORT'] ?? 3333),
     production,
     databaseUrl,
+    mongoUrl,
+    mongoDbName: env['NODE_ENV'] === 'test' ? 'ecommerce_catalog_test' : (env['MONGODB_DB_NAME']?.trim() ?? 'ecommerce_catalog'),
+    meiliUrl,
+    meiliMasterKey,
+    meiliIndexSuffix: env['NODE_ENV'] === 'test' ? '_test' : '',
     jwtAccessSecret,
     jwtRefreshSecret,
     corsOrigins: (env['CORS_ORIGINS'] ?? '')

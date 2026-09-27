@@ -6,13 +6,15 @@ import { configureApp } from '../src/app/configure-app';
 import { type ApiConfig, loadConfig } from '../src/app/config';
 import { PrismaService } from '../src/app/prisma/prisma.service';
 import { MailService } from '../src/app/auth/mail.service';
-import { TEST_DATABASE_URL } from './global-setup';
+import { MongoService } from '../src/app/catalog/mongo.service';
+import { TEST_DATABASE_URL, TEST_MEILI_URL, TEST_MONGODB_URL } from './global-setup';
 
 export const ORIGIN = 'http://localhost:4200';
 
 export interface TestApp {
   app: INestApplication;
   db: PrismaService;
+  mongo: MongoService;
   mail: MailService;
   http: () => ReturnType<typeof request>;
   close: () => Promise<void>;
@@ -24,6 +26,8 @@ export async function createTestApp(overrides: Partial<ApiConfig> = {}): Promise
     ...loadConfig({
       NODE_ENV: 'test',
       DATABASE_URL: TEST_DATABASE_URL,
+      MONGODB_URL: TEST_MONGODB_URL,
+      MEILI_URL: TEST_MEILI_URL,
       JWT_ACCESS_SECRET: 'test-access-secret-that-is-at-least-32-chars',
       JWT_REFRESH_SECRET: 'test-refresh-secret-that-is-at-least-32-char',
       CORS_ORIGINS: ORIGIN,
@@ -35,7 +39,7 @@ export async function createTestApp(overrides: Partial<ApiConfig> = {}): Promise
   configureApp(app, config);
   await app.init();
   const db = app.get(PrismaService);
-  return { app, db, mail: app.get(MailService), http: () => request(app.getHttpServer()), close: () => app.close() };
+  return { app, db, mongo: app.get(MongoService), mail: app.get(MailService), http: () => request(app.getHttpServer()), close: () => app.close() };
 }
 
 export async function resetDatabase(db: PrismaService): Promise<void> {

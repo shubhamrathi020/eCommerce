@@ -1,6 +1,7 @@
 # Run the whole shop locally:  docker compose up --build
 #   Storefront: http://localhost:4000      Admin console: http://localhost:4001      API: http://localhost:3333
-# Backend services (queue, search) are added here as they are built.
+#   Meilisearch: http://localhost:7700     Mongo: localhost:27017
+# Messaging (RabbitMQ) is added here when BRD 23 builds it.
 name: shop
 
 services:
@@ -32,6 +33,57 @@ services:
       timeout: 3s
       retries: 5
 
+  # Catalog store (BRD 20, CS-01): flexible product/category attributes, as decided in BRD 19's F4.
+  mongo:
+    image: mongo:8
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand('ping').ok"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Search engine (BRD 20, CS-03): typo-tolerant, faceted product search.
+  meilisearch:
+    image: getmeili/meilisearch:v1.54
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_ENV: "development"
+    volumes:
+      - meili-data:/meili_data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:7700/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # One-shot: loads the 252 seeded products (+ categories, brands, collections, reviews) into Mongo and
+  # builds the Meilisearch index, then exits. The API waits for it. Safe to re-run (every write is an
+  # upsert/replace), so it also runs on every `docker compose up`, not only the first time.
+  catalog-seed:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: migrate
+    image: shop-api-migrate:local
+    entrypoint: ["node", "--import", "tsx", "apps/api/scripts/seed-catalog.ts"]
+    environment:
+      MONGODB_URL: "mongodb://mongo:27017"
+      MEILI_URL: "http://meilisearch:7700"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    restart: "no"
+
   # One-shot: applies database migrations and seeds the demo accounts, then exits. The API waits for it.
   api-migrate:
     build:
@@ -59,6 +111,8 @@ services:
       NODE_ENV: production
       DATABASE_URL: "postgresql://ecommerce:ecommerce@postgres:5432/ecommerce?schema=public"
       REDIS_URL: "redis://redis:6379"
+      MONGODB_URL: "mongodb://mongo:27017"
+      MEILI_URL: "http://meilisearch:7700"
       # Dev-only defaults so the stack runs out of the box; override for anything beyond local use.
       JWT_ACCESS_SECRET: "dev-only-access-secret-change-me-please-32chars"
       JWT_REFRESH_SECRET: "dev-only-refresh-secret-change-me-please-32chr"
@@ -67,6 +121,8 @@ services:
       postgres:
         condition: service_healthy
       api-migrate:
+        condition: service_completed_successfully
+      catalog-seed:
         condition: service_completed_successfully
     read_only: true
     tmpfs:
@@ -130,3 +186,5 @@ services:
 
 volumes:
   postgres-data:
+  mongo-data:
+  meili-data:

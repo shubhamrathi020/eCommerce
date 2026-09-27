@@ -2,6 +2,8 @@ import { Controller, Get, HttpCode, Inject, NotFoundException, ServiceUnavailabl
 import { ApiExcludeController } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import { MailService, type OutboxMail } from '../auth/mail.service';
+import { MongoService } from '../catalog/mongo.service';
+import { SearchService } from '../catalog/search.service';
 import { API_CONFIG, type ApiConfig } from '../config';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -10,23 +12,27 @@ import { PrismaService } from '../prisma/prisma.service';
 @SkipThrottle()
 @Controller()
 export class HealthController {
-  constructor(private readonly db: PrismaService) {}
+  constructor(
+    private readonly db: PrismaService,
+    private readonly mongo: MongoService,
+    private readonly search: SearchService,
+  ) {}
 
-  /** The process is up. Never touches dependencies, so a database outage does not restart every pod. */
+  /** The process is up. Never touches dependencies, so an outage does not restart every pod. */
   @Get('healthz')
   @HttpCode(200)
   healthz(): string {
     return 'ok';
   }
 
-  /** Ready for traffic only when the database answers. */
+  /** Ready for traffic only when every store the API depends on answers. */
   @Get('readyz')
   async readyz(): Promise<string> {
     try {
-      await this.db.$queryRaw`SELECT 1`;
+      await Promise.all([this.db.$queryRaw`SELECT 1`, this.mongo.ping(), this.search.health()]);
       return 'ok';
     } catch {
-      throw new ServiceUnavailableException('database unavailable');
+      throw new ServiceUnavailableException('a dependency is unavailable');
     }
   }
 }
