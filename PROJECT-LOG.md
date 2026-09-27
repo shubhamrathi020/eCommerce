@@ -110,6 +110,13 @@ A plain-English diary of what is being built, why, and which commands were used.
 - Try it: `pnpm start:admin`, sign in as the demo admin, open Inventory. Note the shop and admin keep separate mock data in development.
 - Not done here: emailing staff about low stock (BRD 10), pre-orders as a separate type.
 
+### Step 12: Notifications and preferences, BRD 10 (2026-09-27)
+- A notification bell in the shop header (signed-in shoppers) with an unread badge, a full list at `/notifications`, and mark read/mark all read.
+- Preferences at `/account/preferences`: marketing (with a consent date), back-in-stock alerts and price-drop alerts; order updates always reach you and are shown as such rather than a toggle. A working one-click unsubscribe link (`/unsubscribe?token=...`) turns off one channel without signing in.
+- "Notify me" on out-of-stock products and "Alert me on price drop" on the product page; manage them at `/account/alerts`.
+- Admin "Notifications" area: edit the wording of every message with a live preview and only its own variables allowed, keep every past version and restore one, send yourself a test, and see the delivery log with retry for failures.
+- Try it: sign in as the demo customer, place a cash-on-delivery order, open the bell. As the demo admin, open Notifications to edit a template or see the delivery log.
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -167,3 +174,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRDs 09 to 25 drafted; verification checklist written |
 | 2026-09-27 | BRD 09 (content and SEO) built and committed |
 | 2026-09-27 | BRD 11 (inventory operations) built and committed; session context file added and kept up to date |
+| 2026-09-27 | BRD 10 (notifications and preferences) built and committed |

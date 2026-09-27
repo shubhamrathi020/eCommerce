@@ -2,8 +2,11 @@ import { TestBed } from '@angular/core/testing';
 import axe from 'axe-core';
 import { provideRouter } from '@angular/router';
 import { APP_CONFIG } from '@ecom/shared/core';
-import { provideDataAccess } from '@ecom/shared/data-access';
+import { DEMO_ACCOUNTS, provideDataAccess } from '@ecom/shared/data-access';
+import { AuthStore } from '@ecom/shared/state';
 import { ShellLayoutComponent } from './shell-layout';
+
+const demo = DEMO_ACCOUNTS[0];
 
 describe('ShellLayoutComponent', () => {
   it('renders header, main landmark, footer and category navigation', async () => {
@@ -26,6 +29,25 @@ describe('ShellLayoutComponent', () => {
     expect(el.querySelector('a[href="#main"]')?.textContent).toContain('Skip to main content');
     expect(el.querySelectorAll('nav[aria-label="Categories"] button').length).toBeGreaterThanOrEqual(8);
     expect(el.querySelector('app-cookie-banner section')).not.toBeNull();
+    expect(el.querySelector('a[aria-label="Notifications"]')).toBeNull(); // signed out: no bell
+  });
+
+  it('shows the notification bell once signed in', async () => {
+    TestBed.configureTestingModule({
+      imports: [ShellLayoutComponent],
+      providers: [
+        provideRouter([]),
+        { provide: APP_CONFIG, useValue: { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop', siteUrl: 'http://x', features: {} } },
+        provideDataAccess({ useMocks: true }),
+      ],
+    });
+    await TestBed.inject(AuthStore).login(demo.email, demo.password);
+    await TestBed.compileComponents();
+    const fixture = TestBed.createComponent(ShellLayoutComponent);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('a[href="/notifications"]')).not.toBeNull();
   });
 
   it('has no serious accessibility violations (structure, names, ARIA)', async () => {

@@ -1,7 +1,9 @@
 import { EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
 import { AdminContentApi } from './content.api';
 import { AdminInventoryApi } from './inventory.api';
+import { AdminNotificationApi } from './notification.api';
 import { MockAdminInventoryApi } from '../mock/admin/mock-admin-inventory.api';
+import { MockAdminNotificationApi } from '../mock/admin/mock-admin-notification.api';
 import { MockAdminContentApi } from '../mock/admin/mock-admin-content.api';
 import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, AdminReviewApi, AdminUserApi, AuditApi } from './admin.api';
 import { MockAdminCouponApi, MockAdminDashboardApi, MockAdminOrderApi, MockAdminProductApi, MockAdminReviewApi, MockAdminUserApi, MockAuditApi } from '../mock/admin/mock-admin.api';
@@ -16,6 +18,7 @@ export function provideAdminDataAccess(options: { useMocks: boolean }): Environm
     { provide: AdminUserApi, useClass: MockAdminUserApi },
     { provide: AdminContentApi, useClass: MockAdminContentApi },
     { provide: AdminInventoryApi, useClass: MockAdminInventoryApi },
+    { provide: AdminNotificationApi, useClass: MockAdminNotificationApi },
     { provide: AdminReviewApi, useClass: MockAdminReviewApi },
     { provide: AdminDashboardApi, useClass: MockAdminDashboardApi },
     { provide: AuditApi, useClass: MockAuditApi },

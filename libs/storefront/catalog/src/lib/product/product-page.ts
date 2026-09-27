@@ -4,9 +4,11 @@ import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { RESPONSE_INIT } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CART_FACADE, CompareStore, RecentlyViewedStore, SeoService, ToastService, WishlistStore } from '@ecom/shared/core';
-import { CatalogApi, CategoryApi, LOW_STOCK_THRESHOLD } from '@ecom/shared/data-access';
-import type { AttributeDef, CategoryNode, Product, Variant } from '@ecom/shared/models';
+import { AlertApi, CatalogApi, CategoryApi, LOW_STOCK_THRESHOLD } from '@ecom/shared/data-access';
+import type { AlertKind, AttributeDef, CategoryNode, Product, Variant } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
+import { AuthStore } from '@ecom/shared/state';
+import { firstValueFrom } from 'rxjs';
 import { BadgeComponent, BreadcrumbComponent, ButtonComponent, ErrorStateComponent, GalleryComponent, NotFoundComponent, PriceComponent, QuantityStepperComponent, RatingComponent, SkeletonComponent, TabDirective, TabsComponent } from '@ecom/shared/ui';
 import { signal } from '@angular/core';
 import { ProductRowComponent } from '../product-row/product-row';
@@ -113,6 +115,12 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
           <div class="flex flex-wrap gap-3">
             <button uiButton variant="ghost" type="button" [attr.aria-pressed]="wishlisted()" (click)="toggleWishlist(p)">{{ wishlisted() ? 'Saved to wishlist' : 'Add to wishlist' }}</button>
             <button uiButton variant="ghost" type="button" [attr.aria-pressed]="comparing()" (click)="toggleCompare(p)">{{ comparing() ? 'Remove from compare' : 'Compare' }}</button>
+            @if (auth.loggedIn() && variant(); as v) {
+              @if (v.stock === 0 && !v.backorder) {
+                <button uiButton variant="ghost" type="button" [attr.aria-pressed]="isSubscribed('back_in_stock')" [loading]="alertBusy() === 'back_in_stock'" (click)="toggleAlert('back_in_stock', v.id)">{{ isSubscribed('back_in_stock') ? "You'll be notified when it's back" : 'Notify me when back in stock' }}</button>
+              }
+              <button uiButton variant="ghost" type="button" [attr.aria-pressed]="isSubscribed('price_drop')" [loading]="alertBusy() === 'price_drop'" (click)="toggleAlert('price_drop', v.id)">{{ isSubscribed('price_drop') ? "You'll be alerted on a price drop" : 'Alert me on price drop' }}</button>
+            }
           </div>
 
           <app-delivery-check />
@@ -202,6 +210,8 @@ export class ProductPageComponent {
   private readonly compare = inject(CompareStore);
   private readonly recent = inject(RecentlyViewedStore);
   private readonly response = inject(RESPONSE_INIT, { optional: true });
+  private readonly alertApi = inject(AlertApi);
+  protected readonly auth = inject(AuthStore);
 
   protected readonly lowStock = LOW_STOCK_THRESHOLD;
   private readonly variantParam = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
@@ -243,6 +253,13 @@ export class ProductPageComponent {
     const p = this.product();
     return !!p && this.compare.ids().includes(p.id);
   });
+
+  private readonly alertsResource = rxResource({ params: () => (this.auth.loggedIn() ? true : undefined), stream: () => this.alertApi.list() });
+  protected readonly alertBusy = signal<AlertKind | null>(null);
+  protected isSubscribed(kind: AlertKind): boolean {
+    const v = this.variant();
+    return !!v && (this.alertsResource.hasValue() ? this.alertsResource.value() : []).some((a) => a.kind === kind && a.variantId === v.id);
+  }
 
   protected readonly crumbs = computed(() => {
     const p = this.product();
@@ -390,5 +407,24 @@ export class ProductPageComponent {
   protected toggleCompare(p: Product): void {
     if (this.compare.has(p.id)) this.compare.remove(p.id);
     else if (!this.compare.add(p.id)) this.toast.error(`You can compare up to ${this.compare.limit} products. Remove one first.`);
+  }
+
+  protected async toggleAlert(kind: AlertKind, variantId: string): Promise<void> {
+    const existing = (this.alertsResource.hasValue() ? this.alertsResource.value() : []).find((a) => a.kind === kind && a.variantId === variantId);
+    this.alertBusy.set(kind);
+    try {
+      if (existing) {
+        await firstValueFrom(this.alertApi.remove(existing.id));
+        this.toast.info('Alert removed');
+      } else {
+        await firstValueFrom(this.alertApi.subscribe(kind, variantId));
+        this.toast.success(kind === 'back_in_stock' ? "We'll email you when it's back in stock" : "We'll email you if the price drops");
+      }
+      this.alertsResource.reload();
+    } catch (e) {
+      this.toast.error(e instanceof ApiException ? e.message : 'Could not save that alert.');
+    } finally {
+      this.alertBusy.set(null);
+    }
   }
 }

@@ -13,6 +13,10 @@ export const accountRoutes: Route[] = [
   { path: 'account/profile', canActivate: [authGuard], loadComponent: () => import('./pages/profile-page').then((m) => m.ProfilePageComponent) },
   { path: 'account/addresses', canActivate: [authGuard], loadComponent: () => import('./pages/addresses-page').then((m) => m.AddressesPageComponent) },
   { path: 'account/privacy', canActivate: [authGuard], loadComponent: () => import('./pages/privacy-page').then((m) => m.PrivacyPageComponent) },
+  { path: 'account/preferences', canActivate: [authGuard], loadComponent: () => import('./pages/preferences-page').then((m) => m.PreferencesPageComponent) },
+  { path: 'account/alerts', canActivate: [authGuard], loadComponent: () => import('./pages/alerts-page').then((m) => m.AlertsPageComponent) },
+  { path: 'notifications', canActivate: [authGuard], loadComponent: () => import('./pages/notifications-page').then((m) => m.NotificationsPageComponent) },
+  { path: 'unsubscribe', loadComponent: () => import('./pages/unsubscribe-page').then((m) => m.UnsubscribePageComponent) },
   { path: 'wishlist', loadComponent: () => import('./pages/wishlist-page').then((m) => m.WishlistPageComponent) },
   ...(isDevMode() ? [{ path: 'dev/mailbox', loadComponent: () => import('./pages/mailbox-page').then((m) => m.MailboxPageComponent) }] : []),
 ];

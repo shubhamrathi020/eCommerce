@@ -104,3 +104,40 @@ Next: BRD 10 (Notifications and preferences, marked "recommended next" in `brds/
 
 User messages since the first snapshot:
 - "yeah. commit in next BRD and this session compact file will also be keep updating with the new context"
+
+### After BRD 10: Notifications and preferences (mock)
+
+What was built (details in `brds/10-notifications-preferences.md` change log):
+- `libs/shared/models/src/lib/notification.ts`: `NotificationPreferences`, `AppNotification`, `AlertKind`/`AlertSubscription`, `MessageTemplate`/`MessageTemplateVersion`, `DeliveryLogEntry`/`DeliveryQuery`.
+- `libs/shared/data-access/src/mock/notification-store.ts`: `MockNotificationStore` (root-provided, one key `ecom.mock.notifications.v1`) — bell entries, preferences, alert subscriptions, 9 seeded message templates (with version history), a seeded delivery log (2 sent, 1 failed). Key methods: `notify`/`markRead`/`markAllRead`, `preferences`/`savePreferences`/`unsubscribeToken`/`unsubscribe` (signed `userId:channel` token, a checksum stand-in for HMAC), `subscribe`/`removeAlert`/`checkAlerts` (fires back-in-stock once, price-drop repeatedly from a new baseline), `templates`/`saveTemplate` (rejects unknown `{{variables}}`)/`restoreVersion`, `deliver` (renders a template, mails via `MockMailbox`, logs delivery, pushes a bell entry when `userId` is given), `sendTest`, `retry`.
+- Storefront APIs: `PreferenceApi`, `AlertApi`, `NotificationApi` (`lib/notification.api.ts`, mocks in `mock/mock-notification.api.ts`) — all need a signed-in session except `unsubscribe(token)`.
+- Admin API: `AdminNotificationApi` (same file) / `mock/admin/mock-admin-notification.api.ts`, permission `notification:manage` (added to the demo admin); CSV-style helpers not needed here (reuses inventory's `parseCsv`/`csvCell` pattern only where relevant — actually not used by this BRD).
+- Triggers wired in: `mock-order.api.ts` (placed/cancelled), `mock-payment.api.ts` (paid), `mock-admin.api.ts` `MockAdminOrderApi.advance()` (packed/shipped/delivered/cancelled) and `MockAdminProductApi.update()` (price cut → `checkAlerts` immediately, since admin edits are not visible to the shop's own catalog reads — see the limitation below), `mock-review.api.ts` `submit()` (review status). `mock-catalog.api.ts`'s shared `run()` calls `notifications.checkAlerts(stockedProducts)` on every catalog read (home/listing/product/search) — the "polling" this mock uses for back-in-stock.
+- Shared state: `libs/shared/state/src/lib/notification.store.ts` — `NotificationStore` (signal-backed unread count + list); `AuthStore` calls `notifications.refresh(loggedIn)` after login/logout and on init, so the header badge updates without a reload.
+- Shop UI: header bell (`libs/storefront/shell/src/lib/header/header.ts`, signed-in only) linking to `/notifications`; new pages `preferences-page.ts`, `notifications-page.ts`, `alerts-page.ts`, `unsubscribe-page.ts` under `libs/storefront/account`; routes `/account/preferences`, `/account/alerts`, `/notifications` (guarded) and `/unsubscribe` (public); "Notify me"/"Alert me on price drop" buttons on `product-page.ts`; new `bell`/`mail`/`trash` icons in `IconComponent`.
+- Admin UI: `libs/admin/console/src/lib/notifications/{notifications-layout,templates-page,delivery-log-page}.ts`; routes under `notifications`, permission `notification:manage`; nav item "Notifications".
+- Tests: `mock/notification.spec.ts` (15 tests: preferences, unsubscribe token, alert triggers including the admin-save price-drop path, the bell, review-status, admin templates/versioning/send-test/delivery-log/retry), storefront UI tests in `account-flow.spec.ts` (4 new) and `catalog-pages.spec.ts` (1 new), a header test in `shell.spec.ts`, and an admin UI test in `admin-flow.spec.ts`. All 14 projects lint, test and build green.
+
+Errors met and fixed this round:
+- `admin-state.ts` `require()` only returned `{id, name}`; `sendTest` needed the admin's email, so it now also returns `email`.
+- A misplaced `const` split a class from its `@Injectable()` decorator ("Decorators are not valid here") — fixed by moving the constant above the decorator, not between it and the class.
+- Two `transact()` callbacks in the notification store returned `void` where `AlertSubscription[]` was declared — fixed by returning the filtered list.
+- Production build (`prod` template checking) flagged `resource.value()` as possibly `undefined` on the preferences page where dev mode didn't; fixed by narrowing with `@if (prefs(); as p)` instead of repeated `prefs()` calls, and using `toSignal(control.valueChanges)` instead of reading `.value` inside a `computed()` (a plain property read is not reactive, so the live preview would never update from typing).
+- First test attempt at an inventory correction used a quantity larger than the location actually held ("Only 9 unit(s)... cannot go below zero"); fixed by reading the exact on-hand figure first.
+- A price-drop test tried to trigger via an admin product edit, then read the shop's catalog to see it — but admin product edits are **not** visible to the shop's own catalog reads in this mock (a pre-existing, documented limitation: only the stock ledger is shared between admin and shop, not product records). Fixed the actual feature (not just the test): `MockAdminProductApi.update()` now calls `checkAlerts` itself right when a price drops, rather than relying on a later shop-side read that would never see the change.
+- `reviews-flow.spec.ts` and one `catalog-pages.spec.ts` test timed out (5000ms) only when three projects' test suites ran concurrently (CPU contention) — confirmed flaky, not a regression, by re-running `storefront-catalog` alone (20/20 green).
+- An alerts-page image-only `<a>` failed axe's "link-name" check; fixed like `cart-line.ts` does, by making the decorative image link `aria-hidden`/`tabindex="-1"` and letting the adjacent text link carry the accessible name.
+- `NotificationsPageComponent` showed stale (empty) data because `NotificationStore` only refreshes on sign-in/out, not on new orders placed via direct API calls; fixed by calling `store.refresh(true)` when the notifications page opens.
+
+Decisions:
+- Order/security/payment messages are not a preference toggle — always on, shown as a disabled "Always on" row.
+- Marketing defaults to off; alerts default to on. Answers BRD 10's open question ("marketing off by default") as proposed.
+- No SMS/WhatsApp (out of scope, per BRD 10 answering its second open question by deferring).
+- `steering/memory.md` gained two rules: notification sends must go through the store's `deliver()` (never `MockMailbox` directly), and the cross-app data gap (admin edits invisible to the shop) with the one exception (shared inventory ledger).
+
+Status now: BRDs 01 to 11 built; only BRD 12 (Hardening) remains in phase 1. `docs/VERIFICATION-CHECKLIST.md` has new items B16 and C11 for notifications, and known-limit #10 about the bell not being a live push.
+
+Next: BRD 12 (Frontend hardening and polish) — the user asked to do BRD 10 then BRD 12, so this is next, followed by the user's sign-off using `docs/VERIFICATION-CHECKLIST.md`.
+
+User messages since the previous update:
+- "okay go ahead with BRD 10 then BRD 12"

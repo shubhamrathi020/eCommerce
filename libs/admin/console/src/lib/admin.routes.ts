@@ -47,6 +47,16 @@ export const adminRoutes: Route[] = [
           { path: 'settings', loadComponent: () => import('./inventory/settings-page').then((m) => m.SettingsPageComponent) },
         ],
       },
+      {
+        path: 'notifications',
+        canActivate: [permissionGuard('notification:manage')],
+        loadComponent: () => import('./notifications/notifications-layout').then((m) => m.NotificationsLayoutComponent),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'templates' },
+          { path: 'templates', loadComponent: () => import('./notifications/templates-page').then((m) => m.TemplatesPageComponent) },
+          { path: 'log', loadComponent: () => import('./notifications/delivery-log-page').then((m) => m.DeliveryLogPageComponent) },
+        ],
+      },
       { path: 'reviews', canActivate: [permissionGuard('review:moderate')], loadComponent: () => import('./pages/reviews-page').then((m) => m.ReviewsPageComponent) },
       { path: 'coupons', canActivate: [permissionGuard('coupon:write')], loadComponent: () => import('./pages/coupons-page').then((m) => m.CouponsPageComponent) },
       { path: 'users', canActivate: [permissionGuard('user:read')], loadComponent: () => import('./pages/users-page').then((m) => m.UsersPageComponent) },

@@ -5,6 +5,7 @@ import { ReviewApi } from '../lib/review.api';
 import { createMockResponder } from './mock-latency';
 import { MockOrderStore } from './mock-order-store';
 import { MockReviewStore, type StoredReview, reviewFlag } from './mock-review-store';
+import { MockNotificationStore } from './notification-store';
 import { MockUserStore } from './mock-user-store';
 
 export const REVIEW_LIMITS = { titleMax: 80, bodyMin: 10, bodyMax: 1000 };
@@ -32,6 +33,7 @@ export class MockReviewApi extends ReviewApi {
   private readonly users = inject(MockUserStore);
   private readonly store = inject(MockReviewStore);
   private readonly orders = inject(MockOrderStore);
+  private readonly notifications = inject(MockNotificationStore);
 
   private requireUser() {
     const session = this.users.session();
@@ -78,6 +80,8 @@ export class MockReviewApi extends ReviewApi {
         ...(flagReason ? { flagReason } : {}),
       };
       this.store.write({ ...overlay, reviews: [review, ...overlay.reviews] });
+      // No product slug is available here, only its id, so the notification carries no link.
+      this.notifications.deliver('review_status', user.email, { name: user.name, title: review.title, status: flagReason ? 'is awaiting a quick check before it goes live' : 'is now live on the product page' }, { userId: user.id });
       return this.store.view(review);
     });
   }

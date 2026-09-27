@@ -5,6 +5,7 @@ import { AuthApi } from '@ecom/shared/data-access';
 import type { RegisterRequest, Session } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
 import { CartStore } from './cart.store';
+import { NotificationStore } from './notification.store';
 
 export interface AuthResult<T = void> {
   ok: boolean;
@@ -20,6 +21,7 @@ export interface AuthResult<T = void> {
 export class AuthStore {
   private readonly api = inject(AuthApi);
   private readonly cart = inject(CartStore);
+  private readonly notifications = inject(NotificationStore);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   private readonly _session = signal<Session | null>(null);
@@ -47,6 +49,7 @@ export class AuthStore {
       } catch {
         this._session.set(null);
       }
+      await this.notifications.refresh(this.loggedIn());
       this._ready.set(true);
     })();
     return this.initPromise;
@@ -82,6 +85,7 @@ export class AuthStore {
   private async afterSessionChange(): Promise<void> {
     // The cart belongs to whoever is signed in (guest carts are merged on sign in).
     await this.cart.refresh();
+    await this.notifications.refresh(this.loggedIn());
   }
 
   private async run(request: Observable<Session | void>): Promise<AuthResult> {

@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Status | Draft (planned, not built) |
-| Version | 0.1 (2026-09-27) |
+| Status | Implemented (mock adapters) |
+| Version | 0.2 (2026-09-27) |
 | Phase | Phase 1 (frontend completion) |
 | Covers (master BR) | NTF-01..07, ENG-05, AUTH-10 (preferences), NFR-SEC (consent) |
 | Depends on | BRD 04, 05, 06 |
@@ -53,3 +53,12 @@ Notification centre polls or receives pushed updates (server events later); temp
 | Date | Change | Why |
 |---|---|---|
 | 2026-09-27 | Initial draft for review | Planning of the remaining work |
+| 2026-09-27 | Built NC-01..NC-08 on mock adapters. One shared store (`MockNotificationStore`) holds preferences, alert subscriptions, the notification bell, message templates (with version history) and the delivery log; the shop and admin both read it | Slice built |
+| 2026-09-27 | Preferences: order updates are not a toggle (always on, per the business rule); marketing, back-in-stock and price-drop alerts are separate switches, marketing records a consent timestamp that clears when turned off | NC-01 |
+| 2026-09-27 | One-click unsubscribe: a signed link (`userId:channel` plus a checksum, this mock's stand-in for a real HMAC token) works at `/unsubscribe` without signing in and turns off just that channel; the preferences page can show your own link for testing since there is no real email client here | NC-02 |
+| 2026-09-27 | Notification bell in the header (signed-in shoppers only): unread badge, `/notifications` list, mark one or all as read. Fed by order placed/paid/packed/shipped/delivered/cancelled, review status after a submission, and the two alert kinds | NC-03 |
+| 2026-09-27 | "Notify me" (out-of-stock products only) and "Alert me on price drop" buttons on the product page, gated on the matching preference being on; `/account/alerts` lists and removes subscriptions | NC-04 |
+| 2026-09-27 | Triggering (NC-05): back-in-stock fires once (then the subscription is used up) and is checked whenever the shop reads the catalog, since that is this mock's stand-in for a live stock feed; stock itself is shared between the shop and admin through the BRD 11 ledger, so an admin restock is seen. Price-drop fires when the price falls below the watched price, then keeps watching from the new price; because product edits are NOT shared between the shop and admin in this mock (existing limitation), a price cut is checked at the moment the admin saves it, not on a later shop-side read | NC-05; documents a real gap in the mock architecture |
+| 2026-09-27 | Admin Notifications area: template editor with live preview, only the template's own fixed variables are accepted (others are rejected by name), every save is a new version, any version can be restored, and "send test" mails the signed-in admin. Delivery log lists every send with status, reason and attempts, and failed sends can be retried (always succeeds in the mock); two seeded rows (one failed) so the screen has something to show immediately | NC-06, NC-07 |
+| 2026-09-27 | Permission `notification:manage` (given to the demo admin) guards the whole admin area; every template and delivery action is audited | NC-08 |
+| 2026-09-27 | Known limits: no SMS or WhatsApp (out of scope, per the master plan); the bell is refreshed on sign-in, sign-out and opening `/notifications`, not by a live push; alert triggers are checked at the points listed above rather than a continuous feed — a real backend replaces all of this with actual delivery and server-sent events | Same "frontend first, mock adapters" approach as every other module |

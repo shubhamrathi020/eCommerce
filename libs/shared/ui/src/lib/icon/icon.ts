@@ -12,7 +12,10 @@ export type IconName =
   | 'check'
   | 'alert'
   | 'info'
-  | 'star';
+  | 'star'
+  | 'bell'
+  | 'mail'
+  | 'trash';
 
 /** Decorative by default (aria-hidden); pass `label` when the icon stands alone. */
 @Component({
@@ -78,6 +81,17 @@ export type IconName =
         }
         @case ('star') {
           <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" />
+        }
+        @case ('bell') {
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        }
+        @case ('mail') {
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <path d="m2 7 10 6 10-6" />
+        }
+        @case ('trash') {
+          <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" />
         }
       }
     </svg>

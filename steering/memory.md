@@ -21,6 +21,7 @@ Living record of decisions, facts and learned patterns. Append only; correct wit
 | 2026-09-26 | Frontend on mock data behind swappable API interfaces (architecture.md 2.2) | Backend not started; swap by config |
 | 2026-09-26 | Steering docs v0.1 reviewed and confirmed | Consistency across tasks |
 | 2026-09-27 | Scaffolded with Nx 23.2 + Angular 22.1 (zoneless, SSR, esbuild), TypeScript 6, Vitest (analog) for unit tests, Playwright e2e for storefront, Tailwind 4 + CDK, pnpm as package manager | `npm` install crashed (npm arborist bug) so pnpm was used; Nx `angular-monorepo` preset also generated an unwanted `api` app, so an empty workspace + Angular generators was used |
+| 2026-09-27 | BRD 10 (notifications) implemented: bell, preferences, alert subscriptions, admin templates with versioning, delivery log | Eleventh slice |
 | 2026-09-27 | BRD 11 (inventory) implemented: append-only stock ledger, reservations with expiry, two seeded locations, backorder, CSV import and export | Tenth slice |
 | 2026-09-27 | BRD 09 (content and SEO) implemented with placeholder brand and content; content store shared by storefront and admin mocks | Ninth slice |
 | 2026-09-27 | BRD 08 (DevOps) implemented: Docker verified, Kubernetes manifests render-checked only | Eighth slice |
@@ -53,6 +54,8 @@ Living record of decisions, facts and learned patterns. Append only; correct wit
 - Python patch scripts: write regexes containing `` with `chr(92)` or a raw string, or use the Edit tool; a plain string turns `` into an invisible backspace.
 - Anything a spec imports from `@ecom/shared/data-access` must be exported from its index (a missing export shows up as `Cannot convert undefined or null to object` in TestBed.inject).
 - Stock: `MockInventoryStore` is the single source of stock in the mocks. Shop reads (catalog, search, cart) call `inventory.apply(products)` for available units; admin calls `apply(products, 'onHand')`. Never write stock into a product; add a ledger movement (`sell`, `restore`, `adjust`, `transfer`) so on hand always equals baseline plus movements.
+- Notifications: `MockNotificationStore` is the single source for the bell, preferences, alert subscriptions, templates and the delivery log (one storage key, like the other stores). Any mock API or trigger point that sends a message calls its `deliver(templateKey, to, vars, { userId?, link? })`, never `MockMailbox` directly, so every send is logged and (with a `userId`) reaches the bell.
+- Cross-app gap: admin product edits (price, title, etc.) are NOT visible to the shop's own catalog reads in this mock (separate stores, a known limitation). A trigger that depends on an admin edit (e.g. a price-drop alert) must run at the moment the admin saves, not wait for a later shop-side read. Stock is the one exception: `MockInventoryStore` is shared, so admin stock changes ARE seen by the shop.
 - Zoneless tests: drive test hosts with signals and `await fixture.whenStable()`.
 
 ## Skills index

@@ -10,3 +10,4 @@ export * from './lib/user';
 export * from './lib/admin';
 export * from './lib/content';
 export * from './lib/inventory';
+export * from './lib/notification';

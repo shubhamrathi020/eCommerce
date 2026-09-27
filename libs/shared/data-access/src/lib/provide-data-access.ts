@@ -8,6 +8,7 @@ import { ContentApi } from './content.api';
 import { ReviewApi } from './review.api';
 import { SearchApi } from './search.api';
 import { NewsletterApi } from './newsletter.api';
+import { AlertApi, NotificationApi, PreferenceApi } from './notification.api';
 import { MockAddressBookApi } from '../mock/mock-address-book.api';
 import { MockAuthApi } from '../mock/mock-auth.api';
 import { MockCartApi } from '../mock/mock-cart.api';
@@ -20,6 +21,7 @@ import { MockPaymentApi } from '../mock/mock-payment.api';
 import { MockCategoryApi } from '../mock/mock-category.api';
 import { MockCmsApi, MockContentApi } from '../mock/mock-content.api';
 import { MockNewsletterApi } from '../mock/mock-newsletter.api';
+import { MockAlertApi, MockNotificationApi, MockPreferenceApi } from '../mock/mock-notification.api';
 
 /**
  * Wires each API contract to its adapter. Only mock adapters exist for now;
@@ -43,5 +45,8 @@ export function provideDataAccess(options: { useMocks: boolean }): EnvironmentPr
     { provide: CmsApi, useClass: MockCmsApi },
     { provide: ContentApi, useClass: MockContentApi },
     { provide: NewsletterApi, useClass: MockNewsletterApi },
+    { provide: PreferenceApi, useClass: MockPreferenceApi },
+    { provide: AlertApi, useClass: MockAlertApi },
+    { provide: NotificationApi, useClass: MockNotificationApi },
   ]);
 }

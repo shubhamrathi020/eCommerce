@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { RouterLink } from '@angular/router';
 import { APP_CONFIG } from '@ecom/shared/core';
 import { DrawerComponent, IconComponent } from '@ecom/shared/ui';
-import { AuthStore, CartStore } from '@ecom/shared/state';
+import { AuthStore, CartStore, NotificationStore } from '@ecom/shared/state';
 import { SearchBoxComponent } from '../search-box/search-box';
 import { CategoryMenuStore } from '../category-menu.store';
 
@@ -28,6 +28,14 @@ import { CategoryMenuStore } from '../category-menu.store';
       <app-search-box idPrefix="search-d" class="order-last hidden min-w-0 flex-1 md:order-none md:block" />
 
       <nav aria-label="Account and cart" class="ml-auto flex items-center gap-1 md:ml-0">
+        @if (auth.loggedIn()) {
+          <a routerLink="/notifications" class="relative inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-alt" [attr.aria-label]="bellLabel()">
+            <ui-icon name="bell" [size]="24" />
+            @if (unreadCount() > 0) {
+              <span class="absolute right-0 top-0 min-w-5 rounded-full bg-sale px-1 text-center text-xs font-semibold text-white" aria-hidden="true">{{ unreadCount() }}</span>
+            }
+          </a>
+        }
         <a routerLink="/wishlist" class="inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-alt" aria-label="Wishlist"><ui-icon name="heart" [size]="24" /></a>
         <a [routerLink]="auth.loggedIn() ? '/account' : '/account/login'" class="inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-alt" [attr.aria-label]="accountLabel()"><ui-icon name="user" [size]="24" /></a>
         <a routerLink="/cart" class="relative inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-alt" [attr.aria-label]="cartLabel()">
@@ -106,7 +114,10 @@ import { CategoryMenuStore } from '../category-menu.store';
 export class HeaderComponent {
   private readonly menu = inject(CategoryMenuStore);
   private readonly cart = inject(CartStore);
+  private readonly notifications = inject(NotificationStore);
   protected readonly auth = inject(AuthStore);
+  protected readonly unreadCount = this.notifications.unreadCount;
+  protected readonly bellLabel = computed(() => (this.unreadCount() > 0 ? `Notifications, ${this.unreadCount()} unread` : 'Notifications'));
   protected readonly accountLabel = computed(() => {
     const user = this.auth.user();
     return user ? `My account (${user.name.split(' ')[0]})` : 'Sign in';

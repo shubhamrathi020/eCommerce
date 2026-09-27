@@ -26,6 +26,7 @@ import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, Admi
 import { COUPONS } from '../cart-engine';
 import { loadCatalogData } from '../catalog-data';
 import { createMockResponder } from '../mock-latency';
+import { MockNotificationStore } from '../notification-store';
 import { MockUserStore } from '../mock-user-store';
 import { type AdminOverlay, MockAdminState } from './admin-state';
 import { SEED_CUSTOMERS, seedOrders } from './seed-orders';
@@ -156,6 +157,7 @@ function toDetailProduct(entry: AdminProduct, categoryName: string): AdminProduc
 export class MockAdminProductApi extends AdminProductApi {
   private readonly respond = createMockResponder();
   private readonly state = inject(MockAdminState);
+  private readonly notifications = inject(MockNotificationStore);
 
   list(query: AdminProductQuery) {
     return this.respond.okAsync<Paged<AdminProductRow>>(async () => {
@@ -291,6 +293,9 @@ export class MockAdminProductApi extends AdminProductApi {
         if (addedVariants.includes(v)) this.state.inventory.receiveOpening(v.id, input.variants[i].stock, [updated], actor.name);
       });
       this.state.record('product.update', updated.title, changes.length ? `Changed ${changes.join(', ')}` : 'Saved without changes');
+      // The shop reads a separate, unlinked copy of the catalog in this mock, so a price cut is checked against
+      // subscribers here, at the moment it happens, rather than waiting for a shop-side catalog read to notice it.
+      if (changes.includes('price')) this.notifications.checkAlerts(this.state.inventory.apply([updated]));
       const fresh = (await loadProducts(this.state)).find((e) => e.product.id === id) as AdminProduct;
       return toDetailProduct(fresh, fresh.product.categoryPath[fresh.product.categoryPath.length - 1].name);
     });
@@ -329,10 +334,13 @@ export class MockAdminProductApi extends AdminProductApi {
 
 // ---------- orders ----------
 
+const TEMPLATE_FOR_STATUS: Partial<Record<OrderStatus, string>> = { packed: 'order_packed', shipped: 'order_shipped', delivered: 'order_delivered', cancelled: 'order_cancelled' };
+
 @Injectable()
 export class MockAdminOrderApi extends AdminOrderApi {
   private readonly respond = createMockResponder();
   private readonly state = inject(MockAdminState);
+  private readonly notifications = inject(MockNotificationStore);
 
   list(query: AdminOrderQuery) {
     return this.respond.okAsync<Paged<AdminOrderRow>>(async () => {
@@ -378,6 +386,8 @@ export class MockAdminOrderApi extends AdminOrderApi {
         if (order.status === 'pending_payment') this.state.inventory.release(id, baselines);
         else this.state.inventory.restore(id, baselines, order.lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })), this.state.require('order:refund').name);
       }
+      const template = TEMPLATE_FOR_STATUS[status];
+      if (template) this.notifications.deliver(template, order.contact.email, { name: order.contact.name, orderId: order.id }, { userId: order.userId, link: `/orders/${order.id}` });
       this.state.update((o) => {
         o.orders[id] = { ...(o.orders[id] ?? { notes: [] }), status, timeline };
       });

@@ -68,11 +68,11 @@ export class MockAdminState {
   }
 
   /** Server-side permission check (the browser-side guard is only a convenience). */
-  require(permission: string): { id: string; name: string } {
+  require(permission: string): { id: string; name: string; email: string } {
     const session = this.users.session();
     if (!session) throw new ApiException('unauthorized', 'Please sign in.');
     if (!session.user.permissions.includes(permission)) throw new ApiException('forbidden', 'You do not have permission to do that.');
-    return { id: session.user.id, name: session.user.name };
+    return { id: session.user.id, name: session.user.name, email: session.user.email };
   }
 
   /** Appends an audit entry. Never put secrets in `detail`. */

@@ -1,14 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import type { Order, PlaceOrderRequest } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
+import { formatMoney } from '@ecom/shared/util';
 import { OrderApi } from '../lib/commerce.api';
 import { EMPTY_STORED_CART } from './cart-engine';
 import { loadCatalogData } from './catalog-data';
 import { MockInventoryStore } from './inventory-store';
+import { MockNotificationStore } from './notification-store';
 import { codEligibility, validateDeliverable } from './mock-checkout.api';
 import { MockCartState } from './mock-cart-state';
 import { createMockResponder } from './mock-latency';
-import { MockMailbox } from './mock-mailbox';
 import { MockOrderStore, cancelExpiredOrders, withProgress } from './mock-order-store';
 import { MockUserStore } from './mock-user-store';
 
@@ -25,8 +26,8 @@ export class MockOrderApi extends OrderApi {
   private readonly cart = inject(MockCartState);
   private readonly store = inject(MockOrderStore);
   private readonly users = inject(MockUserStore);
-  private readonly mailbox = inject(MockMailbox);
   private readonly inventory = inject(MockInventoryStore);
+  private readonly notifications = inject(MockNotificationStore);
 
   /** Frees the stock of unpaid orders whose reservation expired; returns the seeded catalog for stock work. */
   private async sweep() {
@@ -87,9 +88,12 @@ export class MockOrderApi extends OrderApi {
       else this.inventory.reserve(order.id, stockLines, products);
       this.store.save(order);
       this.store.rememberKey(request.idempotencyKey, order.id);
+      const userId = this.users.currentUserId() ?? undefined;
       if (cod) {
         this.cart.write({ ...EMPTY_STORED_CART, items: [], shippingMethod: cart.shippingMethod });
-        this.mailbox.send({ to: order.contact.email, subject: `Order ${order.id} confirmed`, body: `Thanks ${order.contact.name}! Your order is confirmed. Pay on delivery.`, link: `/orders/${order.id}` });
+        this.notifications.deliver('order_placed', order.contact.email, { name: order.contact.name, orderId: order.id, total: formatMoney(order.totals.total) }, { userId, link: `/orders/${order.id}` });
+      } else if (userId) {
+        this.notifications.notify(userId, 'order', 'Order placed', `Order ${order.id} is placed. Complete your payment to confirm it.`, `/orders/${order.id}`);
       }
       return order;
     });
@@ -131,6 +135,7 @@ export class MockOrderApi extends OrderApi {
         timeline: [...found.timeline.filter((t) => t.status === 'placed' || t.status === 'paid' || t.status === 'confirmed'), { status: 'cancelled', label: 'Order cancelled', at: new Date().toISOString() }],
       };
       this.store.save(cancelled);
+      this.notifications.deliver('order_cancelled', cancelled.contact.email, { name: cancelled.contact.name, orderId: cancelled.id }, { userId: this.users.currentUserId() ?? undefined, link: `/orders/${cancelled.id}` });
       return cancelled;
     });
   }

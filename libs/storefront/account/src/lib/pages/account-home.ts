@@ -43,6 +43,9 @@ export class AccountHomeComponent {
     { title: 'Orders', text: 'Track, cancel and view invoices', link: '/orders' },
     { title: 'Wishlist', text: 'Products you saved', link: '/wishlist' },
     { title: 'Addresses', text: 'Manage delivery addresses', link: '/account/addresses' },
+    { title: 'Notifications', text: 'Order, review and price alerts', link: '/notifications' },
+    { title: 'Notification preferences', text: 'Choose what we send you', link: '/account/preferences' },
+    { title: 'Your alerts', text: 'Products you asked to be told about', link: '/account/alerts' },
     { title: 'Profile and password', text: 'Update your details', link: '/account/profile' },
     { title: 'Privacy', text: 'Export or delete your data', link: '/account/privacy' },
   ];

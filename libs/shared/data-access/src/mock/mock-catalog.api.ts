@@ -8,6 +8,7 @@ import { ApiException } from '@ecom/shared/models';
 import { CatalogApi, type ProductLookup } from '../lib/catalog.api';
 import { computeServiceability, loadCatalogData as loadData } from './catalog-data';
 import { MockInventoryStore } from './inventory-store';
+import { MockNotificationStore } from './notification-store';
 import { MockReviewStore, applyReviewOverlay } from './mock-review-store';
 import { bestDiscount, runListing, sortProducts, stockStatusOf, toSummary } from './catalog-engine';
 
@@ -24,12 +25,20 @@ export class MockCatalogApi extends CatalogApi {
   private readonly ms = isPlatformBrowser(inject(PLATFORM_ID)) ? this.latency : 0;
   private readonly reviewStore = inject(MockReviewStore);
   private readonly inventory = inject(MockInventoryStore);
+  private readonly notifications = inject(MockNotificationStore);
 
   /** Runs `work` against the loaded data after simulated latency; thrown ApiExceptions become observable errors. */
   private run<T>(work: (data: Awaited<ReturnType<typeof loadData>>) => T | Promise<T>): Observable<T> {
     return defer(() =>
       // New approved reviews are counted in product ratings, and live stock is applied, for every call.
-      from(loadData().then((d) => work({ ...d, products: applyReviewOverlay(this.inventory.apply(d.products), this.reviewStore.approved()) }))).pipe(delay(this.ms)),
+      from(
+        loadData().then((d) => {
+          const stocked = this.inventory.apply(d.products);
+          // Checked on every catalog read: this mock's stand-in for a live back-in-stock / price-drop feed.
+          this.notifications.checkAlerts(stocked);
+          return work({ ...d, products: applyReviewOverlay(stocked, this.reviewStore.approved()) });
+        }),
+      ).pipe(delay(this.ms)),
     );
   }
 

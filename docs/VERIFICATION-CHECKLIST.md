@@ -1,6 +1,6 @@
 # Phase 1 Frontend: Verification Checklist and Your To-Do List
 
-Use this to check everything built so far (BRDs 01 to 09 and 11) and to give the inputs needed to finish phase 1 (BRDs 10 and 12). Tick items as you go and tell me anything that looks wrong.
+Use this to check everything built so far (BRDs 01 to 11) and to give the inputs needed to finish phase 1 (BRD 12). Tick items as you go and tell me anything that looks wrong.
 
 ## A. Get it running (10 minutes)
 
@@ -32,6 +32,7 @@ Development helpers: sign-in pages have a "Development only: fill demo ..." butt
 | B11 | Wrong passwords | Try 5 wrong passwords for one email | You are locked out with a time message |
 | B12 | Reviews | Buy a product, open its Reviews tab, write a review; write another with a link in the text | First goes live; the second is "waiting for moderation" |
 | B13 | Wishlist and compare | Heart two products, compare three products | Wishlist page and compare table work |
+| B16 | Notifications (BRD 10) | Sign in, open the bell (empty), place a cash-on-delivery order, open the bell again; go to Preferences, turn marketing on, use "Show my unsubscribe link", open it in a new tab; on a product page use "Alert me on price drop", then check `/account/alerts` | The order appears unread in the bell; the unsubscribe page confirms and turns marketing back off; the alert is listed and removable |
 | B15 | Stock (BRD 11) | Place a cash-on-delivery order for an item, then open its page; place an online order but do not pay | Stock drops by the ordered units; the unpaid order holds its units for 15 minutes, then it cancels itself and the units return |
 | B14 | Privacy | Account, Privacy, export data, then (with a throwaway account) delete it | JSON downloads; account is gone |
 
@@ -49,6 +50,7 @@ Sign in with "fill demo admin" at http://localhost:4201 (admin data is separate 
 | C6 | Audit and settings | Open both | Every change above is listed; settings are read-only |
 | C7 | Access | Sign in with the demo customer at the admin | Refused with a clear message |
 | C8 | Content (BRD 09) | Content: add a banner, reorder or hide home sections, create a draft page and preview it, add a footer link, add a redirect (try a loop) | Validation messages are clear; the page preview shows no scripts; loops are refused |
+| C11 | Notifications (BRD 10) | Notifications: edit a template with an unknown `{{variable}}` (refused), save a valid change, restore an earlier version, send a test to your own mailbox; open the delivery log, filter by Failed, retry one | Unknown variables are refused; a new version appears each save; the test mail arrives at `/dev/mailbox`; a retried message becomes Sent |
 | C10 | Inventory (BRD 11) | Inventory: filter Low stock, open Manage on a row, record a change without a reason (refused), then with one; transfer units to the second warehouse; turn on backorder with a date; open Ledger; export and re-import the CSV; add a bad row and download the error report; change the settings | Every step appears in the ledger and audit log; the shop shows Backorder and the date; bad rows are listed and skipped |
 | C9 | SEO files (BRD 09) | Run the production server (`pnpm docker:up`) and open http://localhost:4000/robots.txt and /sitemap.xml | Private paths are disallowed; sitemap lists categories, brands, products and pages |
 
@@ -85,7 +87,7 @@ Sign in with "fill demo admin" at http://localhost:4201 (admin data is separate 
 
 ## G. Known limitations to acknowledge (already recorded in each BRD)
 
-1. The admin (port 4201) and the shop (port 4200) have separate mock data, so admin actions do not change the shop in development. A real backend fixes this.
+1. The admin (port 4201) and the shop (port 4200) have separate mock data, so admin actions do not change the shop in development. A real backend fixes this. (Stock is the one exception: it is shared, so admin stock changes and back-in-stock alerts do work across both.)
 2. All data is mock and lives in your browser storage; clearing site data resets it.
 3. (Fixed in BRD 11) Stock now reduces when an order is placed. While an online order waits for payment, your own cart shows those units as unavailable.
 4. On mobile, the compare bar and the sticky add-to-cart bar can overlap (fixed in BRD 12).
@@ -94,7 +96,8 @@ Sign in with "fill demo admin" at http://localhost:4201 (admin data is separate 
 7. Kubernetes manifests were render-checked but never applied; the CI pipeline has never run.
 8. Colour contrast and Lighthouse scores were not measured automatically (BRD 12).
 9. A form submitted before the page finishes loading does a plain reload (BRD 12).
+10. The notification bell refreshes on sign-in, sign-out and opening the notifications page, not by a live push (BRD 10).
 
 ## H. Phase 1 sign-off
 
-Phase 1 of the frontend is complete when BRDs 09 to 12 are built, all of section B and C pass, section D is acceptable, and section G items 4 to 9 are resolved. Reply with what you verified and what you want changed.
+Phase 1 of the frontend is complete when BRDs 09 to 12 are built, all of section B and C pass, section D is acceptable, and section G items 4 to 10 are resolved. Reply with what you verified and what you want changed.

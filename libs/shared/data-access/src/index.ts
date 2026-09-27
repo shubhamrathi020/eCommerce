@@ -26,3 +26,5 @@ export { loadSitemapSource } from './mock/catalog-data';
 export { MockContentStore } from './mock/content-store';
 export * from './lib/inventory.api';
 export { MockInventoryStore, LOCATIONS, MAIN_LOCATION, DEFAULT_SETTINGS as DEFAULT_INVENTORY_SETTINGS } from './mock/inventory-store';
+export * from './lib/notification.api';
+export { MockNotificationStore, DEFAULT_PREFERENCES } from './mock/notification-store';

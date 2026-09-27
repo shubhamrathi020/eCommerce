@@ -5,7 +5,8 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { APP_CONFIG } from '@ecom/shared/core';
 import { firstValueFrom } from 'rxjs';
-import { CatalogApi, MockContentStore, MockInventoryStore, provideDataAccess } from '@ecom/shared/data-access';
+import { AlertApi, CatalogApi, DEMO_ACCOUNTS, MockContentStore, MockInventoryStore, provideDataAccess } from '@ecom/shared/data-access';
+import { AuthStore } from '@ecom/shared/state';
 import { catalogRoutes, homeRoute } from './catalog.routes';
 
 const config = { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop', siteUrl: 'http://x', features: {} };
@@ -97,6 +98,21 @@ describe('catalog pages', () => {
     expect(el.textContent).not.toContain('Out of stock');
     const add = Array.from(el.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Add to cart') as HTMLButtonElement;
     expect(add.disabled).toBe(false);
+  }, 30000);
+
+  it('signed-in shoppers can subscribe to a price-drop alert from the product page', async () => {
+    const list = await open('/c/laptops');
+    const slug = (list.el.querySelector('ui-product-card h3 a')?.getAttribute('href') ?? '').replace('/p/', '');
+    TestBed.resetTestingModule();
+    const demo = DEMO_ACCOUNTS[0];
+    const { el } = await open(`/p/${slug}`, async () => {
+      await TestBed.inject(AuthStore).login(demo.email, demo.password);
+    });
+    const alertButton = Array.from(el.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Alert me on price drop') as HTMLButtonElement;
+    expect(alertButton).toBeTruthy();
+    alertButton.click();
+    for (let i = 0; i < 10; i++) await new Promise((r) => setTimeout(r, 20));
+    expect(await firstValueFrom(TestBed.inject(AlertApi).list())).toHaveLength(1);
   }, 30000);
 
   it('unknown product shows the not-found page', async () => {

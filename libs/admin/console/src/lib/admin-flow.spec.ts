@@ -390,4 +390,47 @@ describe('admin console', () => {
     await settle(out.harness, 15);
     expect(root.textContent).not.toContain('Use a whole number');
   }, 60000);
+
+  it('notifications: template editor rejects an unknown variable, versions, sends a test, and the delivery log can retry', async () => {
+    const out = await setup();
+    await out.harness.navigateByUrl('/notifications');
+    await settle(out.harness, 15);
+    expect(out.router.url).toBe('/notifications/templates');
+    let root = el(out.harness);
+    expect(await violations(root)).toEqual([]);
+    expect(root.textContent).toContain('Order placed');
+
+    (Array.from(root.querySelectorAll('button')).find((b) => b.textContent?.includes('Order placed')) as HTMLButtonElement).click();
+    await settle(out.harness, 15);
+    root = el(out.harness);
+    fill(root, '[formcontrolname="subject"]', 'Order {{bogus}} confirmed');
+    button(root, 'Save (new version)')?.click();
+    await settle(out.harness, 15);
+    expect(root.textContent).toContain('Unknown variable');
+
+    fill(root, '[formcontrolname="subject"]', 'Your order {{orderId}} is confirmed!');
+    button(root, 'Save (new version)')?.click();
+    await settle(out.harness, 20);
+    expect(root.textContent).toContain('v2');
+    expect(root.textContent).toContain('Previous versions');
+    button(root, 'Restore this version')?.click();
+    await settle(out.harness, 20);
+    expect(root.textContent).toContain('v3');
+
+    button(root, 'Send test to my mailbox')?.click();
+    await settle(out.harness, 15);
+
+    await out.harness.navigateByUrl('/notifications/log');
+    await settle(out.harness, 15);
+    root = el(out.harness);
+    expect(await violations(root)).toEqual([]);
+    expect(root.textContent).toContain(admin.email);
+    await out.harness.navigateByUrl('/notifications/log?status=failed');
+    await settle(out.harness, 15);
+    root = el(out.harness);
+    expect(root.querySelectorAll('tbody tr').length).toBeGreaterThan(0);
+    button(root, 'Retry')?.click();
+    await settle(out.harness, 15);
+    expect(button(root, 'Retry')).toBeUndefined();
+  }, 60000);
 });

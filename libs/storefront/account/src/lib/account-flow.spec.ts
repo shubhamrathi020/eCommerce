@@ -3,8 +3,9 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import axe from 'axe-core';
+import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG, WishlistStore } from '@ecom/shared/core';
-import { DEMO_ACCOUNTS, provideDataAccess } from '@ecom/shared/data-access';
+import { AlertApi, CartApi, CatalogApi, DEMO_ACCOUNTS, OrderApi, provideDataAccess } from '@ecom/shared/data-access';
 import { AuthStore } from '@ecom/shared/state';
 import { accountRoutes } from './account.routes';
 
@@ -169,4 +170,90 @@ describe('account pages', () => {
     await settle(harness);
     expect(el.querySelectorAll('ui-product-card')).toHaveLength(1);
   }, 20000);
+
+  it('notification preferences: toggles save, and the one-click unsubscribe link turns marketing back off', async () => {
+    const { harness, auth } = await setup();
+    await auth.login(demo.email, demo.password);
+    await harness.navigateByUrl('/account/preferences');
+    await settle(harness, 15);
+    let el = harness.routeNativeElement as HTMLElement;
+    expect(el.textContent).toContain('Always on');
+    expect(await violations(el)).toEqual([]);
+
+    const marketing = el.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')[0];
+    marketing.click();
+    marketing.dispatchEvent(new Event('change', { bubbles: true }));
+    await settle(harness, 15);
+    expect(el.textContent).toContain('Saved');
+    expect(el.textContent).toContain('one-click unsubscribe link');
+
+    button(el, 'Show my unsubscribe link')?.click();
+    await settle(harness, 15);
+    const href = el.querySelector<HTMLAnchorElement>('a[href^="/unsubscribe"]')?.getAttribute('href') as string;
+    expect(href).toContain('token=');
+
+    await harness.navigateByUrl(href);
+    await settle(harness, 15);
+    el = harness.routeNativeElement as HTMLElement;
+    expect(el.textContent).toContain("You're unsubscribed");
+    expect(el.textContent).toContain('marketing emails');
+    expect(await violations(el)).toEqual([]);
+
+    await harness.navigateByUrl('/account/preferences');
+    await settle(harness, 15);
+    el = harness.routeNativeElement as HTMLElement;
+    expect(el.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')[0].checked).toBe(false);
+  }, 30000);
+
+  it('unsubscribe page shows a clear error for a missing or invalid token', async () => {
+    const { harness } = await setup();
+    await harness.navigateByUrl('/unsubscribe');
+    await settle(harness, 15);
+    let el = harness.routeNativeElement as HTMLElement;
+    expect(el.textContent).toContain("didn't work");
+    await harness.navigateByUrl('/unsubscribe?token=bogus');
+    await settle(harness, 15);
+    el = harness.routeNativeElement as HTMLElement;
+    expect(el.textContent).toContain("didn't work");
+  });
+
+  it('the notification bell lists an order update and mark-all-read clears the unread count', async () => {
+    const { harness, auth } = await setup();
+    await auth.login(demo.email, demo.password);
+    const catalog = TestBed.inject(CatalogApi);
+    const cart = TestBed.inject(CartApi);
+    const orders = TestBed.inject(OrderApi);
+    const listing = await firstValueFrom(catalog.listing({ filters: {}, sort: 'featured', page: 1, pageSize: 30 }));
+    const found = (await firstValueFrom(catalog.productsByIds(listing.items.map((i) => i.id)))).flatMap((p) => p.variants).find((v) => v.stock >= 1);
+    await firstValueFrom(cart.add(found?.id as string, 1));
+    await firstValueFrom(orders.place({ idempotencyKey: 'nb1', contact: { name: 'Asha Rao', email: demo.email, phone: '9876543210' }, address: { line1: '1 Road', city: 'Bengaluru', state: 'KA', pincode: '560001' }, paymentMethod: 'cod' }));
+
+    await harness.navigateByUrl('/notifications');
+    await settle(harness, 15);
+    const el = harness.routeNativeElement as HTMLElement;
+    expect(el.textContent).toContain('confirmed');
+    expect(await violations(el)).toEqual([]);
+    button(el, 'Mark all as read')?.click();
+    await settle(harness, 15);
+    expect(el.querySelector('button')?.textContent).not.toContain('Mark all as read');
+  }, 30000);
+
+  it('your alerts lists a subscribed item and removing it empties the page', async () => {
+    const { harness, auth } = await setup();
+    await auth.login(demo.email, demo.password);
+    const catalog = TestBed.inject(CatalogApi);
+    const listing = await firstValueFrom(catalog.listing({ filters: {}, sort: 'featured', page: 1, pageSize: 10 }));
+    const found = (await firstValueFrom(catalog.productsByIds(listing.items.map((i) => i.id)))).flatMap((p) => p.variants).find((v) => v.stock >= 1);
+    await firstValueFrom(TestBed.inject(AlertApi).subscribe('price_drop', found?.id as string));
+
+    await harness.navigateByUrl('/account/alerts');
+    await settle(harness, 15);
+    let el = harness.routeNativeElement as HTMLElement;
+    expect(el.textContent).toContain('Alert on price drop');
+    expect(await violations(el)).toEqual([]);
+    button(el, 'Remove')?.click();
+    await settle(harness, 15);
+    el = harness.routeNativeElement as HTMLElement;
+    expect(el.textContent).toContain('No alerts yet');
+  }, 30000);
 });
