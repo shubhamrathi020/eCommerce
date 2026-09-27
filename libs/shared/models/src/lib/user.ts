@@ -2,6 +2,20 @@ import type { Address } from './order';
 
 export type Role = 'customer' | 'admin';
 
+const CUSTOMER_PERMISSIONS = ['profile:write:own', 'address:write:own', 'order:read:own', 'order:cancel:own'];
+const ADMIN_PERMISSIONS = ['product:read', 'product:write', 'order:read:any', 'order:refund', 'user:read', 'coupon:write', 'review:moderate', 'content:write', 'inventory:write', 'notification:manage'];
+
+/**
+ * The single source of truth for what each role grants. Both the mock frontend adapters and the real
+ * backend (BRD 19) derive permissions from this, so "the same permission names the frontend already
+ * handles" (BF-01, BF-04) is a guarantee, not a convention to remember.
+ */
+export function permissionsFor(roles: Role[]): string[] {
+  const set = new Set<string>(CUSTOMER_PERMISSIONS);
+  if (roles.includes('admin')) for (const p of ADMIN_PERMISSIONS) set.add(p);
+  return [...set];
+}
+
 export interface User {
   id: string;
   name: string;

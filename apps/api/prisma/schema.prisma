@@ -1,0 +1,89 @@
+// eCommerce backend schema (BRD 19: identity, accounts, addresses).
+// Catalog, orders and the rest arrive with BRD 20/21 and may move some of this to MongoDB per the
+// architecture decision (PostgreSQL for transactional data, MongoDB for the catalog).
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  customer
+  admin
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  phone         String?
+  roles         Role[]    @default([customer])
+  passwordHash  String
+  passwordSalt  String
+  emailVerified Boolean   @default(false)
+  verifyToken   String?   @unique
+  resetToken    String?   @unique
+  resetExpires  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  addresses     SavedAddress[]
+  refreshTokens RefreshToken[]
+  loginAttempts LoginAttempt?
+
+  @@map("users")
+}
+
+/// One row per issued refresh token (hashed, never the raw token), so reuse of an already-rotated
+/// token can be detected and the whole chain revoked (BF-03).
+model RefreshToken {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String    @unique
+  /// The token this one replaced, so a whole family can be revoked on reuse detection.
+  replacedBy  String?
+  family      String
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([family])
+  @@map("refresh_tokens")
+}
+
+/// Brute-force protection, one row per email address (mirrors the mock's `MockUserStore` behaviour).
+model LoginAttempt {
+  email       String    @id
+  userId      String?   @unique
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  count       Int       @default(0)
+  firstAt     DateTime  @default(now())
+  lockedUntil DateTime?
+
+  @@map("login_attempts")
+}
+
+model SavedAddress {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String
+  name      String
+  phone     String
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  pincode   String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("saved_addresses")
+}

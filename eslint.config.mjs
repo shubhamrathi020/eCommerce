@@ -67,6 +67,12 @@ export default [
               sourceTag: 'scope:shared',
               onlyDependOnLibsWithTags: ['scope:shared'],
             },
+            {
+              // The backend is Node, not Angular: it may only reach the plain-TypeScript contract
+              // types (`type:models`), never the Angular-specific shared libs (ui, core, state, data-access).
+              sourceTag: 'scope:api',
+              onlyDependOnLibsWithTags: ['scope:api', 'type:models'],
+            },
           ],
         },
       ],
