@@ -61,6 +61,8 @@ kubectl -n shop get pods
 
 Useful checks: `kubectl -n shop rollout status deploy/storefront`, `kubectl -n shop describe hpa storefront`, `kubectl -n shop logs deploy/storefront`.
 
+HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop does not ship it): `kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml` (Docker Desktop's cluster needs `--kubelet-insecure-tls` added to its args). If `http://shop.localtest.me` does not load, something else on your machine (commonly another local web server) is already using port 80/443; check with `kubectl -n ingress-nginx get svc` and, if its `EXTERNAL-IP` never leaves `<pending>`, verify with `kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 18080:80` and `curl -H "Host: shop.localtest.me" http://127.0.0.1:18080/` instead.
+
 ## 6. Troubleshooting
 
 | Symptom | Likely cause and fix |

@@ -80,10 +80,10 @@ Sign in with "fill demo admin" at http://localhost:4201 (admin data is separate 
 
 | # | Item | Needed for |
 |---|---|---|
-| F1 | Create a GitHub repository and give me the remote address (I will push, and the CI pipeline will run for the first time) | CI verification |
-| F2 | Turn on Docker Desktop Kubernetes (Settings, Kubernetes) or install kind or minikube, plus an ingress controller | Verifying the Kubernetes manifests (BRD 08 and 25) |
-| F3 | A Razorpay account in test mode (key id and secret; keep the secret private, do not paste it here) | Real payments (BRD 21) |
-| F4 | Decide MongoDB plus PostgreSQL (as decided earlier) or PostgreSQL only | Backend design (BRD 19, 20) |
+| F1 | ~~Create a GitHub repository~~ Done — the remote is configured and reachable. Two commits (BRD 10, BRD 12) are not pushed yet; I asked separately whether you want me to push them or would rather do it yourself | CI verification |
+| F2 | ~~Turn on Kubernetes~~ Done and verified for real: both apps deployed with 2 replicas, self-healed a deleted pod, both ingress routes answered correctly. See `brds/08-devops-foundation.md`'s change log | Verifying the Kubernetes manifests (BRD 08 and 25) |
+| F3 | ~~Razorpay test account~~ Done — ready for BRD 21 (Commerce services) when the backend track starts; nothing to do in the frontend yet | Real payments (BRD 21) |
+| F4 | ~~Decide the database mix~~ Confirmed: MongoDB plus PostgreSQL. This was already the settled decision (see `BR-eCommerce-Platform.md`'s decision log and `steering/architecture.md`); no document changed | Backend design (BRD 19, 20) |
 | F5 | Choose the cloud provider and rough budget | BRD 25 |
 | F6 | An email sender domain and provider choice | BRD 23 |
 

@@ -20,7 +20,7 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | 05 | [Accounts](05-accounts.md) | 1 | Built (mock identity) | 01, 02, 04 |
 | 06 | [Admin console](06-admin-console.md) | 1 | Built (mock, separate seeded data) | 01, 02, 04, 05 |
 | 07 | [Reviews](07-reviews.md) | 1 | Built (mock) | 02, 04, 05, 06 |
-| 08 | [DevOps foundation](08-devops-foundation.md) | 1 | Built (Docker verified; Kubernetes render-checked only) | all apps |
+| 08 | [DevOps foundation](08-devops-foundation.md) | 1 | Built (Docker and Kubernetes both verified for real) | all apps |
 | 09 | [Content and SEO management](09-content-seo.md) | 1 | Built (mock, placeholders) | 01, 02, 06 |
 | 10 | [Notifications and preferences](10-notifications-preferences.md) | 1 | Built (mock) | 04, 05, 06 |
 | 11 | [Inventory operations](11-inventory-operations.md) | 1 | Built (mock) | 02, 04, 06 |

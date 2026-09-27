@@ -125,6 +125,11 @@ A plain-English diary of what is being built, why, and which commands were used.
 - Left undone on purpose, with the reason written in the BRD: colour-contrast checks in the automated suite, Lighthouse scores in CI (no CI pipeline exists yet), and visual regression testing (an open question for you to decide, not assumed).
 - This was the last BRD of phase 1. See `docs/VERIFICATION-CHECKLIST.md` for what to check to sign it off.
 
+### Step 14: Kubernetes verified for real, and a wrong claim corrected (2026-09-27)
+- You turned on Docker Desktop Kubernetes, so the manifests from BRD 08 were actually applied for the first time (not just render-checked): both apps came up with 2 replicas, self-healed when a pod was deleted, and were reachable through a real ingress controller with the right routes and security headers.
+- While checking that, I re-verified a claim I had made in BRD 12 ("forms are already safe from an accidental early submit") instead of leaving it as an assumption, and it turned out to be wrong under a real, slow-loading test. Fixed properly: a submit button now stays disabled, starting from the very first HTML the server sends, until the app has actually finished loading. Confirmed with the same test that it now works, and that a normally-timed sign-in is unaffected.
+- Your setup checklist (F1 to F4): F2 (Kubernetes) is verified as above. F4 (MongoDB + PostgreSQL) was already the settled decision, nothing to change. F1 (GitHub remote) is configured and reachable; two commits (BRD 10, BRD 12) are not pushed yet — see the note to you. F3 (Razorpay) is ready for when the backend track starts.
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -184,3 +189,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRD 11 (inventory operations) built and committed; session context file added and kept up to date |
 | 2026-09-27 | BRD 10 (notifications and preferences) built and committed |
 | 2026-09-27 | BRD 12 (frontend hardening) built and committed; phase 1 of the frontend complete |
+| 2026-09-27 | Kubernetes manifests applied and verified on a real local cluster; a wrong "already safe" claim about early form submits found and fixed for real |

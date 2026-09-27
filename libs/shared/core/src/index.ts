@@ -11,3 +11,4 @@ export * from './lib/shopper-stores';
 export * from './lib/cart-facade';
 export * from './lib/bottom-bar.service';
 export * from './lib/network-status.service';
+export * from './lib/app-ready.service';

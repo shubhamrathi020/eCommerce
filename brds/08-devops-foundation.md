@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Status | Implemented; verified with Docker and real-browser tests (Kubernetes manifests only render-checked) |
-| Version | 0.2 (2026-09-27) |
+| Status | Implemented; verified with Docker, real-browser tests and a real local Kubernetes cluster |
+| Version | 0.3 (2026-09-27) |
 | Covers (master BR) | NFR-MNT (CI/CD, IaC, containers), NFR-REL (health checks, zero-downtime rollout), NFR-PERF (autoscaling), NFR-SEC (container hardening, security headers), system design concepts: Docker, Kubernetes (Deployments, Services, Ingress, HPA, probes, ConfigMaps), CI pipeline |
 | Depends on | BRD 01 to 07 (the two apps) |
 | Not in this BRD | Backend services and databases (next phase), cloud deployment, Helm charts, service mesh, secrets manager |
@@ -56,3 +56,5 @@ None (advance approval given for decisions).
 | 2026-09-27 | CSP: script inline execution is allowed only by per-request nonce plus the hash of Angular's static bootstrap script. Critical-CSS inlining is turned off in production builds because it injects inline `onload` handlers that a strict CSP forbids. Styles still allow `unsafe-inline` (Angular adds component styles at runtime) | Strict scripts, pragmatic styles |
 | 2026-09-27 | The `packageManager` field pins pnpm 9.15.9. Without it the Docker build picked a newer pnpm that rejected recently released packages | Reproducible installs |
 | 2026-09-27 | Known limitation: a form submitted before the app finishes loading does a plain browser submit (the page reloads). The smoke tests wait for the app to be ready first | Event replay only covers clicks |
+| 2026-09-27 | Kubernetes verified for real (you turned on Docker Desktop Kubernetes, F2). Built both images, installed ingress-nginx, ran `kubectl apply -k deploy/k8s/base`: both Deployments reached 2/2 Ready, the PodDisruptionBudgets held (deleted a storefront pod, it was replaced automatically, `minAvailable: 1` never breached), both Services and the Ingress route real traffic (`shop.localtest.me` and `admin.localtest.me` both answered `/healthz`, `/`, `/robots.txt` with the right titles and security headers through the ingress, verified via `kubectl port-forward` since this machine's port 80 is already used by another local service, not by Kubernetes). The HorizontalPodAutoscalers were created correctly but read `cpu: <unknown>` because Docker Desktop does not ship metrics-server by default; that is a metrics-server installation step, not a problem with the manifests | Genuinely applied and verified, not just rendered |
+| 2026-09-27 | `docs/RUNBOOK.md` gained a troubleshooting row for the port-80 conflict found above, and a note that HPA needs metrics-server installed separately to show real numbers | Save the next person the same investigation |

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input } from '@angular/core';
+import { AppReadyService } from '@ecom/shared/core';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -30,6 +31,7 @@ const SIZES: Record<ButtonSize, string> = {
     '[class]': 'classes()',
     '[attr.aria-busy]': 'loading() ? "true" : null',
     '[attr.aria-disabled]': 'loading() ? "true" : null',
+    '[attr.disabled]': 'blockedBeforeHydration() ? "" : null',
     '(click)': 'blockWhileLoading($event)',
   },
   template: `
@@ -43,6 +45,17 @@ export class ButtonComponent {
   readonly variant = input<ButtonVariant>('primary');
   readonly size = input<ButtonSize>('md');
   readonly loading = input(false);
+
+  private readonly host = inject(ElementRef<HTMLElement>).nativeElement;
+  private readonly appReady = inject(AppReadyService);
+  /**
+   * Only a `<button>` whose type resolves to `submit` (the browser's own default inside a `<form>`,
+   * even with no `type` attribute) can trigger a native page reload before the app has hydrated. Other
+   * buttons already do nothing until their `(click)` binding attaches, so leaving them enabled changes
+   * nothing about safety and keeps this from disabling the whole page during every hydration.
+   */
+  private readonly isSubmit = this.host.tagName === 'BUTTON' && (this.host as HTMLButtonElement).type === 'submit';
+  protected readonly blockedBeforeHydration = computed(() => this.isSubmit && !this.appReady.ready());
 
   /** Loading keeps the button focusable (no `disabled`) but ignores clicks. */
   protected blockWhileLoading(event: Event): void {

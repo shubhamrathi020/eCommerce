@@ -2,7 +2,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { AnalyticsService, RecentSearchesStore } from '@ecom/shared/core';
+import { AnalyticsService, AppReadyService, RecentSearchesStore } from '@ecom/shared/core';
 import { SearchApi } from '@ecom/shared/data-access';
 import { IconComponent } from '@ecom/shared/ui';
 import { MoneyPipe } from '@ecom/shared/util';
@@ -50,7 +50,7 @@ const GROUP_TITLES: Record<OptionKind, string> = { recent: 'Recent searches', qu
         (focus)="open.set(true)"
         (keydown)="onKeydown($event)"
       />
-      <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-r-md bg-primary px-4 text-primary-contrast hover:bg-primary-hover" aria-label="Search"><ui-icon name="search" /></button>
+      <button type="submit" [disabled]="!appReady.ready()" class="inline-flex min-h-11 items-center justify-center rounded-r-md bg-primary px-4 text-primary-contrast hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50" aria-label="Search"><ui-icon name="search" /></button>
     </form>
 
     <p class="sr-only" role="status" aria-live="polite">{{ open() && options().length ? options().length + ' suggestions available' : '' }}</p>
@@ -100,6 +100,7 @@ export class SearchBoxComponent {
   private readonly api = inject(SearchApi);
   private readonly recent = inject(RecentSearchesStore);
   private readonly analytics = inject(AnalyticsService);
+  protected readonly appReady = inject(AppReadyService);
 
   protected readonly query = signal('');
   protected readonly open = signal(false);
