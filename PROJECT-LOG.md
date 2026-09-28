@@ -138,6 +138,14 @@ A plain-English diary of what is being built, why, and which commands were used.
 - Try it: `docker compose up -d postgres redis`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm start:api`, then flip `realAuth: true` in `apps/storefront/src/app/app-config.values.ts` and `pnpm start:storefront`.
 - Not built yet: the catalog, cart, orders, search and everything else still run on mock data (that is BRD 20 and 21); no cloud deployment yet.
 
+### Step 16: Catalog and search services, BRD 20 (2026-09-28) — the shop and search box can run for real
+- Browsing, filtering and searching the catalog can now run against a real database (MongoDB) and a real search engine (Meilisearch) instead of the in-browser mock — one flag away (`realCatalog: true`), same as sign-in was in BRD 19.
+- Search is genuinely typo-tolerant and fast (Meilisearch, not a hand-rolled approximation): tried it with a misspelled word ("smartphon") and it still found every smartphone.
+- Admin can now create, edit and publish products against the same store the shop reads — and a real gap from BRD 06 is now closed: a draft product used to just live in a disconnected mock; now it is genuinely invisible to shoppers until published, on one shared store.
+- Verified for real: browsed the shop, searched, opened a product page (with related items and reviews) and filtered by a facet, all in a live browser against the real API — confirmed by reading the actual network requests, not assumed.
+- Try it: `docker compose up -d mongo meilisearch`, `pnpm db:seed:catalog`, `pnpm start:api`, then flip `realCatalog: true` in `apps/storefront/src/app/app-config.values.ts` and `pnpm start:storefront`.
+- Not built yet: cart, checkout, orders and payments still run on mock data (that is BRD 21); writing a new review still only saves to the mock, not the real store yet; no CSV bulk import or image upload pipeline yet.
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -199,3 +207,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | BRD 12 (frontend hardening) built and committed; phase 1 of the frontend complete |
 | 2026-09-27 | Kubernetes manifests applied and verified on a real local cluster; a wrong "already safe" claim about early form submits found and fixed for real |
 | 2026-09-28 | BRD 19 (backend foundation and identity API) built, verified against a real database and a real browser session, and committed — first backend slice |
+| 2026-09-28 | BRD 20 (catalog and search services) built on MongoDB + Meilisearch, verified live in a browser (listing, typo-tolerant search, product page, facets all confirmed against the real API), and committed |

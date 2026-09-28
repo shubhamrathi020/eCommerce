@@ -29,4 +29,6 @@ export { MockInventoryStore, LOCATIONS, MAIN_LOCATION, DEFAULT_SETTINGS as DEFAU
 export * from './lib/notification.api';
 export { ApiClient, toApiException } from './http/api-client';
 export { HttpAuthApi, HttpAddressBookApi } from './http/http-auth.api';
+export { HttpCatalogApi, HttpCategoryApi, HttpSearchApi } from './http/http-catalog.api';
+export { HttpAdminProductApi } from './http/http-admin-catalog.api';
 export { MockNotificationStore, DEFAULT_PREFERENCES } from './mock/notification-store';

@@ -12,6 +12,9 @@ const CONFIG: AppConfig = {
   useMocks: true,
   // true: staff sign in against the real API (BRD 19); the admin screens themselves still use mock data.
   realAuth: false,
+  // true: product management against the real catalog store (BRD 20). Needs realAuth: true as well —
+  // the admin catalog endpoints check the signed-in user's permissions on the server.
+  realCatalog: false,
   mockLatencyMs: 200,
   apiBaseUrl: 'http://localhost:3333',
   siteName: 'Shop Admin',
@@ -25,8 +28,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(appRoutes, withComponentInputBinding()),
     provideHttpClient(withFetch()),
     provideCore(CONFIG),
-    provideDataAccess({ useMocks: CONFIG.useMocks, realAuth: CONFIG.realAuth }),
-    provideAdminDataAccess({ useMocks: CONFIG.useMocks }),
+    provideDataAccess({ useMocks: CONFIG.useMocks, realAuth: CONFIG.realAuth, realCatalog: CONFIG.realCatalog }),
+    provideAdminDataAccess({ useMocks: CONFIG.useMocks, realCatalog: CONFIG.realCatalog }),
     provideCartFacade(),
   ],
 };

@@ -29,20 +29,25 @@ Development-only helpers: on the sign-in pages a "Development only: fill demo ..
 | `pnpm e2e` | Smoke tests in a real browser (Microsoft Edge locally; starts the dev servers if needed) |
 | `pnpm mock-data` | Regenerate the seeded mock catalog, reviews and images |
 
-## 4a. The backend API (BRD 19)
+## 4a. The backend API (BRD 19, 20)
 
-Only sign-in, your profile and your saved addresses run on the real API so far; everything else is still mock data.
+Sign-in, your profile, your saved addresses, and browsing/searching the catalog run on the real API so far; cart, checkout, orders and payments are still mock data.
 
 ```bash
-docker compose up -d postgres redis   # or your own local Postgres/Redis
+docker compose up -d postgres redis mongo meilisearch   # or your own local instances
 pnpm db:migrate                        # first time and after schema changes (prompts for a migration name)
 pnpm db:seed                           # seeds the same demo accounts as the frontend mock
+pnpm db:seed:catalog                   # seeds the same 252 products into Mongo and builds the Meilisearch index
 pnpm start:api                         # http://localhost:3333, docs at /docs, dev mailbox at /dev/outbox
 ```
 
-Then set `realAuth: true` in `apps/storefront/src/app/app-config.values.ts` (or `apps/admin/src/app/app.config.ts`) and start that app as usual. Set it back to `false` (the default) to go back to the mock.
+Then, in `apps/storefront/src/app/app-config.values.ts` (or `apps/admin/src/app/app.config.ts`):
+- `realAuth: true` — sign-in, profile, addresses.
+- `realCatalog: true` — catalog browsing and search. On the admin app, product management also needs `realAuth: true` (the real catalog endpoints check the signed-in user's permissions on the server).
 
-`pnpm exec nx test api` runs the API's own integration tests against a **separate** `..._test` database (created automatically); it needs Postgres running but never touches your development data.
+Set them back to `false` (the default) to go back to the mock. Re-run `pnpm db:seed:catalog` any time you want to reset the catalog back to the seeded 252 products (admin test edits included).
+
+`pnpm exec nx test api` runs the API's own integration tests against **separate** `..._test` stores (a Postgres database and a Mongo database, created automatically, plus a `products_test` Meilisearch index) — it needs Postgres, Mongo and Meilisearch running but never touches your development data.
 
 ## 4. Containers (Docker)
 
@@ -58,6 +63,8 @@ pnpm docker:down    # stops and removes them
 | API (NestJS) | http://localhost:3333 | node (uid 1000), read-only filesystem | `/healthz`, `/readyz` |
 | PostgreSQL | localhost:5432 | — | `pg_isready` |
 | Redis | localhost:6379 | — | `redis-cli ping` |
+| MongoDB | localhost:27017 | — | `mongosh --eval db.runCommand('ping')` |
+| Meilisearch | http://localhost:7700 | — | `/health` |
 
 Notes
 - The storefront only answers to hosts listed in `ALLOWED_HOSTS` (comma separated, wildcards like `*.example.com` allowed). Set it for real domains.
@@ -89,6 +96,8 @@ HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop
 | API: "Invalid API configuration" on start | A required `.env` value is missing; copy `apps/api/.env.example` to `apps/api/.env` |
 | `pnpm exec nx test api` fails to connect | Postgres is not running: `docker compose up -d postgres` |
 | Docker `shop-api` image: "Cannot find module 'tslib'" | Fixed by `"importHelpers": false` in `apps/api/tsconfig.app.json`; if it recurs, something reintroduced a `tslib` import and the pruned production install has no dev dependencies |
+| `pnpm exec nx test api` fails to connect to Mongo/Meilisearch | `docker compose up -d mongo meilisearch` |
+| Catalog listing/search returns nothing even though `realCatalog: true` | The catalog store is empty or stale: `pnpm db:seed:catalog` |
 | `docker` says it cannot connect to the daemon | Docker Desktop is not running; start it and retry |
 | Storefront returns `400 Bad Request` with a "host is not allowed" message | The host name is missing from `ALLOWED_HOSTS` |
 | Admin container keeps restarting | Check `docker compose logs admin` (usually an nginx config error) |
@@ -98,4 +107,4 @@ HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop
 
 ## 7. Not covered yet
 
-Catalog, cart, orders and search still run on mock data (BRD 20, 21 move them to the real API). Cloud deployment, Helm, secrets management and observability stacks arrive later in the backend phase (BRD 24, 25).
+Cart, checkout, orders and payments still run on mock data (BRD 21 moves them to the real API). CSV bulk import and an image upload pipeline for the catalog aren't built yet either. Cloud deployment, Helm, secrets management and observability stacks arrive later in the backend phase (BRD 24, 25).

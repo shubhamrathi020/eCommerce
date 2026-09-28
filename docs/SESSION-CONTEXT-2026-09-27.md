@@ -214,3 +214,27 @@ User messages since the previous update:
 - "i pushed the commits, now tell me next step" (after F1–F4 were confirmed done).
 - (Usage-limit interruption and a model switch mid-session, both handled transparently — see the assistant's own running notes; no separate user decision was needed once told to continue.)
 - "continue" / "Try again" (resuming after the interruptions above).
+
+### After BRD 20: catalog and search on MongoDB + Meilisearch, wired into the frontend
+
+Trigger: continuing "go ahead with remaining BRDs" — after BRD 20's backend-only commit (`47e8e60`, stopped early on a usage-limit warning), the user said "you can go ahead, and i have mongodb compass and tableplus so can do both SQL and NoSQL DB part using that" — confirming they have their own tools to inspect Postgres and Mongo directly, and to continue.
+
+What was finished (on top of the `47e8e60` backend slice):
+- **Frontend wiring**: `HttpCatalogApi`, `HttpCategoryApi`, `HttpSearchApi` (`libs/shared/data-access/src/http/http-catalog.api.ts`) and `HttpAdminProductApi` (`http-admin-catalog.api.ts`), all following the exact adapter pattern BRD 19 established. A new `AppConfig.realCatalog` flag (default `false`) swaps `CatalogApi`/`CategoryApi`/`SearchApi` (storefront) and `AdminProductApi` (admin) to the real backend; `ReviewApi` (the write side of reviews) deliberately stays mock, since `CatalogApi.reviews()` (the read side) is the part that went real.
+- **12 new frontend adapter tests** (`HttpTestingController`): query-string encoding for listing/search (including JSON-encoded `filters`), the admin adapter's `{ count }` → `number` mapping, etc. — 135/135 `shared-data-access` tests pass.
+- **Real end-to-end verification, live in a browser**, not just automated tests: started `docker compose`'s Postgres/Redis/Mongo/Meilisearch, `pnpm db:seed:catalog`, `pnpm start:api`, flipped `realCatalog: true` on the storefront, and drove the built-in browser through:
+  - the home page (deals, featured, new arrivals, top rated, brands) — confirmed via the network log that every request hit `localhost:3333`, not the mock;
+  - `/c/men-clothing` category listing — 6 real products, correct breadcrumb, out-of-stock item sorted last;
+  - `/search?q=smartphon` — a deliberate typo, correctly matched 4 smartphones via Meilisearch's real typo tolerance (not the mock's hand-rolled edit-distance code);
+  - a product page — variants, "frequently bought together", "related products" and the reviews tab, each confirmed as its own real API call in the network log.
+  - Reverted `realCatalog` back to `false` and stopped the temporary dev servers afterward, per the flag's documented default.
+- **A real bug found and fixed while building this, not left in**: `MeiliSearch` isn't the client class's actual export name in the installed `meilisearch` package (it's `Meilisearch`), and `client.waitForTask()` isn't a real method (it's `client.tasks.waitForTask()`) — both caught by the TypeScript build failing, not by a runtime surprise later. Also found and fixed a more subtle bug: writing `private readonly mongo = inject(MongoService)` (Angular's `inject()`) inside a **NestJS** service — `inject` isn't exported by `@nestjs/common` at all, and the resulting broken import silently cascaded into dozens of unrelated "implicitly any" TypeScript errors across the whole file rather than failing cleanly at the mistake itself. Fixed by using NestJS's actual pattern, constructor injection; recorded as a lesson in `steering/memory.md` since the failure mode (one wrong import causing a wall of unrelated-looking errors) is worth recognizing quickly next time.
+- Two real test bugs caught and fixed by actually running the tests against the real backend (not just reasoning about them): the "duplicate SKU" admin test failed because `AdminCatalogService.create()` was checking SKU uniqueness against an empty list instead of every existing product's variants (a real product-level bug, not just a test bug — fixed in `admin-catalog.service.ts`); a price-range listing test asserted a price ceiling (₹100) below every actual product's price in that category, so it always returned zero results — fixed by checking the real fixture's price distribution first and picking a realistic bound.
+
+Docs updated to reflect BRD 20 as built: `brds/20-catalog-search-services.md` (status + change log), `brds/README.md`, `PROJECT-LOG.md`, `steering/memory.md`, `docs/RUNBOOK.md`, `docs/VERIFICATION-CHECKLIST.md`.
+
+Status now: BRD 19 and BRD 20 are both built and verified end to end. Cart, checkout, orders and payments (BRD 21) are the next and last piece needed before the shop can run entirely off mocks for nothing except phase-2/3 frontend features. Not pushed — the user pushes.
+
+User messages since the previous update:
+- "we're reaching the usage limit, please finish with stable change" (mid-turn interrupt; wrapped up the backend-only slice as commit `47e8e60` with an honest "what's done / what's deferred" summary).
+- "you can go ahead, and i have mongodb compass and tableplus so can do both SQL and NoSQL DB part using that" (after switching back to `claude-sonnet-5`) — continue with the frontend wiring and finish BRD 20 properly.

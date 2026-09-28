@@ -6,6 +6,9 @@ export const APP_CONFIG_VALUES: AppConfig = {
   // Set to true (and start the API: `pnpm start:api`) to sign in, manage the profile and addresses against
   // the real backend. Everything else keeps using the mock adapters until its own backend BRD is built.
   realAuth: false,
+  // Set to true (and start the API: `pnpm start:api`, seeded via `pnpm db:seed:catalog`) to browse and
+  // search the real catalog store (BRD 20). Cart, checkout, orders etc. keep using the mock adapters.
+  realCatalog: false,
   mockLatencyMs: 250,
   apiBaseUrl: 'http://localhost:3333',
   siteName: 'Shop',

@@ -87,9 +87,9 @@ Sign in with "fill demo admin" at http://localhost:4201 (admin data is separate 
 | F5 | Choose the cloud provider and rough budget | BRD 25 |
 | F6 | An email sender domain and provider choice | BRD 23 |
 
-## G0. The backend has started (BRD 19, new)
+## G0. The backend has started (BRD 19, 20)
 
-Optional to check now (the frontend still works entirely on mocks without it): `docker compose up -d postgres redis`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm start:api`, set `realAuth: true` in `apps/storefront/src/app/app-config.values.ts`, `pnpm start:storefront`. Sign in as the demo customer, add an address, then check it is really in Postgres: `docker exec -it shop-postgres-1 psql -U ecommerce -d ecommerce -c "select * from saved_addresses;"`. Set `realAuth` back to `false` when done.
+Optional to check now (the frontend still works entirely on mocks without it): `docker compose up -d postgres redis mongo meilisearch`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm db:seed:catalog`, `pnpm start:api`, set `realAuth: true` and `realCatalog: true` in `apps/storefront/src/app/app-config.values.ts`, `pnpm start:storefront`. Sign in as the demo customer, add an address, then check it is really in Postgres: `docker exec -it shop-postgres-1 psql -U ecommerce -d ecommerce -c "select * from saved_addresses;"`. Browse a category, search for something (try a small typo), open a product page. If you have MongoDB Compass or a similar tool, point it at `mongodb://localhost:27017` (database `ecommerce_catalog`) to see the products, categories, brands and reviews collections directly; Meilisearch's own dashboard is at `http://localhost:7700`. Set `realAuth`/`realCatalog` back to `false` when done.
 
 ## G. Known limitations to acknowledge (already recorded in each BRD)
 

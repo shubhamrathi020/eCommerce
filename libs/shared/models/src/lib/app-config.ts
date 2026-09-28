@@ -10,6 +10,11 @@ export interface AppConfig {
    * backend keeps using the mock adapters. `false` (the default) keeps the app fully on mocks.
    */
   realAuth?: boolean;
+  /**
+   * Catalog browsing, search and categories go to the real API (BRD 20) while everything not yet built on
+   * the backend keeps using the mock adapters. `false` (the default) keeps the app fully on mocks.
+   */
+  realCatalog?: boolean;
   /** Public Razorpay key id only. Secrets never live in the frontend. */
   razorpayKeyId?: string;
   siteName: string;

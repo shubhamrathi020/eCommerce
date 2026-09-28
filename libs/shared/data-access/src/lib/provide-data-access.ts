@@ -23,27 +23,33 @@ import { MockCmsApi, MockContentApi } from '../mock/mock-content.api';
 import { MockNewsletterApi } from '../mock/mock-newsletter.api';
 import { MockAlertApi, MockNotificationApi, MockPreferenceApi } from '../mock/mock-notification.api';
 import { HttpAddressBookApi, HttpAuthApi } from '../http/http-auth.api';
+import { HttpCatalogApi, HttpCategoryApi, HttpSearchApi } from '../http/http-catalog.api';
 
 /**
- * Wires each API contract to its adapter. Only mock adapters exist for now;
- * HTTP adapters are added with the backend and selected by `AppConfig.useMocks`.
+ * Wires each API contract to its adapter, selected by `AppConfig.useMocks` and, module by module, the
+ * `realAuth`/`realCatalog` flags as each backend BRD lands. Everything not yet listed with a `real...`
+ * flag still has no HTTP adapter at all and stays on mocks.
  */
-export function provideDataAccess(options: { useMocks: boolean; realAuth?: boolean }): EnvironmentProviders {
+export function provideDataAccess(options: { useMocks: boolean; realAuth?: boolean; realCatalog?: boolean }): EnvironmentProviders {
   if (!options.useMocks) {
-    throw new Error('Only identity has a real API so far (BRD 19). Keep useMocks: true and set realAuth: true to use it.');
+    throw new Error('Only identity (BRD 19) and catalog/search (BRD 20) have a real API so far. Keep useMocks: true and set realAuth/realCatalog: true to use them.');
   }
   return makeEnvironmentProviders([
-    { provide: CatalogApi, useClass: MockCatalogApi },
-    // Identity is the first module with a real backend; everything else stays on mocks until its BRD lands.
+    // Identity (BRD 19) and catalog/search (BRD 20) are the only modules with a real backend so far;
+    // everything else stays on mocks until its own BRD lands.
+    { provide: CatalogApi, useClass: options.realCatalog ? HttpCatalogApi : MockCatalogApi },
     { provide: AuthApi, useClass: options.realAuth ? HttpAuthApi : MockAuthApi },
     { provide: AddressBookApi, useClass: options.realAuth ? HttpAddressBookApi : MockAddressBookApi },
+    // ReviewApi is only the *writing* side (submit/vote/moderate); reading reviews is CatalogApi.reviews(),
+    // which already goes real with realCatalog. A review submitted through the still-mock ReviewApi will
+    // not appear there until BRD 20's reviews write-path is built for real (a recorded, not silent, gap).
     { provide: ReviewApi, useClass: MockReviewApi },
-    { provide: SearchApi, useClass: MockSearchApi },
+    { provide: SearchApi, useClass: options.realCatalog ? HttpSearchApi : MockSearchApi },
     { provide: CartApi, useClass: MockCartApi },
     { provide: CheckoutApi, useClass: MockCheckoutApi },
     { provide: OrderApi, useClass: MockOrderApi },
     { provide: PaymentApi, useClass: MockPaymentApi },
-    { provide: CategoryApi, useClass: MockCategoryApi },
+    { provide: CategoryApi, useClass: options.realCatalog ? HttpCategoryApi : MockCategoryApi },
     { provide: CmsApi, useClass: MockCmsApi },
     { provide: ContentApi, useClass: MockContentApi },
     { provide: NewsletterApi, useClass: MockNewsletterApi },
