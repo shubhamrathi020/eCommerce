@@ -24,14 +24,16 @@ export function configureApp(app: INestApplication, config: ApiConfig): void {
   express.use(cookieParser());
   // Credentials only for the listed origins (BF-09). Anything else gets no CORS headers at all.
   express.enableCors({ origin: config.corsOrigins, credentials: true, allowedHeaders: ['content-type', 'authorization', 'x-csrf', 'x-request-id'], exposedHeaders: ['x-request-id'], maxAge: 600 });
-  express.useBodyParser('json', { limit: '100kb' });
+  // `verify` stashes the exact raw bytes on the request (BRD 21's Razorpay webhook needs to check its
+  // signature against the untouched body, not a re-serialised copy of the parsed JSON).
+  express.useBodyParser('json', { limit: '100kb', verify: (req: Request & { rawBody?: string }, _res: Response, buf: Buffer) => (req.rawBody = buf.toString('utf8')) });
   express.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   express.enableShutdownHooks();
 
   if (config.docs) {
     const document = SwaggerModule.createDocument(
       app,
-      new DocumentBuilder().setTitle('eCommerce API').setDescription('Identity, accounts and addresses (BRD 19). Errors use the `{ code, message, fields?, requestId? }` shape.').setVersion('0.1').addBearerAuth().build(),
+      new DocumentBuilder().setTitle('eCommerce API').setDescription('Identity (BRD 19), catalog and search (BRD 20), cart/checkout/orders/payments (BRD 21). Errors use the `{ code, message, fields?, requestId? }` shape.').setVersion('0.3').addBearerAuth().build(),
     );
     SwaggerModule.setup('docs', app, document, { jsonDocumentUrl: 'docs/openapi.json' });
   }

@@ -48,6 +48,14 @@ export class ApiClient {
     return this.send<T>(method, path, body, false).pipe(catchError((e) => throwError(() => toApiException(e))));
   }
 
+  /** Calls an endpoint that works whether or not the caller is signed in (cart, checkout, orders,
+   * payments): attaches the access token when we have one, so a signed-in user's cart/orders are
+   * recognised as theirs, but never tries to refresh on a 401 — these endpoints don't require auth at
+   * all, so they never reply 401 just because the token happens to be stale. */
+  optional<T>(method: Method, path: string, body?: unknown): Observable<T> {
+    return this.send<T>(method, path, body, true).pipe(catchError((e) => throwError(() => toApiException(e))));
+  }
+
   /** Calls an endpoint as the signed-in user, refreshing the access token once if it has expired. */
   authed<T>(method: Method, path: string, body?: unknown): Observable<T> {
     return defer(() => this.send<T>(method, path, body, true)).pipe(
@@ -79,8 +87,10 @@ export class ApiClient {
 
   private send<T>(method: Method, path: string, body: unknown, withToken: boolean): Observable<T> {
     let headers = new HttpHeaders({ 'x-request-id': newRequestId() });
-    // Custom header the API requires on cookie-authenticated calls (CSRF protection, see the API's CsrfGuard).
-    if (path.startsWith('/auth/')) headers = headers.set('x-csrf', '1');
+    // Custom header the API requires on every mutating call that can run off a cookie, not just a bearer
+    // token (CSRF protection, see the API's CsrfGuard): /auth's cookie-authenticated endpoints, and the
+    // cart/order/payment endpoints, which the guest cart cookie makes reachable without one.
+    if (method !== 'GET' && (path.startsWith('/auth/') || path.startsWith('/cart') || path.startsWith('/orders'))) headers = headers.set('x-csrf', '1');
     if (withToken && this.accessToken) headers = headers.set('authorization', `Bearer ${this.accessToken}`);
     return this.http.request<T>(method, `${this.base}${path}`, { body, headers, withCredentials: true });
   }

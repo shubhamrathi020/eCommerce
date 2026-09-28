@@ -21,7 +21,9 @@ import type {
   Role,
   Variant,
 } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import { ApiException, ORDER_TRANSITIONS } from '@ecom/shared/models';
+
+export { ORDER_TRANSITIONS };
 import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, AdminReviewApi, AdminUserApi, AuditApi } from '../../lib/admin.api';
 import { COUPONS } from '../cart-engine';
 import { loadCatalogData } from '../catalog-data';
@@ -36,15 +38,8 @@ const nowIso = () => new Date().toISOString();
 const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const inr = (amount: number) => ({ amount: Math.round(amount), currency: 'INR' as const });
 
-/** Allowed order transitions (business rule 1 of BRD 06). */
-export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  pending_payment: ['cancelled'],
-  confirmed: ['packed', 'cancelled'],
-  packed: ['shipped', 'cancelled'],
-  shipped: ['delivered'],
-  delivered: [],
-  cancelled: [],
-};
+// ORDER_TRANSITIONS now lives in @ecom/shared/models (order-derive.ts) so apps/api can use it too — the
+// same pattern as catalog-engine.ts/cart-engine.ts's relocation. Re-exported below for existing imports.
 
 const STATUS_LABEL: Record<string, string> = { packed: 'Packed', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Order cancelled' };
 

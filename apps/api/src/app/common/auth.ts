@@ -61,6 +61,34 @@ export class AuthGuard implements CanActivate {
 }
 
 /**
+ * For routes usable both signed in and as a guest (cart, checkout, orders — BRD 21). Decodes a bearer
+ * token when one is present and valid, setting `req.user`; never refuses the request either way, so
+ * `@CurrentUser()` cannot be used here — read `req.user` via `@OptionalUser()` instead.
+ */
+@Injectable()
+export class OptionalAuthGuard implements CanActivate {
+  constructor(@Inject(API_CONFIG) private readonly config: ApiConfig) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const req = context.switchToHttp().getRequest<AuthedRequest>();
+    const header = req.headers.authorization ?? '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+    if (!token) return true;
+    try {
+      const payload = jwt.verify(token, this.config.jwtAccessSecret, { algorithms: ['HS256'], audience: 'ecom-api', issuer: 'ecom-api' }) as AccessTokenPayload;
+      req.user = { id: payload.sub, roles: payload.roles, permissions: payload.permissions };
+    } catch {
+      // An expired/invalid token on an optional-auth route is treated the same as no token: still a guest.
+    }
+    return true;
+  }
+}
+
+export const OptionalUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): AuthUser | undefined => {
+  return ctx.switchToHttp().getRequest<AuthedRequest>().user;
+});
+
+/**
  * CSRF protection for the endpoints that act on the refresh-token cookie (refresh, logout). The cookie is
  * `SameSite=Lax`, and these endpoints additionally require a custom header: a cross-site page cannot send
  * one without a CORS preflight, which only our own origins pass. Bearer-token endpoints do not need this.

@@ -29,9 +29,9 @@ Development-only helpers: on the sign-in pages a "Development only: fill demo ..
 | `pnpm e2e` | Smoke tests in a real browser (Microsoft Edge locally; starts the dev servers if needed) |
 | `pnpm mock-data` | Regenerate the seeded mock catalog, reviews and images |
 
-## 4a. The backend API (BRD 19, 20)
+## 4a. The backend API (BRD 19, 20, 21)
 
-Sign-in, your profile, your saved addresses, and browsing/searching the catalog run on the real API so far; cart, checkout, orders and payments are still mock data.
+Sign-in, profile, addresses, browsing/searching the catalog, and cart/checkout/orders (cash on delivery) all run on the real API now. Online payment needs your own Razorpay test keys (see below); everything else needs nothing extra.
 
 ```bash
 docker compose up -d postgres redis mongo meilisearch   # or your own local instances
@@ -44,8 +44,9 @@ pnpm start:api                         # http://localhost:3333, docs at /docs, d
 Then, in `apps/storefront/src/app/app-config.values.ts` (or `apps/admin/src/app/app.config.ts`):
 - `realAuth: true` — sign-in, profile, addresses.
 - `realCatalog: true` — catalog browsing and search. On the admin app, product management also needs `realAuth: true` (the real catalog endpoints check the signed-in user's permissions on the server).
+- `realCommerce: true` — cart, checkout, orders. Cash on delivery works immediately; online payment additionally needs `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` in `apps/api/.env` (your own free test-mode keys from the Razorpay dashboard — never paste them into chat; without them `PaymentApi.initiate` refuses with a clear message and COD still works). On the admin app, order management also needs `realAuth: true`.
 
-Set them back to `false` (the default) to go back to the mock. Re-run `pnpm db:seed:catalog` any time you want to reset the catalog back to the seeded 252 products (admin test edits included).
+Set them back to `false` (the default) to go back to the mock. Re-run `pnpm db:seed:catalog` any time you want to reset the catalog back to the seeded 252 products (admin test edits and order-placed stock changes included).
 
 `pnpm exec nx test api` runs the API's own integration tests against **separate** `..._test` stores (a Postgres database and a Mongo database, created automatically, plus a `products_test` Meilisearch index) — it needs Postgres, Mongo and Meilisearch running but never touches your development data.
 
@@ -98,6 +99,8 @@ HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop
 | Docker `shop-api` image: "Cannot find module 'tslib'" | Fixed by `"importHelpers": false` in `apps/api/tsconfig.app.json`; if it recurs, something reintroduced a `tslib` import and the pruned production install has no dev dependencies |
 | `pnpm exec nx test api` fails to connect to Mongo/Meilisearch | `docker compose up -d mongo meilisearch` |
 | Catalog listing/search returns nothing even though `realCatalog: true` | The catalog store is empty or stale: `pnpm db:seed:catalog` |
+| "Online payment is not set up on this server yet" | No Razorpay test keys in `apps/api/.env`; use cash on delivery, or add your own `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` (test mode only — the API refuses a `rzp_live_...` key outright) |
+| Cart/order calls return 403 "Missing CSRF header" | The frontend adapter should already add this automatically; if calling the API directly (curl, Postman), add `x-csrf: 1` to any non-GET `/cart` or `/orders` request |
 | `docker` says it cannot connect to the daemon | Docker Desktop is not running; start it and retry |
 | Storefront returns `400 Bad Request` with a "host is not allowed" message | The host name is missing from `ALLOWED_HOSTS` |
 | Admin container keeps restarting | Check `docker compose logs admin` (usually an nginx config error) |
@@ -107,4 +110,4 @@ HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop
 
 ## 7. Not covered yet
 
-Cart, checkout, orders and payments still run on mock data (BRD 21 moves them to the real API). CSV bulk import and an image upload pipeline for the catalog aren't built yet either. Cloud deployment, Helm, secrets management and observability stacks arrive later in the backend phase (BRD 24, 25).
+Invoices as a real PDF, and an automated job reconciling payments against Razorpay's own records, aren't built yet (need BRD 23/24's messaging and scheduling infrastructure first). CSV bulk import and an image upload pipeline for the catalog aren't built yet either. Cloud deployment, Helm, secrets management and observability stacks arrive later in the backend phase (BRD 24, 25).

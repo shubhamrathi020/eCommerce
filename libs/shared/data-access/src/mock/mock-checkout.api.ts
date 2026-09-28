@@ -1,26 +1,20 @@
 import { Injectable, inject } from '@angular/core';
 import type { PaymentOption, ShippingOption } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import { ApiException, codEligibility, deliverabilityProblem } from '@ecom/shared/models';
 import { CheckoutApi } from '../lib/commerce.api';
 import { computeServiceability } from './catalog-data';
-import { COD_MAX_TOTAL, EXPRESS_SHIPPING, shippingFee } from './cart-engine';
+import { EXPRESS_SHIPPING, shippingFee } from './cart-engine';
 import { MockCartState } from './mock-cart-state';
 import { createMockResponder } from './mock-latency';
 
 const DAY_MS = 86_400_000;
-const PINCODE = /^[1-9][0-9]{5}$/;
-/** Mock rule: no cash on delivery for these pin-code prefixes. */
-const COD_BLOCKED_PREFIXES = ['7', '8'];
+
+export { codEligibility };
 
 export function validateDeliverable(pincode: string): void {
-  if (!PINCODE.test(pincode)) throw new ApiException('validation', 'Enter a valid 6-digit pin code', { pincode: 'Invalid pin code' });
-  if (!computeServiceability(pincode).serviceable) throw new ApiException('validation', 'Sorry, we do not deliver to this pin code yet.', { pincode: 'Not deliverable' });
-}
-
-export function codEligibility(pincode: string, total: number): { enabled: boolean; reason?: string } {
-  if (total > COD_MAX_TOTAL) return { enabled: false, reason: 'Cash on delivery is available for orders up to ₹5,000.' };
-  if (COD_BLOCKED_PREFIXES.includes(pincode[0])) return { enabled: false, reason: 'Cash on delivery is not available for this pin code.' };
-  return { enabled: true };
+  const problem = deliverabilityProblem(pincode, (p) => computeServiceability(p).serviceable);
+  if (problem === 'invalid') throw new ApiException('validation', 'Enter a valid 6-digit pin code', { pincode: 'Invalid pin code' });
+  if (problem === 'not_deliverable') throw new ApiException('validation', 'Sorry, we do not deliver to this pin code yet.', { pincode: 'Not deliverable' });
 }
 
 @Injectable()

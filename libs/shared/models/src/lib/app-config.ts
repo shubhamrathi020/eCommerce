@@ -15,6 +15,13 @@ export interface AppConfig {
    * the backend keeps using the mock adapters. `false` (the default) keeps the app fully on mocks.
    */
   realCatalog?: boolean;
+  /**
+   * Cart, checkout, orders and payments go to the real API (BRD 21) while everything not yet built on the
+   * backend keeps using the mock adapters. `false` (the default) keeps the app fully on mocks. Payments
+   * only actually work once the server has its own Razorpay test-mode keys (see apps/api/.env.example);
+   * cash on delivery works either way.
+   */
+  realCommerce?: boolean;
   /** Public Razorpay key id only. Secrets never live in the frontend. */
   razorpayKeyId?: string;
   siteName: string;

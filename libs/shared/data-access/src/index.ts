@@ -31,4 +31,6 @@ export { ApiClient, toApiException } from './http/api-client';
 export { HttpAuthApi, HttpAddressBookApi } from './http/http-auth.api';
 export { HttpCatalogApi, HttpCategoryApi, HttpSearchApi } from './http/http-catalog.api';
 export { HttpAdminProductApi } from './http/http-admin-catalog.api';
+export { HttpCartApi, HttpCheckoutApi, HttpOrderApi, HttpPaymentApi } from './http/http-commerce.api';
+export { HttpAdminOrderApi } from './http/http-admin-order.api';
 export { MockNotificationStore, DEFAULT_PREFERENCES } from './mock/notification-store';

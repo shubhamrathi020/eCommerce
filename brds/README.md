@@ -33,7 +33,7 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | 18 | [Localisation, theming and PWA](18-localisation-theming-pwa.md) | 3 | Draft | 01 to 12 |
 | 19 | [Backend foundation and identity API](19-backend-foundation.md) | Backend | Built (identity, accounts, addresses) | 05, 08 |
 | 20 | [Catalog and search services](20-catalog-search-services.md) | Backend | Built (catalog, search, admin products) | 19, 09, 11 |
-| 21 | [Commerce services](21-commerce-services.md) | Backend | Draft | 19, 20, 11 |
+| 21 | [Commerce services](21-commerce-services.md) | Backend | Built (cart, checkout, orders, COD; online payment needs your own Razorpay test keys) | 19, 20, 11 |
 | 22 | [Caching and rate limiting](22-caching-rate-limiting.md) | Backend | Draft | 19, 20, 21 |
 | 23 | [Messaging, jobs and notifications backend](23-messaging-notifications-backend.md) | Backend | Draft | 19 to 21, 10 |
 | 24 | [Observability and reliability](24-observability-reliability.md) | Backend | Draft | 19 to 23 |
@@ -42,5 +42,5 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 ## Recommended order from here
 1. ~~Finish phase 1 of the frontend: 09, 11, 10, 12~~ — done. Phase 1 (BRDs 01 to 12) is complete.
 2. **Sign-off gate:** you verify phase 1 with `docs/VERIFICATION-CHECKLIST.md` and `docs/ACCESSIBILITY-CHECKLIST.md`.
-3. **Backend track:** 19 (done: identity, accounts, addresses), 20 (done: catalog, search, admin products), then 21 (each swaps more mock adapters for real ones), then 22 and 23 (performance and messaging), 24 (observability), 25 (Kubernetes, cloud, load tests — also where the API joins the Kubernetes manifests).
+3. **Backend track:** 19 (done: identity, accounts, addresses), 20 (done: catalog, search, admin products), 21 (done: cart, checkout, orders, COD; online payment code is real but needs your own Razorpay test keys to exercise) — the shop can now run end to end on the real backend. Then 22 and 23 (performance and messaging), 24 (observability), 25 (Kubernetes, cloud, load tests — also where the API joins the Kubernetes manifests).
 4. **Phase 2 and 3 frontend (13 to 18)** can run in parallel with the backend track once phase 1 is signed off; 13, 14 and 17 depend on backend rules being real for full value.

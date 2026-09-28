@@ -146,6 +146,16 @@ A plain-English diary of what is being built, why, and which commands were used.
 - Try it: `docker compose up -d mongo meilisearch`, `pnpm db:seed:catalog`, `pnpm start:api`, then flip `realCatalog: true` in `apps/storefront/src/app/app-config.values.ts` and `pnpm start:storefront`.
 - Not built yet: cart, checkout, orders and payments still run on mock data (that is BRD 21); writing a new review still only saves to the mock, not the real store yet; no CSV bulk import or image upload pipeline yet.
 
+### Step 17: Commerce services, BRD 21 (2026-09-28) — the shop can run end to end on the real backend
+- You can now add something to a real cart, check out, and place a real order against the real database — cash on delivery works completely, right now, with no extra setup beyond starting the server.
+- Two shoppers racing for the very last unit of something can never both win: stock is taken atomically at the moment an order is placed, not just "hoped to be enough".
+- Online payment (Razorpay) is built for real — the actual signature checking, the actual order/refund calls — but it needs your own free Razorpay test-mode keys to actually take a payment. Add them to `apps/api/.env` yourself (I will never ask you to paste them into chat); cash on delivery needs nothing extra.
+- Admin can now move a real order through packed / shipped / delivered, or cancel it (which puts the stock back automatically), against the real database.
+- Verified for real, live in a browser: added a real item to a real cart, filled in the checkout form, chose cash on delivery, placed the order, and confirmed the row in Postgres and the stock reduction in MongoDB by querying them directly — then cancelled the order through the UI and confirmed the stock came back.
+- A real bug was found and fixed while testing this, not left in: the very first version of the "take stock atomically" logic used an invalid database query that matched nothing, so every single order would have failed. Caught immediately by actually placing a test order, not just by reading the code.
+- Try it: `pnpm start:api`, then flip `realCatalog: true` and `realCommerce: true` in `apps/storefront/src/app/app-config.values.ts` and `pnpm start:storefront`. Add something to your cart and check out with cash on delivery.
+- Not built yet: invoices as a real PDF, and a job that automatically double-checks every payment against Razorpay's own records (both are on the list for later, once messaging and scheduling exist).
+
 ## 3. Useful commands (with meaning)
 
 | Command | What it does |
@@ -208,3 +218,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | Kubernetes manifests applied and verified on a real local cluster; a wrong "already safe" claim about early form submits found and fixed for real |
 | 2026-09-28 | BRD 19 (backend foundation and identity API) built, verified against a real database and a real browser session, and committed — first backend slice |
 | 2026-09-28 | BRD 20 (catalog and search services) built on MongoDB + Meilisearch, verified live in a browser (listing, typo-tolerant search, product page, facets all confirmed against the real API), and committed |
+| 2026-09-28 | BRD 21 (commerce services) built: cart, checkout, orders, COD and the order state machine on the real database, real Razorpay integration code; verified live in a browser (a real order placed, confirmed in Postgres/MongoDB, then cancelled), and committed — the shop can now run end to end on the real backend |

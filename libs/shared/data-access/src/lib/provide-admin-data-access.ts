@@ -8,17 +8,18 @@ import { MockAdminContentApi } from '../mock/admin/mock-admin-content.api';
 import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, AdminReviewApi, AdminUserApi, AuditApi } from './admin.api';
 import { MockAdminCouponApi, MockAdminDashboardApi, MockAdminOrderApi, MockAdminProductApi, MockAdminReviewApi, MockAdminUserApi, MockAuditApi } from '../mock/admin/mock-admin.api';
 import { HttpAdminProductApi } from '../http/http-admin-catalog.api';
+import { HttpAdminOrderApi } from '../http/http-admin-order.api';
 
 /**
  * Back-office adapters. Only the admin app provides these, so the storefront bundle stays free of them.
- * `realCatalog: true` needs `realAuth: true` too — `HttpAdminProductApi` calls the real API as the signed-in
- * user, so without a real access token every call is refused as unauthorized.
+ * `realCatalog`/`realCommerce: true` need `realAuth: true` too — the Http admin adapters call the real API
+ * as the signed-in user, so without a real access token every call is refused as unauthorized.
  */
-export function provideAdminDataAccess(options: { useMocks: boolean; realCatalog?: boolean }): EnvironmentProviders {
-  if (!options.useMocks) throw new Error('Only catalog/search (BRD 20) has a real API so far. Keep useMocks: true and set realCatalog: true to use it.');
+export function provideAdminDataAccess(options: { useMocks: boolean; realCatalog?: boolean; realCommerce?: boolean }): EnvironmentProviders {
+  if (!options.useMocks) throw new Error('Only catalog/search (BRD 20) and orders (BRD 21) have a real API so far. Keep useMocks: true and set realCatalog/realCommerce: true to use them.');
   return makeEnvironmentProviders([
     { provide: AdminProductApi, useClass: options.realCatalog ? HttpAdminProductApi : MockAdminProductApi },
-    { provide: AdminOrderApi, useClass: MockAdminOrderApi },
+    { provide: AdminOrderApi, useClass: options.realCommerce ? HttpAdminOrderApi : MockAdminOrderApi },
     { provide: AdminCouponApi, useClass: MockAdminCouponApi },
     { provide: AdminUserApi, useClass: MockAdminUserApi },
     { provide: AdminContentApi, useClass: MockAdminContentApi },

@@ -15,6 +15,8 @@ const CONFIG: AppConfig = {
   // true: product management against the real catalog store (BRD 20). Needs realAuth: true as well —
   // the admin catalog endpoints check the signed-in user's permissions on the server.
   realCatalog: false,
+  // true: order management against the real commerce store (BRD 21). Also needs realAuth: true.
+  realCommerce: false,
   mockLatencyMs: 200,
   apiBaseUrl: 'http://localhost:3333',
   siteName: 'Shop Admin',
@@ -28,8 +30,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(appRoutes, withComponentInputBinding()),
     provideHttpClient(withFetch()),
     provideCore(CONFIG),
-    provideDataAccess({ useMocks: CONFIG.useMocks, realAuth: CONFIG.realAuth, realCatalog: CONFIG.realCatalog }),
-    provideAdminDataAccess({ useMocks: CONFIG.useMocks, realCatalog: CONFIG.realCatalog }),
+    provideDataAccess({ useMocks: CONFIG.useMocks, realAuth: CONFIG.realAuth, realCatalog: CONFIG.realCatalog, realCommerce: CONFIG.realCommerce }),
+    provideAdminDataAccess({ useMocks: CONFIG.useMocks, realCatalog: CONFIG.realCatalog, realCommerce: CONFIG.realCommerce }),
     provideCartFacade(),
   ],
 };

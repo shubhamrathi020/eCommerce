@@ -43,7 +43,7 @@ export async function createTestApp(overrides: Partial<ApiConfig> = {}): Promise
 }
 
 export async function resetDatabase(db: PrismaService): Promise<void> {
-  await db.$executeRawUnsafe('TRUNCATE TABLE saved_addresses, refresh_tokens, login_attempts, users CASCADE');
+  await db.$executeRawUnsafe('TRUNCATE TABLE saved_addresses, refresh_tokens, login_attempts, users, carts, orders CASCADE');
 }
 
 /** Pulls the refresh cookie value out of a `set-cookie` header list. */

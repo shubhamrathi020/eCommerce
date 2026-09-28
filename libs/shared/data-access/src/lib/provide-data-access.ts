@@ -24,19 +24,20 @@ import { MockNewsletterApi } from '../mock/mock-newsletter.api';
 import { MockAlertApi, MockNotificationApi, MockPreferenceApi } from '../mock/mock-notification.api';
 import { HttpAddressBookApi, HttpAuthApi } from '../http/http-auth.api';
 import { HttpCatalogApi, HttpCategoryApi, HttpSearchApi } from '../http/http-catalog.api';
+import { HttpCartApi, HttpCheckoutApi, HttpOrderApi, HttpPaymentApi } from '../http/http-commerce.api';
 
 /**
  * Wires each API contract to its adapter, selected by `AppConfig.useMocks` and, module by module, the
- * `realAuth`/`realCatalog` flags as each backend BRD lands. Everything not yet listed with a `real...`
- * flag still has no HTTP adapter at all and stays on mocks.
+ * `realAuth`/`realCatalog`/`realCommerce` flags as each backend BRD lands. Everything not yet listed with
+ * a `real...` flag still has no HTTP adapter at all and stays on mocks.
  */
-export function provideDataAccess(options: { useMocks: boolean; realAuth?: boolean; realCatalog?: boolean }): EnvironmentProviders {
+export function provideDataAccess(options: { useMocks: boolean; realAuth?: boolean; realCatalog?: boolean; realCommerce?: boolean }): EnvironmentProviders {
   if (!options.useMocks) {
-    throw new Error('Only identity (BRD 19) and catalog/search (BRD 20) have a real API so far. Keep useMocks: true and set realAuth/realCatalog: true to use them.');
+    throw new Error('Only identity (BRD 19), catalog/search (BRD 20) and commerce (BRD 21) have a real API so far. Keep useMocks: true and set realAuth/realCatalog/realCommerce: true to use them.');
   }
   return makeEnvironmentProviders([
-    // Identity (BRD 19) and catalog/search (BRD 20) are the only modules with a real backend so far;
-    // everything else stays on mocks until its own BRD lands.
+    // Identity (BRD 19), catalog/search (BRD 20) and commerce (BRD 21) are the only modules with a real
+    // backend so far; everything else stays on mocks until its own BRD lands.
     { provide: CatalogApi, useClass: options.realCatalog ? HttpCatalogApi : MockCatalogApi },
     { provide: AuthApi, useClass: options.realAuth ? HttpAuthApi : MockAuthApi },
     { provide: AddressBookApi, useClass: options.realAuth ? HttpAddressBookApi : MockAddressBookApi },
@@ -45,10 +46,12 @@ export function provideDataAccess(options: { useMocks: boolean; realAuth?: boole
     // not appear there until BRD 20's reviews write-path is built for real (a recorded, not silent, gap).
     { provide: ReviewApi, useClass: MockReviewApi },
     { provide: SearchApi, useClass: options.realCatalog ? HttpSearchApi : MockSearchApi },
-    { provide: CartApi, useClass: MockCartApi },
-    { provide: CheckoutApi, useClass: MockCheckoutApi },
-    { provide: OrderApi, useClass: MockOrderApi },
-    { provide: PaymentApi, useClass: MockPaymentApi },
+    { provide: CartApi, useClass: options.realCommerce ? HttpCartApi : MockCartApi },
+    { provide: CheckoutApi, useClass: options.realCommerce ? HttpCheckoutApi : MockCheckoutApi },
+    { provide: OrderApi, useClass: options.realCommerce ? HttpOrderApi : MockOrderApi },
+    // Online payments through PaymentApi only actually succeed once the server has its own Razorpay
+    // test-mode keys; cash on delivery (which never touches PaymentApi) works either way.
+    { provide: PaymentApi, useClass: options.realCommerce ? HttpPaymentApi : MockPaymentApi },
     { provide: CategoryApi, useClass: options.realCatalog ? HttpCategoryApi : MockCategoryApi },
     { provide: CmsApi, useClass: MockCmsApi },
     { provide: ContentApi, useClass: MockContentApi },

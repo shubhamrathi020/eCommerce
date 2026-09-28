@@ -16,14 +16,25 @@ import { MongoService } from './catalog/mongo.service';
 import { SearchController } from './catalog/search.controller';
 import { SearchService } from './catalog/search.service';
 import { ApiErrorFilter } from './common/api-error.filter';
-import { AuthGuard, CsrfGuard } from './common/auth';
+import { AuthGuard, CsrfGuard, OptionalAuthGuard } from './common/auth';
 import { RequestContextMiddleware } from './common/request-context.middleware';
+import { AdminOrderController } from './commerce/admin-order.controller';
+import { AdminOrderService } from './commerce/admin-order.service';
+import { CartController } from './commerce/cart.controller';
+import { CartService } from './commerce/cart.service';
+import { CheckoutController } from './commerce/checkout.controller';
+import { InventoryService } from './commerce/inventory.service';
+import { OrderController } from './commerce/order.controller';
+import { OrderService } from './commerce/order.service';
+import { PaymentController } from './commerce/payment.controller';
+import { PaymentService } from './commerce/payment.service';
+import { RazorpayService } from './commerce/razorpay.service';
 import { API_CONFIG, type ApiConfig } from './config';
 import { DevOutboxController, HealthController } from './health/health';
 import { PrismaService } from './prisma/prisma.service';
 
 /**
- * Modular monolith root (BF-01). Domains (auth, accounts, addresses, and later catalog, commerce ...) are
+ * Modular monolith root (BF-01). Domains (auth, accounts, addresses, catalog, commerce ...) are
  * separate folders that talk through services, so any of them can be extracted into its own service later.
  */
 @Module({})
@@ -44,6 +55,11 @@ export class AppModule implements NestModule {
         CatalogController,
         SearchController,
         AdminCatalogController,
+        CartController,
+        CheckoutController,
+        OrderController,
+        PaymentController,
+        AdminOrderController,
       ],
       providers: [
         { provide: API_CONFIG, useValue: config },
@@ -58,10 +74,17 @@ export class AppModule implements NestModule {
         AddressesService,
         AuthGuard,
         CsrfGuard,
+        OptionalAuthGuard,
         MongoService,
         SearchService,
         CatalogService,
         AdminCatalogService,
+        CartService,
+        InventoryService,
+        OrderService,
+        RazorpayService,
+        PaymentService,
+        AdminOrderService,
       ],
     };
   }

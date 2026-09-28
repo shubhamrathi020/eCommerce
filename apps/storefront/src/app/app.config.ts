@@ -19,7 +19,7 @@ export const appConfig: ApplicationConfig = {
     ),
     provideCore(APP_CONFIG_VALUES),
     provideHttpClient(withFetch()),
-    provideDataAccess({ useMocks: APP_CONFIG_VALUES.useMocks, realAuth: APP_CONFIG_VALUES.realAuth, realCatalog: APP_CONFIG_VALUES.realCatalog }),
+    provideDataAccess({ useMocks: APP_CONFIG_VALUES.useMocks, realAuth: APP_CONFIG_VALUES.realAuth, realCatalog: APP_CONFIG_VALUES.realCatalog, realCommerce: APP_CONFIG_VALUES.realCommerce }),
     provideCartFacade(),
   ],
 };

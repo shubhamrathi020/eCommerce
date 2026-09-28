@@ -5,6 +5,8 @@ import type { Session } from '@ecom/shared/models';
 import type { Request, Response } from 'express';
 import { AuthGuard, type AuthUser, CsrfGuard, CurrentUser } from '../common/auth';
 import { API_CONFIG, type ApiConfig } from '../config';
+import { CartService } from '../commerce/cart.service';
+import { readGuestCartToken } from '../commerce/guest-cart-cookie';
 import { EmailDto, LoginDto, RegisterDto, ResetPasswordDto, TokenDto } from './auth.dto';
 import { AuthService, type SignedIn } from './auth.service';
 import { clearRefreshCookie, readRefreshCookie, setRefreshCookie } from './refresh-cookie';
@@ -23,20 +25,25 @@ const STRICT = { default: { limit: 10, ttl: 60_000 } };
 export class AuthController {
   constructor(
     private readonly auth: AuthService,
+    private readonly carts: CartService,
     @Inject(API_CONFIG) private readonly config: ApiConfig,
   ) {}
 
   @Post('register')
   @Throttle(STRICT)
-  async register(@Body() body: RegisterDto, @Res({ passthrough: true }) res: Response): Promise<SignInResponse> {
-    return this.respond(res, await this.auth.register(body));
+  async register(@Body() body: RegisterDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<SignInResponse> {
+    const signedIn = await this.auth.register(body);
+    await this.mergeGuestCart(req, signedIn);
+    return this.respond(res, signedIn);
   }
 
   @Post('login')
   @HttpCode(200)
   @Throttle(STRICT)
-  async login(@Body() body: LoginDto, @Res({ passthrough: true }) res: Response): Promise<SignInResponse> {
-    return this.respond(res, await this.auth.login(body.email, body.password));
+  async login(@Body() body: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<SignInResponse> {
+    const signedIn = await this.auth.login(body.email, body.password);
+    await this.mergeGuestCart(req, signedIn);
+    return this.respond(res, signedIn);
   }
 
   @Post('refresh')
@@ -92,5 +99,13 @@ export class AuthController {
   private respond(res: Response, signedIn: SignedIn): SignInResponse {
     setRefreshCookie(res, signedIn.refresh, this.config.production);
     return { session: signedIn.session, accessToken: signedIn.accessToken };
+  }
+
+  /** BRD 21's cart merge: whatever was in the guest cart (identified by the `gcid` cookie, if any)
+   * moves into the now-signed-in user's own cart — the server-side version of the mock's
+   * `MockCartState.mergeGuestIntoUser`, called from the same place the frontend used to call it. */
+  private async mergeGuestCart(req: Request, signedIn: SignedIn): Promise<void> {
+    const guestToken = readGuestCartToken(req);
+    if (guestToken) await this.carts.mergeGuestIntoUser(`guest:${guestToken}`, signedIn.session.user.id);
   }
 }

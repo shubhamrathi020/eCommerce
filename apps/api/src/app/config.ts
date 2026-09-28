@@ -13,6 +13,13 @@ export interface ApiConfig {
   meiliIndexSuffix: string;
   jwtAccessSecret: string;
   jwtRefreshSecret: string;
+  /** Optional: online payments (BRD 21). Empty until you add your own test-mode keys to apps/api/.env;
+   * the API still starts and cash-on-delivery still works without them, but PaymentApi.initiate refuses
+   * with a clear error. Never a "live" key outside production (checked below). */
+  razorpayKeyId: string;
+  razorpayKeySecret: string;
+  razorpayWebhookSecret: string;
+  razorpayEnabled: boolean;
   /** Origins allowed to call the API with credentials (the storefront and admin apps). */
   corsOrigins: string[];
   accessTokenMinutes: number;
@@ -47,6 +54,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     // Still allowed so `docker compose up` works out of the box, but never silently.
     console.warn('[config] Using the dev-only JWT secrets from .env.example. Set real secrets before deploying anywhere.');
   }
+  const razorpayKeyId = env['RAZORPAY_KEY_ID']?.trim() ?? '';
+  const razorpayKeySecret = env['RAZORPAY_KEY_SECRET']?.trim() ?? '';
+  const razorpayWebhookSecret = env['RAZORPAY_WEBHOOK_SECRET']?.trim() ?? '';
+  if (razorpayKeyId && !razorpayKeyId.startsWith('rzp_test_')) {
+    // This project only ever runs in test mode; a live key here would mean real money. Never proceed.
+    problems.push("RAZORPAY_KEY_ID must be a test-mode key (starts with 'rzp_test_'); live keys are refused");
+  }
+  if (razorpayKeyId && !razorpayKeySecret) problems.push('RAZORPAY_KEY_SECRET is required when RAZORPAY_KEY_ID is set');
   if (problems.length) throw new Error(`Invalid API configuration:\n - ${problems.join('\n - ')}`);
   return {
     port: Number(env['PORT'] ?? 3333),
@@ -59,6 +74,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     meiliIndexSuffix: env['NODE_ENV'] === 'test' ? '_test' : '',
     jwtAccessSecret,
     jwtRefreshSecret,
+    razorpayKeyId,
+    razorpayKeySecret,
+    razorpayWebhookSecret,
+    razorpayEnabled: !!razorpayKeyId,
     corsOrigins: (env['CORS_ORIGINS'] ?? '')
       .split(',')
       .map((o) => o.trim())
