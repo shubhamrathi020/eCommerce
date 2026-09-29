@@ -1,10 +1,10 @@
 import { loadConfig } from './config';
 
-const base = { DATABASE_URL: 'postgresql://x', MONGODB_URL: 'mongodb://x', MEILI_URL: 'http://x', REDIS_URL: 'redis://x', JWT_ACCESS_SECRET: 'a'.repeat(32), JWT_REFRESH_SECRET: 'b'.repeat(32) };
+const base = { DATABASE_URL: 'postgresql://x', MONGODB_URL: 'mongodb://x', MEILI_URL: 'http://x', REDIS_URL: 'redis://x', RABBITMQ_URL: 'amqp://x', JWT_ACCESS_SECRET: 'a'.repeat(32), JWT_REFRESH_SECRET: 'b'.repeat(32) };
 
 describe('loadConfig', () => {
   it('refuses to start without the required settings, listing every problem', () => {
-    expect(() => loadConfig({})).toThrow(/DATABASE_URL is required[\s\S]*MONGODB_URL is required[\s\S]*MEILI_URL is required[\s\S]*REDIS_URL is required[\s\S]*JWT_ACCESS_SECRET is required[\s\S]*JWT_REFRESH_SECRET is required/);
+    expect(() => loadConfig({})).toThrow(/DATABASE_URL is required[\s\S]*MONGODB_URL is required[\s\S]*MEILI_URL is required[\s\S]*REDIS_URL is required[\s\S]*RABBITMQ_URL is required[\s\S]*JWT_ACCESS_SECRET is required[\s\S]*JWT_REFRESH_SECRET is required/);
   });
 
   it('rejects a non-numeric or non-positive rate limit override', () => {
@@ -13,6 +13,13 @@ describe('loadConfig', () => {
     const config = loadConfig({ ...base, RATE_LIMIT_CHECKOUT_PER_MIN: '5' });
     expect(config.rateLimits.checkout).toEqual({ limit: 5, windowSeconds: 60 });
     expect(config.rateLimits.search).toEqual({ limit: 60, windowSeconds: 60 });
+  });
+
+  it('rejects a non-numeric or non-positive abandoned-cart override, and namespaces MQ topology for tests', () => {
+    expect(() => loadConfig({ ...base, ABANDONED_CART_MINUTES: 'never' })).toThrow(/ABANDONED_CART_MINUTES must be a positive number/);
+    expect(loadConfig({ ...base, ABANDONED_CART_MINUTES: '30' }).abandonedCartMinutes).toBe(30);
+    expect(loadConfig(base).mqPrefix).toBe('ecom.');
+    expect(loadConfig({ ...base, NODE_ENV: 'test' }).mqPrefix).toBe('ecom.test.');
   });
 
   it('rejects short or identical secrets', () => {

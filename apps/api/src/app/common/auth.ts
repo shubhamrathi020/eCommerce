@@ -19,7 +19,7 @@ export interface AccessTokenPayload {
   permissions: string[];
 }
 
-type AuthedRequest = Request & { user?: AuthUser };
+export type AuthedRequest = Request & { user?: AuthUser };
 
 const PERMISSIONS_KEY = 'permissions';
 /** Every listed permission is required (BF-04). Implies authentication. */

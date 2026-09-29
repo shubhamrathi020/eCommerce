@@ -7,7 +7,7 @@ import { type ApiConfig, loadConfig } from '../src/app/config';
 import { PrismaService } from '../src/app/prisma/prisma.service';
 import { MailService } from '../src/app/auth/mail.service';
 import { MongoService } from '../src/app/catalog/mongo.service';
-import { TEST_DATABASE_URL, TEST_MEILI_URL, TEST_MONGODB_URL, TEST_REDIS_URL } from './global-setup';
+import { TEST_DATABASE_URL, TEST_MEILI_URL, TEST_MONGODB_URL, TEST_RABBITMQ_URL, TEST_REDIS_URL } from './global-setup';
 
 export const ORIGIN = 'http://localhost:4200';
 
@@ -29,6 +29,7 @@ export async function createTestApp(overrides: Partial<ApiConfig> = {}): Promise
       MONGODB_URL: TEST_MONGODB_URL,
       MEILI_URL: TEST_MEILI_URL,
       REDIS_URL: TEST_REDIS_URL,
+      RABBITMQ_URL: TEST_RABBITMQ_URL,
       JWT_ACCESS_SECRET: 'test-access-secret-that-is-at-least-32-chars',
       JWT_REFRESH_SECRET: 'test-refresh-secret-that-is-at-least-32-char',
       CORS_ORIGINS: ORIGIN,
@@ -44,7 +45,7 @@ export async function createTestApp(overrides: Partial<ApiConfig> = {}): Promise
 }
 
 export async function resetDatabase(db: PrismaService): Promise<void> {
-  await db.$executeRawUnsafe('TRUNCATE TABLE saved_addresses, refresh_tokens, login_attempts, users, carts, orders CASCADE');
+  await db.$executeRawUnsafe('TRUNCATE TABLE saved_addresses, refresh_tokens, login_attempts, users, carts, orders, outbox_events CASCADE');
 }
 
 /** Pulls the refresh cookie value out of a `set-cookie` header list. */

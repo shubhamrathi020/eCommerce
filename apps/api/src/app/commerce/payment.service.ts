@@ -10,6 +10,8 @@ import { fromJson, toJson } from './json';
 import { OrderService, type OwnerContext, PAYMENT_WINDOW_MINUTES, stockLinesOf } from './order.service';
 import { ownerKeyFor } from './guest-cart-cookie';
 import { RazorpayService } from './razorpay.service';
+import { OutboxService } from '../messaging/outbox.service';
+import { OrderEventsService } from '../messaging/order-events.service';
 
 /** Payments (BRD 21, CM21-05): initiate creates the Razorpay order the checkout widget needs; confirm
  * verifies the signature server-side before an order is ever marked paid — the amount always comes from
@@ -22,6 +24,8 @@ export class PaymentService {
     private readonly cart: CartService,
     private readonly inventory: InventoryService,
     private readonly razorpay: RazorpayService,
+    private readonly outbox: OutboxService,
+    private readonly orderEvents: OrderEventsService,
     @Inject(API_CONFIG) private readonly config: ApiConfig,
   ) {}
 
@@ -53,9 +57,15 @@ export class PaymentService {
     if (!valid) throw new AppError('validation', 'Payment verification failed. If money was deducted it will be refunded.');
     const now = new Date().toISOString();
     const timeline: TimelineEntry[] = [...fromJson<TimelineEntry[]>(row.timeline), { status: 'paid', label: 'Payment received', at: now }, { status: 'confirmed', label: 'Order confirmed', at: now }];
-    const updated = await this.db.order.update({ where: { id: orderId }, data: { status: 'confirmed', paymentStatus: 'paid', providerPaymentId: result.providerPaymentId, timeline: toJson(timeline) } });
+    const updated = await this.db.$transaction(async (tx) => {
+      const updatedRow = await tx.order.update({ where: { id: orderId }, data: { status: 'confirmed', paymentStatus: 'paid', providerPaymentId: result.providerPaymentId, timeline: toJson(timeline) } });
+      await this.outbox.write(tx, 'payment.confirmed', { orderId, email: row.contactEmail, name: row.contactName, amount: fromJson<CartTotals>(row.totals).total });
+      return updatedRow;
+    });
     await this.cart.replaceWithEmpty(ownerKeyFor(owner.userId, owner.guestToken ?? ''), row.shippingMethod as ShippingMethodId);
-    return this.orders.toContract(updated);
+    const contract = this.orders.toContract(updated);
+    await this.orderEvents.publish(contract);
+    return contract;
   }
 
   async fail(orderId: string, owner: OwnerContext, reason: string): Promise<Order> {

@@ -15,6 +15,13 @@ export interface ApiConfig {
   redisUrl: string;
   /** Prefix on every Redis key, so `pnpm exec nx test api` never touches dev/prod cache entries. */
   redisKeyPrefix: string;
+  /** Message broker (BRD 23): the outbox relay, notification consumer and DLQ. */
+  rabbitmqUrl: string;
+  /** Every exchange/queue/lock name is prefixed with this, so `pnpm exec nx test api` never shares
+   * topology (or the outbox-relay/scheduler locks) with dev/prod, mirroring `redisKeyPrefix`. */
+  mqPrefix: string;
+  /** Minutes an item can sit untouched in a cart before one reminder email is sent (BRD 23, MQ-05). */
+  abandonedCartMinutes: number;
   /** Per-route rate limits (BRD 22), each `{ limit, windowSeconds }`. Configurable so ops can tune them
    * without a redeploy. `login` isn't here: the 5-attempts/15-minutes-per-email lockout in AuthService
    * already covers it (BRD 22's own proposed default), enforced per account, not per IP. */
@@ -56,6 +63,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
   const meiliUrl = need('MEILI_URL');
   const meiliMasterKey = env['MEILI_MASTER_KEY']?.trim() ?? '';
   const redisUrl = need('REDIS_URL');
+  const rabbitmqUrl = need('RABBITMQ_URL');
   const int = (key: string, fallback: number): number => {
     const raw = env[key]?.trim();
     if (!raw) return fallback;
@@ -87,6 +95,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     coupon: { limit: int('RATE_LIMIT_COUPON_PER_MIN', 20), windowSeconds: 60 },
     checkout: { limit: int('RATE_LIMIT_CHECKOUT_PER_MIN', 20), windowSeconds: 60 },
   };
+  const abandonedCartMinutes = int('ABANDONED_CART_MINUTES', 60);
+  // Every `int()` call above can push to `problems`; the throw check has to come after all of them, not
+  // before — the same ordering mistake BRD 22 made and fixed once already (see steering/memory.md).
   if (problems.length) throw new Error(`Invalid API configuration:\n - ${problems.join('\n - ')}`);
   return {
     port: Number(env['PORT'] ?? 3333),
@@ -99,6 +110,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     meiliIndexSuffix: env['NODE_ENV'] === 'test' ? '_test' : '',
     redisUrl,
     redisKeyPrefix: env['NODE_ENV'] === 'test' ? 'ecom:test:' : 'ecom:',
+    rabbitmqUrl,
+    mqPrefix: env['NODE_ENV'] === 'test' ? 'ecom.test.' : 'ecom.',
+    abandonedCartMinutes,
     rateLimits,
     jwtAccessSecret,
     jwtRefreshSecret,

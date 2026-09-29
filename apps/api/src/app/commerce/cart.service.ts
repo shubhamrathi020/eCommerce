@@ -26,8 +26,8 @@ export class CartService {
     return { items: fromJson<StoredCart['items']>(row.items), shippingMethod: row.shippingMethod as ShippingMethodId, ...(row.couponCode ? { couponCode: row.couponCode } : {}) };
   }
 
-  private async writeRow(ownerKey: string, stored: StoredCart): Promise<void> {
-    const data = { items: toJson(stored.items), shippingMethod: stored.shippingMethod, couponCode: stored.couponCode ?? null };
+  private async writeRow(ownerKey: string, stored: StoredCart, resetReminder = false): Promise<void> {
+    const data = { items: toJson(stored.items), shippingMethod: stored.shippingMethod, couponCode: stored.couponCode ?? null, ...(resetReminder ? { reminderSentAt: null } : {}) };
     await this.db.cart.upsert({ where: { ownerKey }, create: { ownerKey, ...data }, update: data });
   }
 
@@ -51,7 +51,10 @@ export class CartService {
       }),
     };
     const result = priceCart(acknowledged, products, Date.now());
-    await this.writeRow(ownerKey, result.stored);
+    // A real content change (add/remove/quantity/coupon/shipping) means this cart is being actively used
+    // right now, not sitting abandoned — clear any pending reminder flag so a later re-abandonment can
+    // still send one more (BRD 23, MQ-05). A plain re-price on read (`priced()`) does not call this.
+    await this.writeRow(ownerKey, result.stored, true);
     return result;
   }
 

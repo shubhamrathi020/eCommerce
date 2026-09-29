@@ -95,9 +95,33 @@ model Cart {
   items          Json     @default("[]")
   couponCode     String?
   shippingMethod String   @default("standard")
+  /// Set once an abandoned-cart reminder (BRD 23, MQ-05) has gone out for the cart's current contents;
+  /// cleared on the next real content change (`CartService.mutate`), not on a plain read, so re-abandoning
+  /// after a fresh change can trigger one more reminder rather than never sending a second one at all.
+  reminderSentAt DateTime?
   updatedAt      DateTime @updatedAt
 
   @@map("carts")
+}
+
+/// Transactional outbox (BRD 23, MQ-02): a domain write and its event row commit together in one
+/// PostgreSQL transaction, so an event can never be "lost" (the row is right there if the broker was
+/// down) or fired without the write actually having happened. `OutboxRelay` is the only thing that reads
+/// unpublished rows and publishes them to RabbitMQ; it marks `publishedAt` only after the broker's publish
+/// confirm comes back, so a crash between publish and mark just means the same row is retried (the
+/// notification consumer's own idempotency check absorbs that at-least-once duplicate downstream).
+model OutboxEvent {
+  id          String    @id @default(cuid())
+  /// The RabbitMQ routing key, e.g. "order.placed", "payment.confirmed", "cart.abandoned".
+  routingKey  String
+  payload     Json
+  createdAt   DateTime  @default(now())
+  publishedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+
+  @@index([publishedAt, createdAt])
+  @@map("outbox_events")
 }
 
 /// One row per order (CM21-03). `lines`/`totals`/`timeline`/`notes` are the same shapes as the shared

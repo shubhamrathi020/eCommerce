@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { Client } from 'pg';
 import { MongoClient } from 'mongodb';
 import Redis from 'ioredis';
+import { connect } from 'amqplib';
 
 /** Separate stores so tests never touch development data. CI provides the same Postgres/Mongo/Meilisearch/
  * Redis as services. Redis needs no separate database/index: `ApiConfig.redisKeyPrefix` already becomes
@@ -13,6 +14,7 @@ export const TEST_MONGODB_URL = process.env['TEST_MONGODB_URL'] ?? 'mongodb://lo
 export const TEST_MONGODB_DB_NAME = 'ecommerce_catalog_test';
 export const TEST_MEILI_URL = process.env['TEST_MEILI_URL'] ?? 'http://localhost:7700';
 export const TEST_REDIS_URL = process.env['TEST_REDIS_URL'] ?? 'redis://localhost:6379';
+export const TEST_RABBITMQ_URL = process.env['TEST_RABBITMQ_URL'] ?? 'amqp://guest:guest@localhost:5672';
 
 export default async function setup(): Promise<void> {
   const url = new URL(TEST_DATABASE_URL);
@@ -53,6 +55,12 @@ export default async function setup(): Promise<void> {
     throw new Error(`API tests need Redis at ${TEST_REDIS_URL}. Start it with: docker compose up -d redis\n(${(error as Error).message})`);
   } finally {
     await redis.quit().catch(() => undefined);
+  }
+  try {
+    const conn = await connect(TEST_RABBITMQ_URL);
+    await conn.close();
+  } catch (error) {
+    throw new Error(`API tests need RabbitMQ at ${TEST_RABBITMQ_URL}. Start it with: docker compose up -d rabbitmq\n(${(error as Error).message})`);
   }
 
   // Same seed script docker-compose's catalog-seed one-shot runs, against the isolated test store/index.

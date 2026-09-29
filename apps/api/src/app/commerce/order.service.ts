@@ -9,6 +9,8 @@ import { CartService } from './cart.service';
 import { CouponRedemptionService } from '../cache/coupon-redemption.service';
 import { InventoryService, type StockLine } from './inventory.service';
 import { fromJson, toJson } from './json';
+import { OutboxService } from '../messaging/outbox.service';
+import { OrderEventsService } from '../messaging/order-events.service';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE = /^[6-9][0-9]{9}$/;
@@ -59,15 +61,18 @@ export class OrderService {
     private readonly cart: CartService,
     private readonly inventory: InventoryService,
     private readonly coupons: CouponRedemptionService,
+    private readonly outbox: OutboxService,
+    private readonly events: OrderEventsService,
   ) {}
 
   private newOrderId(): string {
     return `ORD-${Date.now().toString(36).toUpperCase()}${randomBytes(3).toString('hex').toUpperCase()}`;
   }
 
-  /** Cancels unpaid orders whose payment window ran out, releasing their stock hold. Lazy (run at the
-   * top of every order-touching call), like the mock's `cancelExpiredOrders` — no separate cron worker
-   * yet (BRD 22/23/24 territory). */
+  /** Cancels unpaid orders whose payment window ran out, releasing their stock hold. Run twice over: lazy
+   * (at the top of every order-touching call, so a request never sees a stale expired order) *and*
+   * actively every 30 seconds by `SchedulerService` (BRD 23, MQ-05) — the active run is what actually
+   * gets a cancellation email out promptly for an order nobody happens to touch again after abandoning it. */
   async sweepExpired(): Promise<void> {
     const now = new Date();
     const expired = await this.db.order.findMany({ where: { status: 'pending_payment', paymentDeadline: { lt: now } } });
@@ -75,7 +80,12 @@ export class OrderService {
       await this.inventory.giveBack(stockLinesOf(order));
       if (order.couponCode) await this.coupons.release(order.couponCode);
       const timeline = [...fromJson<TimelineEntry[]>(order.timeline), { status: 'cancelled' as const, label: 'Cancelled: payment window expired', at: now.toISOString() }];
-      await this.db.order.update({ where: { id: order.id }, data: { status: 'cancelled', paymentStatus: 'failed', timeline: toJson(timeline) } });
+      const updated = await this.db.$transaction(async (tx) => {
+        const result = await tx.order.update({ where: { id: order.id }, data: { status: 'cancelled', paymentStatus: 'failed', timeline: toJson(timeline) } });
+        await this.outbox.write(tx, 'order.expired', { orderId: order.id, email: order.contactEmail, name: order.contactName });
+        return result;
+      });
+      await this.events.publish(toOrder(updated));
     }
   }
 
@@ -155,7 +165,19 @@ export class OrderService {
     };
 
     try {
-      await this.db.order.create({ data });
+      await this.db.$transaction(async (tx) => {
+        await tx.order.create({ data });
+        // The order-confirmation email (BRD 23, MQ-04) rides the same transaction as the order row
+        // itself, so a request that reports success always really did create both.
+        await this.outbox.write(tx, 'order.placed', {
+          orderId: id,
+          email: request.contact.email.trim(),
+          name: request.contact.name.trim(),
+          total: cart.totals.total,
+          itemCount: cart.lines.reduce((n, l) => n + l.quantity, 0),
+          cod,
+        });
+      });
     } catch {
       // Unique idempotencyKey race: a concurrent request with the same key won first. Give the stock and
       // the coupon claim back, and return that order instead of creating a duplicate.
@@ -166,7 +188,9 @@ export class OrderService {
       throw new AppError('conflict', 'Could not place the order. Please try again.');
     }
     if (cod) await this.cart.replaceWithEmpty(ownerKey, cart.shippingMethod);
-    return toOrder(await this.db.order.findUniqueOrThrow({ where: { id } }));
+    const placed = toOrder(await this.db.order.findUniqueOrThrow({ where: { id } }));
+    await this.events.publish(placed);
+    return placed;
   }
 
   async get(orderId: string, owner: OwnerContext): Promise<Order> {
@@ -216,10 +240,16 @@ export class OrderService {
       ...fromJson<TimelineEntry[]>(row.timeline).filter((t) => t.status === 'placed' || t.status === 'paid' || t.status === 'confirmed'),
       { status: 'cancelled' as const, label: 'Order cancelled', at: new Date().toISOString() },
     ];
-    const updated = await this.db.order.update({
-      where: { id: orderId },
-      data: { status: 'cancelled', paymentStatus: row.paymentStatus === 'paid' ? 'refund_pending' : row.paymentStatus, timeline: toJson(timeline) },
+    const updated = await this.db.$transaction(async (tx) => {
+      const result = await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'cancelled', paymentStatus: row.paymentStatus === 'paid' ? 'refund_pending' : row.paymentStatus, timeline: toJson(timeline) },
+      });
+      await this.outbox.write(tx, 'order.cancelled', { orderId, email: row.contactEmail, name: row.contactName });
+      return result;
     });
-    return toOrder(updated);
+    const order = toOrder(updated);
+    await this.events.publish(order);
+    return order;
   }
 }

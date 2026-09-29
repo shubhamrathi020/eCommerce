@@ -10,6 +10,8 @@ import { InventoryService } from './inventory.service';
 import { fromJson, toJson } from './json';
 import { OrderService, stockLinesOf } from './order.service';
 import { RazorpayService } from './razorpay.service';
+import { OutboxService } from '../messaging/outbox.service';
+import { OrderEventsService } from '../messaging/order-events.service';
 
 const STATUS_LABEL: Partial<Record<OrderStatus, string>> = { packed: 'Packed', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Order cancelled' };
 
@@ -23,6 +25,8 @@ export class AdminOrderService {
     private readonly inventory: InventoryService,
     private readonly razorpay: RazorpayService,
     private readonly coupons: CouponRedemptionService,
+    private readonly outbox: OutboxService,
+    private readonly orderEvents: OrderEventsService,
   ) {}
 
   async list(query: AdminOrderQuery): Promise<{ items: AdminOrderRow[]; total: number; page: number; pageSize: number }> {
@@ -83,12 +87,17 @@ export class AdminOrderService {
         }
       }
       const timeline = [...fromJson<TimelineEntry[]>(row.timeline).filter((t) => t.status === 'placed' || t.status === 'paid' || t.status === 'confirmed'), { status: 'cancelled' as const, label: `${STATUS_LABEL[status]} (by staff)`, at: new Date().toISOString() }];
-      await this.db.order.update({ where: { id }, data: { status, paymentStatus, timeline: toJson(timeline) } });
+      await this.db.$transaction(async (tx) => {
+        await tx.order.update({ where: { id }, data: { status, paymentStatus, timeline: toJson(timeline) } });
+        await this.outbox.write(tx, 'order.cancelled', { orderId: id, email: row.contactEmail, name: row.contactName, byStaff: true });
+      });
     } else {
       const timeline = [...fromJson<TimelineEntry[]>(row.timeline), { status, label: STATUS_LABEL[status] ?? status, at: new Date().toISOString() }];
       await this.db.order.update({ where: { id }, data: { status, timeline: toJson(timeline) } });
     }
     await this.addNoteInternal(id, actor, `Status changed to ${status.replace('_', ' ')}.`);
+    const updatedRow = await this.db.order.findUniqueOrThrow({ where: { id } });
+    await this.orderEvents.publish(this.orders.toContract(updatedRow));
     return this.get(id);
   }
 
@@ -97,6 +106,8 @@ export class AdminOrderService {
     try {
       await this.razorpay.refund(providerPaymentId, amount);
       await this.addNoteInternal(orderId, 'system', 'Refund issued via Razorpay.');
+      const row = await this.db.order.findUnique({ where: { id: orderId } });
+      if (row) await this.outbox.writeStandalone('payment.refunded', { orderId, email: row.contactEmail, name: row.contactName, amount: { amount, currency: 'INR' } });
     } catch (error) {
       await this.addNoteInternal(orderId, 'system', `Automatic refund failed (${error instanceof Error ? error.message : 'unknown error'}); refund it manually in the Razorpay dashboard.`);
     }

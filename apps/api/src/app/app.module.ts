@@ -30,13 +30,20 @@ import { CartController } from './commerce/cart.controller';
 import { CartService } from './commerce/cart.service';
 import { CheckoutController } from './commerce/checkout.controller';
 import { InventoryService } from './commerce/inventory.service';
-import { OrderController } from './commerce/order.controller';
+import { OrderController, OrderStreamOwnershipGuard } from './commerce/order.controller';
 import { OrderService } from './commerce/order.service';
 import { PaymentController } from './commerce/payment.controller';
 import { PaymentService } from './commerce/payment.service';
 import { RazorpayService } from './commerce/razorpay.service';
 import { API_CONFIG, type ApiConfig } from './config';
 import { DevOutboxController, HealthController } from './health/health';
+import { DeadLetterController } from './messaging/dead-letter.controller';
+import { NotificationConsumerService } from './messaging/notification-consumer.service';
+import { OrderEventsService } from './messaging/order-events.service';
+import { OutboxRelayService } from './messaging/outbox-relay.service';
+import { OutboxService } from './messaging/outbox.service';
+import { RabbitService } from './messaging/rabbit.service';
+import { SchedulerService } from './messaging/scheduler.service';
 import { PrismaService } from './prisma/prisma.service';
 
 /**
@@ -67,6 +74,7 @@ export class AppModule implements NestModule {
         PaymentController,
         AdminOrderController,
         CacheStatsController,
+        DeadLetterController,
       ],
       providers: [
         { provide: API_CONFIG, useValue: config },
@@ -94,9 +102,16 @@ export class AppModule implements NestModule {
         CartService,
         InventoryService,
         OrderService,
+        OrderStreamOwnershipGuard,
         RazorpayService,
         PaymentService,
         AdminOrderService,
+        RabbitService,
+        OutboxService,
+        OutboxRelayService,
+        NotificationConsumerService,
+        SchedulerService,
+        OrderEventsService,
       ],
     };
   }

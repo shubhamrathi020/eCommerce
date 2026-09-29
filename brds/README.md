@@ -35,12 +35,12 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | 20 | [Catalog and search services](20-catalog-search-services.md) | Backend | Built (catalog, search, admin products) | 19, 09, 11 |
 | 21 | [Commerce services](21-commerce-services.md) | Backend | Built (cart, checkout, orders, COD; online payment needs your own Razorpay test keys) | 19, 20, 11 |
 | 22 | [Caching and rate limiting](22-caching-rate-limiting.md) | Backend | Built (bot/CAPTCHA hooks and a full metrics dashboard deferred) | 19, 20, 21 |
-| 23 | [Messaging, jobs and notifications backend](23-messaging-notifications-backend.md) | Backend | Draft | 19 to 21, 10 |
+| 23 | [Messaging, jobs and notifications backend](23-messaging-notifications-backend.md) | Backend | Built (Kafka analytics streaming, SMS/WhatsApp and the CAPTCHA hook out of scope, as planned) | 19 to 21, 10 |
 | 24 | [Observability and reliability](24-observability-reliability.md) | Backend | Draft | 19 to 23 |
 | 25 | [Kubernetes, cloud and load testing](25-kubernetes-cloud-load-testing.md) | Backend | Draft | 08, 19 to 24 |
 
 ## Recommended order from here
 1. ~~Finish phase 1 of the frontend: 09, 11, 10, 12~~ — done. Phase 1 (BRDs 01 to 12) is complete.
 2. **Sign-off gate:** you verify phase 1 with `docs/VERIFICATION-CHECKLIST.md` and `docs/ACCESSIBILITY-CHECKLIST.md`.
-3. **Backend track:** 19 (done: identity, accounts, addresses), 20 (done: catalog, search, admin products), 21 (done: cart, checkout, orders, COD; online payment code is real but needs your own Razorpay test keys to exercise), 22 (done: Redis caching with tagged invalidation, HTTP ETags, per-route rate limiting, a distributed coupon-redemption counter) — the shop can now run end to end on the real backend, faster and with basic abuse protection. Then 23 (messaging), 24 (observability), 25 (Kubernetes, cloud, load tests — also where the API joins the Kubernetes manifests).
+3. **Backend track:** 19 (done: identity, accounts, addresses), 20 (done: catalog, search, admin products), 21 (done: cart, checkout, orders, COD; online payment code is real but needs your own Razorpay test keys to exercise), 22 (done: Redis caching with tagged invalidation, HTTP ETags, per-route rate limiting, a distributed coupon-redemption counter), 23 (done: RabbitMQ messaging with a transactional outbox, retry/dead-letter queues, real order/payment emails, active scheduled jobs, real-time order tracking over SSE) — the shop now notifies customers for real and tracks orders live, not just on reload. Then 24 (observability), 25 (Kubernetes, cloud, load tests — also where the API joins the Kubernetes manifests).
 4. **Phase 2 and 3 frontend (13 to 18)** can run in parallel with the backend track once phase 1 is signed off; 13, 14 and 17 depend on backend rules being real for full value.

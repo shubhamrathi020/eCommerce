@@ -1,7 +1,6 @@
 # Run the whole shop locally:  docker compose up --build
 #   Storefront: http://localhost:4000      Admin console: http://localhost:4001      API: http://localhost:3333
-#   Meilisearch: http://localhost:7700     Mongo: localhost:27017
-# Messaging (RabbitMQ) is added here when BRD 23 builds it.
+#   Meilisearch: http://localhost:7700     Mongo: localhost:27017     RabbitMQ: http://localhost:15672
 name: shop
 
 services:
@@ -45,6 +44,20 @@ services:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand('ping').ok"]
       interval: 10s
       timeout: 3s
+      retries: 5
+
+  # Message broker (BRD 23, MQ-01): the outbox relay publishes here; notification/scheduler consumers
+  # read from here. Management UI (guest/guest by default) at http://localhost:15672.
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
       retries: 5
 
   # Search engine (BRD 20, CS-03): typo-tolerant, faceted product search.
@@ -113,12 +126,15 @@ services:
       REDIS_URL: "redis://redis:6379"
       MONGODB_URL: "mongodb://mongo:27017"
       MEILI_URL: "http://meilisearch:7700"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
       # Dev-only defaults so the stack runs out of the box; override for anything beyond local use.
       JWT_ACCESS_SECRET: "dev-only-access-secret-change-me-please-32chars"
       JWT_REFRESH_SECRET: "dev-only-refresh-secret-change-me-please-32chr"
       CORS_ORIGINS: "http://localhost:4000,http://localhost:4001"
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
       api-migrate:
         condition: service_completed_successfully

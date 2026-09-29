@@ -289,3 +289,32 @@ Status now: **BRDs 19 through 22 are all built and verified.** The shop runs end
 
 User messages since the previous update:
 - "continue" (after BRD 21's completion, triggering BRD 22).
+
+### After BRD 23: messaging, jobs and notifications — RabbitMQ, an outbox, real emails, real-time order tracking
+
+Trigger: "proceed with remaining BRDs" — the user's plan-wide go-ahead to keep working through 23, 24, 25 without stopping to ask BRD by BRD.
+
+What was built:
+- **RabbitMQ added to the stack** (`docker-compose.yml`, `RABBITMQ_URL`, `amqplib`): one topic exchange, a notifications queue bound to `order.*`/`payment.*`/`cart.*`, a retry queue (per-message `expiration` gives a real 2s/8s/20s backoff via RabbitMQ's own dead-letter-on-TTL-expiry — no delayed-message plugin needed) and a dead-letter queue, all declared once by `RabbitService`.
+- **Transactional outbox** (`OutboxEvent` in Postgres, `OutboxService`, `OutboxRelayService`): every order/payment write that should notify someone (`OrderService.place/cancel/sweepExpired`, `PaymentService.confirm`, `AdminOrderService.advance`) inserts its event row in the *same* `$transaction` as the domain write, so the two can never disagree. A relay polls unpublished rows every 2 seconds under a Redis lock and publishes them, marking a row published only once the broker confirms it.
+- **Notification consumer** (`NotificationConsumerService`): turns each event into a real email via the existing dev `MailService` — order confirmed/cancelled/expired, payment confirmed/refunded, cart abandoned. Retries a failure 3 times with backoff, then dead-letters it; dedupes by the outbox event's own id via a Redis `SETNX`, so an at-least-once redelivery never sends a second email.
+- **Dead-letter inspect/replay**: `GET`/`POST /admin/system/dead-letters(/replay)` (new `system:read`/`system:write` permissions).
+- **Active scheduled jobs** (`SchedulerService`): promoted BRD 21's lazy-only `sweepExpired` to also run every 30 seconds, and added a new abandoned-cart reminder every 5 minutes — both under a Redis lock released right after the job finishes, so exactly one instance does the work per tick across any number of replicas.
+- **Real-time order tracking** (`GET /orders/:id/stream`, Server-Sent Events over Redis pub/sub): a status change reaches an open tracking tab immediately, no reload.
+
+Two real bugs found only by running the actual test suite, not by reading the code:
+1. The Redis locks for the relay and scheduler were only ever released by TTL expiry, not after the job finished — so a *single* instance's own next tick could be blocked by its own previous lock for up to 10 seconds. First noticed as a flaky test (passed the second time, failed the first, only in this one spec file) before the real cause was found: a previous test file's app had grabbed the lock near the end of its life and closed without releasing it, and the next spec file's fresh app inherited that still-unexpired lock in the same shared Redis. Fixed by releasing the lock in a `finally` right after the job's work completes; the TTL is now purely a crash-safety net.
+2. `OrderStreamOwnershipGuard` had to become a real `CanActivate` guard rather than an `await` inside the `@Sse()` handler, because Nest's SSE machinery resolves the handler's returned Observable and starts committing a 200 response *before* subscribing to (and thereby actually running) it — an ownership error thrown from inside the handler became an in-stream `{type:'error'}` message, not an HTTP 404, until the check moved to a guard that runs first.
+
+No real email provider account exists in this environment (same situation BRD 21 was in with Razorpay), so the "provider" behind all of this is still the dev `MailService`/`/dev/outbox` — the pipeline in front of it (outbox → RabbitMQ → consumer → retry/DLQ) is real and would keep working unchanged once a real provider is wired in. Kafka analytics streaming, an SMS/WhatsApp provider and the CAPTCHA integration point were out of scope for this BRD as planned, and remain unbuilt.
+
+Real end-to-end verification, live against the running dev server, not just automated tests: placing a real cash-on-delivery order produced a real "Order confirmed: ORD-..." email in `/dev/outbox` within about a second; opening the SSE stream for that order and cancelling it from a second terminal pushed a live `cancelled` update into the still-open first terminal with no reload; the checkout rate limit (BRD 22) still returned `429` under load; `/admin/system/cache-stats` and `/admin/system/dead-letters` both returned live data against the real server.
+
+Automated tests: 71/71 `api` tests green (7 new in `messaging.spec.ts`: real order-confirmation/cancellation emails through the whole pipeline, redelivery de-duplication, dead-letter inspect/replay, the abandoned-cart reminder, SSE ownership), full workspace (15 projects) lint/test/build all green.
+
+Docs updated: `brds/23-messaging-notifications-backend.md` (status: Built), `brds/README.md`, `PROJECT-LOG.md`, `steering/memory.md`, `docs/RUNBOOK.md`, `docs/VERIFICATION-CHECKLIST.md`.
+
+Status now: **BRDs 19 through 23 are all built and verified.** The shop runs end to end on the real backend with caching, rate limiting and now real messaging: customers get real order/payment emails, an abandoned cart gets one reminder, and an open order-tracking tab updates live. Remaining backend track: BRD 24 (observability — the full metrics dashboard BRD 22/23 both deferred belongs here), BRD 25 (Kubernetes/cloud/load tests). Not pushed — the user pushes.
+
+User messages since the previous update:
+- "proceed with remaining BRDs" (triggering BRD 23, and signalling to keep going through 24/25 without asking each time).

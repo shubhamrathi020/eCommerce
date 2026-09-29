@@ -29,12 +29,12 @@ Development-only helpers: on the sign-in pages a "Development only: fill demo ..
 | `pnpm e2e` | Smoke tests in a real browser (Microsoft Edge locally; starts the dev servers if needed) |
 | `pnpm mock-data` | Regenerate the seeded mock catalog, reviews and images |
 
-## 4a. The backend API (BRD 19, 20, 21, 22)
+## 4a. The backend API (BRD 19 to 23)
 
-Sign-in, profile, addresses, browsing/searching the catalog, and cart/checkout/orders (cash on delivery) all run on the real API now, backed by Redis caching and rate limiting. Online payment needs your own Razorpay test keys (see below); everything else needs nothing extra.
+Sign-in, profile, addresses, browsing/searching the catalog, and cart/checkout/orders (cash on delivery) all run on the real API now, backed by Redis caching/rate limiting and RabbitMQ messaging. Online payment needs your own Razorpay test keys (see below); everything else needs nothing extra.
 
 ```bash
-docker compose up -d postgres redis mongo meilisearch   # or your own local instances
+docker compose up -d postgres redis rabbitmq mongo meilisearch   # or your own local instances
 pnpm db:migrate                        # first time and after schema changes (prompts for a migration name)
 pnpm db:seed                           # seeds the same demo accounts as the frontend mock
 pnpm db:seed:catalog                   # seeds the same 252 products into Mongo and builds the Meilisearch index
@@ -48,9 +48,11 @@ Then, in `apps/storefront/src/app/app-config.values.ts` (or `apps/admin/src/app/
 
 Set them back to `false` (the default) to go back to the mock. Re-run `pnpm db:seed:catalog` any time you want to reset the catalog back to the seeded 252 products (admin test edits and order-placed stock changes included).
 
-`pnpm exec nx test api` runs the API's own integration tests against **separate** `..._test` stores (a Postgres database and a Mongo database, created automatically, plus a `products_test` Meilisearch index) — it needs Postgres, Mongo, Meilisearch and Redis running but never touches your development data (Redis test keys use an `ecom:test:` prefix, so they never collide with dev keys even on the same Redis instance).
+`pnpm exec nx test api` runs the API's own integration tests against **separate** `..._test` stores (a Postgres database and a Mongo database, created automatically, plus a `products_test` Meilisearch index) — it needs Postgres, Mongo, Meilisearch, Redis and RabbitMQ running but never touches your development data (Redis keys use an `ecom:test:` prefix and RabbitMQ exchanges/queues an `ecom.test.` prefix, so a test run never collides with dev data or dev topology even sharing the same broker/Redis instance).
 
 Caching and rate limits (BRD 22) need nothing extra beyond Redis already being up: catalog reads (home, listing, product, category tree) are cached in Redis with tagged invalidation, and `GET /catalog/...` responses carry `ETag`/`Cache-Control` headers (a repeat request with a matching `If-None-Match` gets a real `304`). Search-suggest, coupon-apply and checkout are rate-limited per the `RATE_LIMIT_SEARCH_PER_MIN` / `RATE_LIMIT_COUPON_PER_MIN` / `RATE_LIMIT_CHECKOUT_PER_MIN` values in `apps/api/.env` (defaults 60/20/20 per minute); exceeding one returns `429` with a `Retry-After` header. An admin signed in with the `system:read` permission (the seeded `admin@shop.test` has it) can check `GET /admin/system/cache-stats` for live hit/miss/rate-limit-blocked counts.
+
+Messaging (BRD 23) needs nothing extra beyond RabbitMQ already being up: placing, cancelling or paying for an order (and, every 5 minutes, an abandoned signed-in-customer cart) writes a row to a transactional outbox, which is relayed to RabbitMQ and turned into a real email in `/dev/outbox` — usually within a couple of seconds. `GET /orders/:id/stream` is a Server-Sent Events endpoint: open it in a browser tab (or `curl -N`) on an order you own, and a later status change (cancel it, or advance it from the admin console) appears in that same open connection with no reload. A message that fails processing three times lands in the dead-letter queue instead of blocking anything else; an admin with `system:read`/`system:write` can inspect and replay it at `GET`/`POST /admin/system/dead-letters(/replay)`. RabbitMQ's own management UI is at http://localhost:15672 (guest/guest).
 
 ## 4. Containers (Docker)
 
@@ -66,6 +68,7 @@ pnpm docker:down    # stops and removes them
 | API (NestJS) | http://localhost:3333 | node (uid 1000), read-only filesystem | `/healthz`, `/readyz` |
 | PostgreSQL | localhost:5432 | — | `pg_isready` |
 | Redis | localhost:6379 | — | `redis-cli ping` |
+| RabbitMQ | localhost:5672 (management UI: http://localhost:15672) | — | `rabbitmq-diagnostics ping` |
 | MongoDB | localhost:27017 | — | `mongosh --eval db.runCommand('ping')` |
 | Meilisearch | http://localhost:7700 | — | `/health` |
 
@@ -101,6 +104,9 @@ HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop
 | Docker `shop-api` image: "Cannot find module 'tslib'" | Fixed by `"importHelpers": false` in `apps/api/tsconfig.app.json`; if it recurs, something reintroduced a `tslib` import and the pruned production install has no dev dependencies |
 | `pnpm exec nx test api` fails to connect to Mongo/Meilisearch | `docker compose up -d mongo meilisearch` |
 | `pnpm exec nx test api` fails with "API tests need Redis" | `docker compose up -d redis` |
+| `pnpm exec nx test api` fails with "API tests need RabbitMQ" | `docker compose up -d rabbitmq` |
+| An order-confirmation/cancellation email doesn't show up in `/dev/outbox` | Give it a couple of seconds (the outbox relay polls every 2s); if it never arrives, check the API logs for `[OutboxRelay]`/`[NotificationConsumer]` warnings, and confirm RabbitMQ is up |
+| A message keeps showing up in `GET /admin/system/dead-letters` | It failed processing 3 times; check `lastError` in the listing, fix the underlying cause, then `POST /admin/system/dead-letters/replay` |
 | A catalog page shows stale data right after an admin edit or a placed order | Should self-correct within the route's cache TTL (60s home, 300s category tree, 30s listing, 120s product); if it persists, check `GET /admin/system/cache-stats` for a hit ratio near 100% (cache not being invalidated) |
 | `429 Too Many Requests` on search, coupon or checkout calls during manual testing | Working as designed — wait for the `Retry-After` seconds, or raise `RATE_LIMIT_*_PER_MIN` in `apps/api/.env` for local testing |
 | Catalog listing/search returns nothing even though `realCatalog: true` | The catalog store is empty or stale: `pnpm db:seed:catalog` |
