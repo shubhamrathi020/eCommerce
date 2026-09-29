@@ -11,6 +11,18 @@ export interface ApiConfig {
   meiliMasterKey: string;
   /** Suffix appended to Meilisearch index names, so `pnpm exec nx test api` never touches dev/prod data. */
   meiliIndexSuffix: string;
+  /** Cache-aside reads, coupon-redemption counters (BRD 22). */
+  redisUrl: string;
+  /** Prefix on every Redis key, so `pnpm exec nx test api` never touches dev/prod cache entries. */
+  redisKeyPrefix: string;
+  /** Per-route rate limits (BRD 22), each `{ limit, windowSeconds }`. Configurable so ops can tune them
+   * without a redeploy. `login` isn't here: the 5-attempts/15-minutes-per-email lockout in AuthService
+   * already covers it (BRD 22's own proposed default), enforced per account, not per IP. */
+  rateLimits: {
+    search: { limit: number; windowSeconds: number };
+    coupon: { limit: number; windowSeconds: number };
+    checkout: { limit: number; windowSeconds: number };
+  };
   jwtAccessSecret: string;
   jwtRefreshSecret: string;
   /** Optional: online payments (BRD 21). Empty until you add your own test-mode keys to apps/api/.env;
@@ -43,6 +55,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
   const mongoUrl = need('MONGODB_URL');
   const meiliUrl = need('MEILI_URL');
   const meiliMasterKey = env['MEILI_MASTER_KEY']?.trim() ?? '';
+  const redisUrl = need('REDIS_URL');
+  const int = (key: string, fallback: number): number => {
+    const raw = env[key]?.trim();
+    if (!raw) return fallback;
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n <= 0) problems.push(`${key} must be a positive number`);
+    return n;
+  };
   const jwtAccessSecret = need('JWT_ACCESS_SECRET');
   const jwtRefreshSecret = need('JWT_REFRESH_SECRET');
   for (const [key, value] of [['JWT_ACCESS_SECRET', jwtAccessSecret], ['JWT_REFRESH_SECRET', jwtRefreshSecret]] as const) {
@@ -62,6 +82,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     problems.push("RAZORPAY_KEY_ID must be a test-mode key (starts with 'rzp_test_'); live keys are refused");
   }
   if (razorpayKeyId && !razorpayKeySecret) problems.push('RAZORPAY_KEY_SECRET is required when RAZORPAY_KEY_ID is set');
+  const rateLimits = {
+    search: { limit: int('RATE_LIMIT_SEARCH_PER_MIN', 60), windowSeconds: 60 },
+    coupon: { limit: int('RATE_LIMIT_COUPON_PER_MIN', 20), windowSeconds: 60 },
+    checkout: { limit: int('RATE_LIMIT_CHECKOUT_PER_MIN', 20), windowSeconds: 60 },
+  };
   if (problems.length) throw new Error(`Invalid API configuration:\n - ${problems.join('\n - ')}`);
   return {
     port: Number(env['PORT'] ?? 3333),
@@ -72,6 +97,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     meiliUrl,
     meiliMasterKey,
     meiliIndexSuffix: env['NODE_ENV'] === 'test' ? '_test' : '',
+    redisUrl,
+    redisKeyPrefix: env['NODE_ENV'] === 'test' ? 'ecom:test:' : 'ecom:',
+    rateLimits,
     jwtAccessSecret,
     jwtRefreshSecret,
     razorpayKeyId,

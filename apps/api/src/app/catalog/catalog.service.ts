@@ -17,13 +17,31 @@ import type {
 } from '@ecom/shared/models';
 import { bestDiscount, computeServiceability, sortProducts, stockStatusOf, toSummary } from '@ecom/shared/models';
 import type { WithId } from 'mongodb';
+import { createHash } from 'node:crypto';
 import { AppError } from '../common/app-error';
+import { CacheService } from '../cache/cache.service';
 import { MongoService } from './mongo.service';
 import { SearchService } from './search.service';
 import type { BrandDoc, CategoryDoc, ProductDoc, ReviewDoc } from './catalog.types';
 
 const RATING_STEPS = [4, 3, 2, 1];
 const DISCOUNT_STEPS = [10, 25, 40];
+/** Every home/listing entry carries this tag, so any catalog write can invalidate all of them at once
+ * without tracking exactly which listing queries happened to include the changed product (BRD 22, CR-01) —
+ * correct always, occasionally clears a little more than strictly necessary. A single product's own page
+ * (`catalog:product:<slug>`) is invalidated precisely, by its own id. */
+const LISTINGS_TAG = 'catalog:listings';
+
+/** Deterministic JSON: object keys sorted recursively, so two logically-identical queries (whatever
+ * order their fields/filters happened to be built in) produce the same cache key. */
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
+    return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${stableStringify(v)}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
 
 function leafIdsUnder(category: CategoryDoc, categories: CategoryDoc[]): Set<string> {
   const children = categories.filter((c) => c.parentId === category.id);
@@ -35,6 +53,7 @@ export class CatalogService {
   constructor(
     private readonly mongo: MongoService,
     private readonly search: SearchService,
+    private readonly cache: CacheService,
   ) {}
 
   /** Strips the admin-only `_id`/`status`/`updatedAt` fields so nothing but the `Product` contract itself
@@ -49,7 +68,11 @@ export class CatalogService {
     return docs.map((d) => this.toProduct(d));
   }
 
-  async home(): Promise<HomeData> {
+  home(): Promise<HomeData> {
+    return this.cache.getOrSet('catalog:home', 60, [LISTINGS_TAG], () => this.homeUncached());
+  }
+
+  private async homeUncached(): Promise<HomeData> {
     const [products, brands, homeDoc] = await Promise.all([
       this.allProducts(),
       this.mongo.brands.find().sort({ name: 1 }).limit(12).toArray(),
@@ -73,7 +96,14 @@ export class CatalogService {
     };
   }
 
-  async listing(query: ListingQuery): Promise<ListingResult> {
+  listing(query: ListingQuery): Promise<ListingResult> {
+    // A stable key regardless of key order in `query.filters` — two requests for "the same" listing must
+    // always hit the same cache entry, or the cache is useless.
+    const key = `catalog:listing:${createHash('sha256').update(stableStringify(query)).digest('hex')}`;
+    return this.cache.getOrSet(key, 30, [LISTINGS_TAG], () => this.listingUncached(query));
+  }
+
+  private async listingUncached(query: ListingQuery): Promise<ListingResult> {
     const categories = await this.mongo.categories.find().toArray();
     const scope: string[] = [];
     let heading = 'All products';
@@ -190,7 +220,18 @@ export class CatalogService {
     return { items, total: result.total, page, pageSize, facets, priceBounds: result.priceBounds, title, breadcrumb };
   }
 
-  async product(slug: string): Promise<{ product: Product; redirectedFrom?: string }> {
+  product(slug: string): Promise<{ product: Product; redirectedFrom?: string }> {
+    return this.cache.getOrSet(
+      `catalog:product:${slug}`,
+      120,
+      // Tagged per variant too, so InventoryService (which only ever knows a variantId, from an order's
+      // cart lines, never the product id) can invalidate this exact page precisely on every stock change.
+      (result) => [LISTINGS_TAG, `product:${result.product.id}`, ...result.product.variants.map((v) => `variant:${v.id}`)],
+      () => this.productUncached(slug),
+    );
+  }
+
+  private async productUncached(slug: string): Promise<{ product: Product; redirectedFrom?: string }> {
     const direct = await this.mongo.products.findOne({ slug, status: 'published' });
     if (direct) return { product: this.toProduct(direct) };
     const moved = await this.mongo.products.findOne({ slugHistory: slug, status: 'published' });
@@ -250,7 +291,13 @@ export class CatalogService {
     return computeServiceability(pincode);
   }
 
-  async categoryTree(): Promise<CategoryNode[]> {
+  categoryTree(): Promise<CategoryNode[]> {
+    // Categories change far less often than products, so a longer TTL; still under the same broad
+    // "catalog:listings" bucket since a category rename affects breadcrumbs shown in listings too.
+    return this.cache.getOrSet('catalog:category-tree', 300, [LISTINGS_TAG, 'catalog:categories'], () => this.categoryTreeUncached());
+  }
+
+  private async categoryTreeUncached(): Promise<CategoryNode[]> {
     const flat = (await this.mongo.categories.find().toArray()).map(({ _id, ...c }: WithId<CategoryDoc>) => c);
     const nodes = new Map<string, CategoryNode>(flat.map((c): [string, CategoryNode] => [c.id, { ...c, children: [] }]));
     const roots: CategoryNode[] = [];

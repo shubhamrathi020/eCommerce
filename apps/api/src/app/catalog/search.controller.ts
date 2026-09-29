@@ -1,6 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { SearchSuggestions } from '@ecom/shared/models';
+import { RateLimitBucket } from '../cache/rate-limit.guard';
 import { CatalogService } from './catalog.service';
 import { SearchService } from './search.service';
 import { MongoService } from './mongo.service';
@@ -20,6 +21,7 @@ export class SearchController {
   ) {}
 
   @Get('suggest')
+  @RateLimitBucket('search')
   async suggest(@Query('q') rawQ: string | undefined): Promise<SearchSuggestions> {
     const q = (rawQ ?? '').slice(0, MAX_QUERY_LENGTH).trim();
     if (!q) return { queries: POPULAR_SEARCHES.slice(0, 5), products: [], categories: [], brands: [] };

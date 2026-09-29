@@ -4,6 +4,7 @@ import type { AdminOrderDetail, AdminOrderQuery, AdminOrderRow, CartLine, OrderN
 import { ORDER_TRANSITIONS } from '@ecom/shared/models';
 import type { Prisma } from '../../../generated/prisma';
 import { AppError } from '../common/app-error';
+import { CouponRedemptionService } from '../cache/coupon-redemption.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from './inventory.service';
 import { fromJson, toJson } from './json';
@@ -21,6 +22,7 @@ export class AdminOrderService {
     private readonly orders: OrderService,
     private readonly inventory: InventoryService,
     private readonly razorpay: RazorpayService,
+    private readonly coupons: CouponRedemptionService,
   ) {}
 
   async list(query: AdminOrderQuery): Promise<{ items: AdminOrderRow[]; total: number; page: number; pageSize: number }> {
@@ -68,6 +70,7 @@ export class AdminOrderService {
 
     if (status === 'cancelled') {
       await this.inventory.giveBack(stockLinesOf(row));
+      if (row.couponCode) await this.coupons.release(row.couponCode);
       // A real refund, automatically, when this was a captured online payment and Razorpay keys are
       // configured; otherwise (COD, or no keys yet) the order is left `refund_pending` for a manual refund,
       // same as before — CM21-05/CM21-07's reconciliation job is not built yet (documented gap).

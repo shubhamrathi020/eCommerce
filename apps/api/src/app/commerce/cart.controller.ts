@@ -5,6 +5,7 @@ import { IsIn, IsInt, IsString, Min } from 'class-validator';
 import type { Request, Response } from 'express';
 import { CsrfGuard, OptionalAuthGuard, OptionalUser, type AuthUser } from '../common/auth';
 import { API_CONFIG, type ApiConfig } from '../config';
+import { RateLimitBucket } from '../cache/rate-limit.guard';
 import { CartService } from './cart.service';
 import { ensureGuestCartToken, ownerKeyFor } from './guest-cart-cookie';
 
@@ -75,6 +76,7 @@ export class CartController {
 
   @Post('coupon')
   @UseGuards(CsrfGuard)
+  @RateLimitBucket('coupon')
   applyCoupon(@OptionalUser() user: AuthUser | undefined, @Req() req: Request, @Res({ passthrough: true }) res: Response, @Body() body: ApplyCouponDto): Promise<Cart> {
     return this.cart.applyCoupon(this.owner(user, req, res), body.code);
   }

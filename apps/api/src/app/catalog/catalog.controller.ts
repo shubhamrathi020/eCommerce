@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { HomeData, ListingQuery, ListingResult, Product, ProductSummary, ReviewPage, ReviewSort, Serviceability, SortKey } from '@ecom/shared/models';
 import { AppError } from '../common/app-error';
+import { HttpCacheControl } from '../cache/http-cache.interceptor';
 import { CatalogService } from './catalog.service';
 
 const SORT_KEYS: SortKey[] = ['relevance', 'featured', 'price-asc', 'price-desc', 'newest', 'rating', 'discount'];
@@ -33,16 +34,19 @@ export class CatalogController {
   constructor(private readonly catalog: CatalogService) {}
 
   @Get('home')
+  @HttpCacheControl(60)
   home(): Promise<HomeData> {
     return this.catalog.home();
   }
 
   @Get('categories/tree')
+  @HttpCacheControl(300)
   categoryTree() {
     return this.catalog.categoryTree();
   }
 
   @Get('listing')
+  @HttpCacheControl(30)
   listing(@Query() q: Record<string, string>): Promise<ListingResult> {
     const sort = SORT_KEYS.includes(q['sort'] as SortKey) ? (q['sort'] as SortKey) : 'relevance';
     const query: ListingQuery = {
@@ -61,6 +65,7 @@ export class CatalogController {
   }
 
   @Get('products/:slug')
+  @HttpCacheControl(120)
   product(@Param('slug') slug: string): Promise<{ product: Product; redirectedFrom?: string }> {
     return this.catalog.product(slug);
   }

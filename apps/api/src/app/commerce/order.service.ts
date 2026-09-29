@@ -6,6 +6,7 @@ import type { Order as OrderRow } from '../../../generated/prisma';
 import { AppError, assertNoFieldErrors } from '../common/app-error';
 import { PrismaService } from '../prisma/prisma.service';
 import { CartService } from './cart.service';
+import { CouponRedemptionService } from '../cache/coupon-redemption.service';
 import { InventoryService, type StockLine } from './inventory.service';
 import { fromJson, toJson } from './json';
 
@@ -57,6 +58,7 @@ export class OrderService {
     private readonly db: PrismaService,
     private readonly cart: CartService,
     private readonly inventory: InventoryService,
+    private readonly coupons: CouponRedemptionService,
   ) {}
 
   private newOrderId(): string {
@@ -71,6 +73,7 @@ export class OrderService {
     const expired = await this.db.order.findMany({ where: { status: 'pending_payment', paymentDeadline: { lt: now } } });
     for (const order of expired) {
       await this.inventory.giveBack(stockLinesOf(order));
+      if (order.couponCode) await this.coupons.release(order.couponCode);
       const timeline = [...fromJson<TimelineEntry[]>(order.timeline), { status: 'cancelled' as const, label: 'Cancelled: payment window expired', at: now.toISOString() }];
       await this.db.order.update({ where: { id: order.id }, data: { status: 'cancelled', paymentStatus: 'failed', timeline: toJson(timeline) } });
     }
@@ -105,9 +108,20 @@ export class OrderService {
       if (!eligibility.enabled) throw new AppError('validation', eligibility.reason ?? 'Cash on delivery is not available.');
     }
 
+    // A capped coupon (BRD 22, CR-05) is claimed the same way stock is: atomically, before the order
+    // exists, so concurrent checkouts can never together exceed its redemption cap.
+    const couponCode = cart.coupon?.code;
+    if (couponCode && !(await this.coupons.tryClaim(couponCode))) {
+      throw new AppError('validation', 'This coupon has reached its usage limit. Please remove it to continue.', { code: 'Usage limit reached' });
+    }
     // Stock is claimed before the order exists, so two shoppers can never both get the last unit.
     const stockLines: StockLine[] = cart.lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity }));
-    await this.inventory.take(stockLines);
+    try {
+      await this.inventory.take(stockLines);
+    } catch (error) {
+      if (couponCode) await this.coupons.release(couponCode);
+      throw error;
+    }
 
     const now = new Date();
     const id = this.newOrderId();
@@ -143,10 +157,11 @@ export class OrderService {
     try {
       await this.db.order.create({ data });
     } catch {
-      // Unique idempotencyKey race: a concurrent request with the same key won first. Give the stock back
-      // and return that order instead of creating a duplicate.
+      // Unique idempotencyKey race: a concurrent request with the same key won first. Give the stock and
+      // the coupon claim back, and return that order instead of creating a duplicate.
       const raced = await this.db.order.findUnique({ where: { idempotencyKey: request.idempotencyKey } });
       await this.inventory.giveBack(stockLines);
+      if (couponCode) await this.coupons.release(couponCode);
       if (raced) return toOrder(raced);
       throw new AppError('conflict', 'Could not place the order. Please try again.');
     }
@@ -196,6 +211,7 @@ export class OrderService {
     if (row.status === 'cancelled') return toOrder(row);
     if (row.status === 'shipped' || row.status === 'delivered') throw new AppError('validation', 'This order has already shipped and can no longer be cancelled.');
     await this.inventory.giveBack(stockLinesOf(row));
+    if (row.couponCode) await this.coupons.release(row.couponCode);
     const timeline = [
       ...fromJson<TimelineEntry[]>(row.timeline).filter((t) => t.status === 'placed' || t.status === 'paid' || t.status === 'confirmed'),
       { status: 'cancelled' as const, label: 'Order cancelled', at: new Date().toISOString() },

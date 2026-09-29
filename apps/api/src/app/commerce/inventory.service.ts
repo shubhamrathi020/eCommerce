@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppError } from '../common/app-error';
+import { CacheService } from '../cache/cache.service';
 import { MongoService } from '../catalog/mongo.service';
 
 export interface StockLine {
@@ -23,7 +24,10 @@ export interface StockLine {
  */
 @Injectable()
 export class InventoryService {
-  constructor(private readonly mongo: MongoService) {}
+  constructor(
+    private readonly mongo: MongoService,
+    private readonly cache: CacheService,
+  ) {}
 
   /** Atomically takes `quantity` units of one variant; throws if not enough is left. The `$` in the
    * update refers to the array element matched by `$elemMatch` in the filter — the query itself can't
@@ -35,10 +39,19 @@ export class InventoryService {
       { $inc: { 'variants.$.stock': -line.quantity } },
     );
     if (result.matchedCount === 0) throw new AppError('validation', 'Some items in your cart are no longer available.');
+    await this.invalidateCaches(line.variantId);
   }
 
   private async giveBackOne(line: StockLine): Promise<void> {
     await this.mongo.products.updateOne({ 'variants.id': line.variantId }, { $inc: { 'variants.$.stock': line.quantity } });
+    await this.invalidateCaches(line.variantId);
+  }
+
+  /** An order moving stock is exactly as much a catalog write as an admin edit is (BRD 22, CR-01): the
+   * cached product page and every cached listing can now show a stale stock status/quick-add button if
+   * this isn't invalidated too, not just `AdminCatalogService`'s own writes. */
+  private async invalidateCaches(variantId: string): Promise<void> {
+    await Promise.all([this.cache.invalidateTag(`variant:${variantId}`), this.cache.invalidateTag('catalog:listings')]);
   }
 
   /** Decrements every line, or none: rolls back whatever already succeeded if a later line fails. */

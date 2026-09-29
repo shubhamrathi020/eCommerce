@@ -6,6 +6,7 @@ import { IsIn, IsOptional, IsString, MaxLength, ValidateNested } from 'class-val
 import type { Request, Response } from 'express';
 import { CsrfGuard, OptionalAuthGuard, OptionalUser, type AuthUser } from '../common/auth';
 import { API_CONFIG, type ApiConfig } from '../config';
+import { RateLimitBucket } from '../cache/rate-limit.guard';
 import { ensureGuestCartToken, ownerKeyFor, readGuestCartToken } from './guest-cart-cookie';
 import { OrderService, type OwnerContext } from './order.service';
 
@@ -46,6 +47,7 @@ export class OrderController {
 
   @Post()
   @UseGuards(CsrfGuard)
+  @RateLimitBucket('checkout')
   place(@OptionalUser() user: AuthUser | undefined, @Req() req: Request, @Res({ passthrough: true }) res: Response, @Body() body: PlaceOrderDto): Promise<Order> {
     const guestToken = ensureGuestCartToken(req, res, this.config.production);
     const ownerKey = ownerKeyFor(user?.id, guestToken);

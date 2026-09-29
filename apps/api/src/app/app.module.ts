@@ -1,5 +1,5 @@
 import { type DynamicModule, type MiddlewareConsumer, Module, type NestModule } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AccountsController, AccountsService } from './accounts/accounts';
 import { AddressesController, AddressesService } from './addresses/addresses';
@@ -8,6 +8,12 @@ import { AuthService } from './auth/auth.service';
 import { MailService } from './auth/mail.service';
 import { PasswordService } from './auth/password.service';
 import { TokenService } from './auth/tokens';
+import { CacheStatsController } from './cache/cache-stats.controller';
+import { CacheService } from './cache/cache.service';
+import { CouponRedemptionService } from './cache/coupon-redemption.service';
+import { HttpCacheInterceptor } from './cache/http-cache.interceptor';
+import { RateLimitGuard } from './cache/rate-limit.guard';
+import { RedisService } from './cache/redis.service';
 import { AdminCatalogController } from './catalog/admin-catalog.controller';
 import { AdminCatalogService } from './catalog/admin-catalog.service';
 import { CatalogController } from './catalog/catalog.controller';
@@ -60,11 +66,17 @@ export class AppModule implements NestModule {
         OrderController,
         PaymentController,
         AdminOrderController,
+        CacheStatsController,
       ],
       providers: [
         { provide: API_CONFIG, useValue: config },
         { provide: APP_FILTER, useClass: ApiErrorFilter },
         { provide: APP_GUARD, useClass: ThrottlerGuard },
+        { provide: APP_GUARD, useClass: RateLimitGuard },
+        { provide: APP_INTERCEPTOR, useClass: HttpCacheInterceptor },
+        RedisService,
+        CacheService,
+        CouponRedemptionService,
         PrismaService,
         PasswordService,
         TokenService,

@@ -264,3 +264,28 @@ Status now: **BRDs 19, 20 and 21 are all built and verified.** The shop can run 
 
 User messages since the previous update:
 - "yes go ahead" (after being asked whether to start BRD 21).
+
+### After BRD 22: caching and rate limiting — Redis finally put to use
+
+Trigger: "continue" — after BRD 21's completion, per the standing "go ahead with remaining BRDs" instruction.
+
+What was built:
+- **Redis wiring** (`redis.service.ts`): first real use of `REDIS_URL`, provisioned since BRD 19 but unused until now. `keyPrefix` (`ecom:` / `ecom:test:` under `NODE_ENV=test`) namespaces dev and test keys on the same Redis instance, the same pattern already used for the Meilisearch index suffix and the Mongo test database name.
+- **Cache-aside catalog caching** (`cache.service.ts`, wired into `catalog.service.ts`): `CacheService.getOrSet(key, ttl, tags, factory)` caches `home`/`listing`/`product`/`categoryTree`, tagged for invalidation (a broad `catalog:listings` tag plus precise `product:<id>`/`variant:<id>` tags). Per-process request coalescing (an in-flight `Map`) prevents a stampede of concurrent misses on one instance — documented as not covering multiple instances, which would need a distributed lock.
+- **HTTP caching** (`http-cache.interceptor.ts`): a `@HttpCacheControl(seconds)` decorator adds `Cache-Control`/`ETag` (SHA-256 of the body) to catalog responses and answers a matching `If-None-Match` with a real `304`.
+- **Configurable per-route rate limiting** (`rate-limit.guard.ts`): a custom guard + `@RateLimitBucket(name)` decorator, not `@nestjs/throttler`'s `@Throttle()` — reading `@nestjs/throttler`'s own source showed `@Throttle()`'s arguments are evaluated at module-import time, before `loadConfig()` ever runs, so they can never read a runtime-configured limit. The custom guard reads `ApiConfig.rateLimits` per request via DI, uses a Redis `INCR`+`EXPIRE` fixed window, sets `Retry-After`, and fails open if Redis is unreachable. Applied to search-suggest, coupon-apply and checkout; limits configurable via `RATE_LIMIT_SEARCH_PER_MIN`/`RATE_LIMIT_COUPON_PER_MIN`/`RATE_LIMIT_CHECKOUT_PER_MIN`. Login's proposed "5 per 15 minutes per email" limit was already covered by BRD 19's `AuthService` lockout, so nothing new was added there.
+- **Distributed coupon-redemption counter** (`coupon-redemption.service.ts`): a real Redis `INCR`/`DECR` cap-enforcing counter, wired into order placement (claim), cancellation and expiry-sweep (release). Demonstrated on one hardcoded coupon (`WELCOME10`, cap 500) as a working proof of the mechanism; extending it to more coupons or an admin-editable cap is a product decision for later. The "stock reservations" half of BRD 22's CR-05 needed nothing new — BRD 21's atomic `$elemMatch` Mongo decrement already covers it.
+- **Cache/limiter stats** (`cache-stats.controller.ts`): `GET /admin/system/cache-stats` (new `system:read` permission) returns hit/miss/coalesced/rate-limit-blocked counts and a hit ratio — a lightweight endpoint rather than the full metrics dashboard BRD 22 proposed (deferred to BRD 24). Bot/CAPTCHA abuse hooks (CR-06) were not built.
+
+A real gap found only by re-running the test suite, not by reading the code: two `commerce.spec.ts` assertions started failing with an off-by-N stock count once the product-page cache was added — the 120-second cache on `GET /catalog/products/:slug` was never being invalidated when `InventoryService.take`/`giveBack` changed stock during order placement/cancellation, because cache invalidation had only been wired into the admin catalog-write path, not the order/inventory path. Fixed by tagging `product()`'s cache entries per-variant (so `InventoryService`, which only ever holds a `variantId`, can invalidate precisely) and having `InventoryService` invalidate both that tag and the broad `catalog:listings` tag on every stock change. Recorded in `steering/memory.md` as a general lesson: a new cache over data more than one service writes needs every writer checked, not just the one you were touching.
+
+Real end-to-end verification, live against the running dev server, not just automated tests: `GET /catalog/home` twice returned the same `ETag`, and repeating it with a matching `If-None-Match` returned a real `304`; hammering `GET /search/suggest` past its configured 60/minute limit returned `429` with a `Retry-After` header; signing in as the seeded admin and calling `GET /admin/system/cache-stats` returned live hit/miss/rate-limit-blocked numbers; and a full guest cart → apply `WELCOME10` → place order → cancel order cycle showed the Redis key `ecom:coupon:redemptions:WELCOME10` go `(nil) → 1 → 0`, confirming the claim/release logic works on a real order, not just in a unit test.
+
+Automated tests: all 65 `api` tests green (including the two previously-failing stock-mismatch tests, now fixed), full workspace (15 projects) `lint`+`test`+`build` all green.
+
+Docs updated: `brds/22-caching-rate-limiting.md` (status: Built), `brds/README.md`, `PROJECT-LOG.md`, `steering/memory.md`, `docs/RUNBOOK.md`, `docs/VERIFICATION-CHECKLIST.md`.
+
+Status now: **BRDs 19 through 22 are all built and verified.** The shop runs end to end on the real backend, now with caching (faster repeat reads, tagged invalidation kept correct across both admin writes and order-time stock changes) and basic abuse protection (rate limits with `Retry-After`, a working distributed coupon cap). Remaining backend track: BRD 23 (messaging), BRD 24 (observability — where the full metrics dashboard this BRD deferred belongs), BRD 25 (Kubernetes/cloud/load tests). Not pushed — the user pushes.
+
+User messages since the previous update:
+- "continue" (after BRD 21's completion, triggering BRD 22).

@@ -2,7 +2,7 @@ import { createHmac } from 'node:crypto';
 import { loadConfig } from '../config';
 import { RazorpayService } from './razorpay.service';
 
-const base = { DATABASE_URL: 'postgresql://x', MONGODB_URL: 'mongodb://x', MEILI_URL: 'http://x', JWT_ACCESS_SECRET: 'a'.repeat(32), JWT_REFRESH_SECRET: 'b'.repeat(32) };
+const base = { DATABASE_URL: 'postgresql://x', MONGODB_URL: 'mongodb://x', MEILI_URL: 'http://x', REDIS_URL: 'redis://x', JWT_ACCESS_SECRET: 'a'.repeat(32), JWT_REFRESH_SECRET: 'b'.repeat(32) };
 
 /** The signature math itself (BRD 21, CM21-05) needs no live Razorpay account to verify: it is a plain
  * HMAC-SHA256 the server computes and compares, exactly what the SDK's checkout widget hands back. */

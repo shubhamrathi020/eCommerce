@@ -29,9 +29,9 @@ Development-only helpers: on the sign-in pages a "Development only: fill demo ..
 | `pnpm e2e` | Smoke tests in a real browser (Microsoft Edge locally; starts the dev servers if needed) |
 | `pnpm mock-data` | Regenerate the seeded mock catalog, reviews and images |
 
-## 4a. The backend API (BRD 19, 20, 21)
+## 4a. The backend API (BRD 19, 20, 21, 22)
 
-Sign-in, profile, addresses, browsing/searching the catalog, and cart/checkout/orders (cash on delivery) all run on the real API now. Online payment needs your own Razorpay test keys (see below); everything else needs nothing extra.
+Sign-in, profile, addresses, browsing/searching the catalog, and cart/checkout/orders (cash on delivery) all run on the real API now, backed by Redis caching and rate limiting. Online payment needs your own Razorpay test keys (see below); everything else needs nothing extra.
 
 ```bash
 docker compose up -d postgres redis mongo meilisearch   # or your own local instances
@@ -48,7 +48,9 @@ Then, in `apps/storefront/src/app/app-config.values.ts` (or `apps/admin/src/app/
 
 Set them back to `false` (the default) to go back to the mock. Re-run `pnpm db:seed:catalog` any time you want to reset the catalog back to the seeded 252 products (admin test edits and order-placed stock changes included).
 
-`pnpm exec nx test api` runs the API's own integration tests against **separate** `..._test` stores (a Postgres database and a Mongo database, created automatically, plus a `products_test` Meilisearch index) — it needs Postgres, Mongo and Meilisearch running but never touches your development data.
+`pnpm exec nx test api` runs the API's own integration tests against **separate** `..._test` stores (a Postgres database and a Mongo database, created automatically, plus a `products_test` Meilisearch index) — it needs Postgres, Mongo, Meilisearch and Redis running but never touches your development data (Redis test keys use an `ecom:test:` prefix, so they never collide with dev keys even on the same Redis instance).
+
+Caching and rate limits (BRD 22) need nothing extra beyond Redis already being up: catalog reads (home, listing, product, category tree) are cached in Redis with tagged invalidation, and `GET /catalog/...` responses carry `ETag`/`Cache-Control` headers (a repeat request with a matching `If-None-Match` gets a real `304`). Search-suggest, coupon-apply and checkout are rate-limited per the `RATE_LIMIT_SEARCH_PER_MIN` / `RATE_LIMIT_COUPON_PER_MIN` / `RATE_LIMIT_CHECKOUT_PER_MIN` values in `apps/api/.env` (defaults 60/20/20 per minute); exceeding one returns `429` with a `Retry-After` header. An admin signed in with the `system:read` permission (the seeded `admin@shop.test` has it) can check `GET /admin/system/cache-stats` for live hit/miss/rate-limit-blocked counts.
 
 ## 4. Containers (Docker)
 
@@ -98,6 +100,9 @@ HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop
 | `pnpm exec nx test api` fails to connect | Postgres is not running: `docker compose up -d postgres` |
 | Docker `shop-api` image: "Cannot find module 'tslib'" | Fixed by `"importHelpers": false` in `apps/api/tsconfig.app.json`; if it recurs, something reintroduced a `tslib` import and the pruned production install has no dev dependencies |
 | `pnpm exec nx test api` fails to connect to Mongo/Meilisearch | `docker compose up -d mongo meilisearch` |
+| `pnpm exec nx test api` fails with "API tests need Redis" | `docker compose up -d redis` |
+| A catalog page shows stale data right after an admin edit or a placed order | Should self-correct within the route's cache TTL (60s home, 300s category tree, 30s listing, 120s product); if it persists, check `GET /admin/system/cache-stats` for a hit ratio near 100% (cache not being invalidated) |
+| `429 Too Many Requests` on search, coupon or checkout calls during manual testing | Working as designed — wait for the `Retry-After` seconds, or raise `RATE_LIMIT_*_PER_MIN` in `apps/api/.env` for local testing |
 | Catalog listing/search returns nothing even though `realCatalog: true` | The catalog store is empty or stale: `pnpm db:seed:catalog` |
 | "Online payment is not set up on this server yet" | No Razorpay test keys in `apps/api/.env`; use cash on delivery, or add your own `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` (test mode only — the API refuses a `rzp_live_...` key outright) |
 | Cart/order calls return 403 "Missing CSRF header" | The frontend adapter should already add this automatically; if calling the API directly (curl, Postman), add `x-csrf: 1` to any non-GET `/cart` or `/orders` request |

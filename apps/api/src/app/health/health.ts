@@ -2,6 +2,7 @@ import { Controller, Get, HttpCode, Inject, NotFoundException, ServiceUnavailabl
 import { ApiExcludeController } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import { MailService, type OutboxMail } from '../auth/mail.service';
+import { RedisService } from '../cache/redis.service';
 import { MongoService } from '../catalog/mongo.service';
 import { SearchService } from '../catalog/search.service';
 import { API_CONFIG, type ApiConfig } from '../config';
@@ -16,6 +17,7 @@ export class HealthController {
     private readonly db: PrismaService,
     private readonly mongo: MongoService,
     private readonly search: SearchService,
+    private readonly redis: RedisService,
   ) {}
 
   /** The process is up. Never touches dependencies, so an outage does not restart every pod. */
@@ -29,7 +31,7 @@ export class HealthController {
   @Get('readyz')
   async readyz(): Promise<string> {
     try {
-      await Promise.all([this.db.$queryRaw`SELECT 1`, this.mongo.ping(), this.search.health()]);
+      await Promise.all([this.db.$queryRaw`SELECT 1`, this.mongo.ping(), this.search.health(), this.redis.ping()]);
       return 'ok';
     } catch {
       throw new ServiceUnavailableException('a dependency is unavailable');

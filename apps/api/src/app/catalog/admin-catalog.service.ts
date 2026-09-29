@@ -12,6 +12,7 @@ import type {
   Variant,
 } from '@ecom/shared/models';
 import { AppError, assertNoFieldErrors } from '../common/app-error';
+import { CacheService } from '../cache/cache.service';
 import { toSearchDoc } from './catalog.mapper';
 import type { ProductDoc } from './catalog.types';
 import { MongoService } from './mongo.service';
@@ -107,6 +108,7 @@ export class AdminCatalogService {
   constructor(
     private readonly mongo: MongoService,
     private readonly search: SearchService,
+    private readonly cache: CacheService,
   ) {}
 
   private async syncIndex(doc: ProductDoc): Promise<void> {
@@ -116,6 +118,9 @@ export class AdminCatalogService {
     } else {
       await this.search.deleteProduct(doc.id).catch(() => undefined);
     }
+    // Every cached view of this product, plus the broad home/listing bucket (BRD 22, CR-01): a status
+    // or price change can move this product in or out of listings the cache has no per-entry record of.
+    await Promise.all([this.cache.invalidateTag(`product:${doc.id}`), this.cache.invalidateTag('catalog:listings')]);
   }
 
   async list(query: AdminProductQuery): Promise<Paged<AdminProductRow>> {
@@ -225,7 +230,11 @@ export class AdminCatalogService {
     const drafts = await this.mongo.products.find({ id: { $in: ids }, status: 'draft' }).toArray();
     if (drafts.length === 0) return 0;
     await this.mongo.products.deleteMany({ id: { $in: drafts.map((d) => d.id) } });
-    await Promise.all(drafts.map((d) => this.search.deleteProduct(d.id).catch(() => undefined)));
+    await Promise.all([
+      ...drafts.map((d) => this.search.deleteProduct(d.id).catch(() => undefined)),
+      ...drafts.map((d) => this.cache.invalidateTag(`product:${d.id}`)),
+      this.cache.invalidateTag('catalog:listings'),
+    ]);
     return drafts.length;
   }
 }
