@@ -20,7 +20,9 @@
     "mock-data": "node tools/generate-mock-data/generate.mjs",
     "docker:up": "docker compose up --build -d",
     "docker:down": "docker compose down",
-    "k8s:render": "kubectl kustomize deploy/k8s/base"
+    "k8s:render": "kubectl kustomize deploy/k8s/base",
+    "backup": "node scripts/backup.mjs",
+    "restore:drill": "node scripts/restore-drill.mjs"
   },
   "private": true,
   "devDependencies": {
@@ -122,6 +124,7 @@
     "meilisearch": "^0.62.0",
     "mongodb": "^7.6.0",
     "pg": "^8.23.0",
+    "prom-client": "^15.1.3",
     "razorpay": "^2.9.8",
     "reflect-metadata": "^0.2.0",
     "rxjs": "~7.8.0"

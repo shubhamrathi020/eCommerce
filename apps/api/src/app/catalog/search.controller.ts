@@ -25,12 +25,15 @@ export class SearchController {
   async suggest(@Query('q') rawQ: string | undefined): Promise<SearchSuggestions> {
     const q = (rawQ ?? '').slice(0, MAX_QUERY_LENGTH).trim();
     if (!q) return { queries: POPULAR_SEARCHES.slice(0, 5), products: [], categories: [], brands: [] };
-    const [ids, categories, brands] = await Promise.all([
-      this.search.suggestProducts(q, 4),
+    // Product suggestions need Meilisearch; category/brand suggestions are plain Mongo reads. A search
+    // outage (BRD 24, OB-05) should not also take those down — caught separately, degrading to an empty
+    // product list rather than failing the whole autocomplete dropdown.
+    const [idsResult, categories, brands] = await Promise.all([
+      this.search.suggestProducts(q, 4).catch(() => [] as string[]),
       this.mongo.categories.find({ name: { $regex: q, $options: 'i' } }).limit(3).toArray(),
       this.mongo.brands.find({ name: { $regex: q, $options: 'i' } }).limit(3).toArray(),
     ]);
-    const products = await this.catalog.summariesByIds(ids);
+    const products = await this.catalog.summariesByIds(idsResult);
     const popularMatches = POPULAR_SEARCHES.filter((p) => p.toLowerCase().startsWith(q.toLowerCase()));
     return {
       queries: [...new Set([...popularMatches, ...categories.map((c) => c.name), ...brands.map((b) => b.name)])].slice(0, 5),

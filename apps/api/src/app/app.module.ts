@@ -44,6 +44,9 @@ import { OutboxRelayService } from './messaging/outbox-relay.service';
 import { OutboxService } from './messaging/outbox.service';
 import { RabbitService } from './messaging/rabbit.service';
 import { SchedulerService } from './messaging/scheduler.service';
+import { MetricsController } from './metrics/metrics.controller';
+import { MetricsMiddleware } from './metrics/metrics.middleware';
+import { MetricsService } from './metrics/metrics.service';
 import { PrismaService } from './prisma/prisma.service';
 
 /**
@@ -75,6 +78,7 @@ export class AppModule implements NestModule {
         AdminOrderController,
         CacheStatsController,
         DeadLetterController,
+        MetricsController,
       ],
       providers: [
         { provide: API_CONFIG, useValue: config },
@@ -112,11 +116,14 @@ export class AppModule implements NestModule {
         NotificationConsumerService,
         SchedulerService,
         OrderEventsService,
+        MetricsService,
+        MetricsMiddleware,
       ],
     };
   }
 
   configure(consumer: MiddlewareConsumer): void {
     consumer.apply(RequestContextMiddleware).forRoutes('{*splat}');
+    consumer.apply(MetricsMiddleware).forRoutes('{*splat}');
   }
 }

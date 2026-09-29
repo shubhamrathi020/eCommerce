@@ -1,6 +1,7 @@
 # Run the whole shop locally:  docker compose up --build
 #   Storefront: http://localhost:4000      Admin console: http://localhost:4001      API: http://localhost:3333
 #   Meilisearch: http://localhost:7700     Mongo: localhost:27017     RabbitMQ: http://localhost:15672
+#   Prometheus: http://localhost:9090      Grafana: http://localhost:3001     Alertmanager: http://localhost:9093
 name: shop
 
 services:
@@ -200,7 +201,77 @@ services:
       retries: 3
       start_period: 5s
 
+  # Observability (BRD 24, OB-01/OB-04): Prometheus scrapes the API's /metrics every 15s; Grafana (default
+  # login admin/admin, change it if this is ever reachable beyond your own machine) is pre-provisioned
+  # with that Prometheus as its datasource and a real "eCommerce API overview" dashboard — nothing to
+  # click through to see it. `docker compose up -d prometheus grafana` on their own is enough if you don't
+  # need the rest of the stack running too.
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/observability/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Linux needs this explicitly; Docker Desktop (Win/Mac) already resolves it
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.0
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./deploy/observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    restart: unless-stopped
+
+  # A real HTTP receiver for Alertmanager's webhook — logs every alert it gets (`docker compose logs
+  # alert-log`) since no real Slack/email account exists in this environment (see alertmanager.yml).
+  alert-log:
+    image: node:22-alpine
+    volumes:
+      - ./deploy/observability/alert-log.mjs:/app/alert-log.mjs:ro
+    command: ["node", "/app/alert-log.mjs"]
+    restart: unless-stopped
+
+  # Centralised, searchable logs (BRD 24, OB-02) — every container's own stdout, shipped by Promtail,
+  # queryable in Grafana's Explore by request id (search for the id header/log line your browser saw,
+  # e.g. the `x-request-id` response header or the `requestId` field `ApiErrorFilter` already logs) to
+  # follow one request across the API's own log lines.
+  loki:
+    image: grafana/loki:3.3.0
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:3.3.0
+    volumes:
+      - ./deploy/observability/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: ["-config.file=/etc/promtail/config.yml"]
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    ports:
+      - "3001:3000"
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true" # local dev only — anonymous viewer access, no login needed
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+    volumes:
+      - ./deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+
 volumes:
   postgres-data:
   mongo-data:
   meili-data:
+  grafana-data:

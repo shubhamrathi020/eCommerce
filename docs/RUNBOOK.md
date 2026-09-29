@@ -29,7 +29,7 @@ Development-only helpers: on the sign-in pages a "Development only: fill demo ..
 | `pnpm e2e` | Smoke tests in a real browser (Microsoft Edge locally; starts the dev servers if needed) |
 | `pnpm mock-data` | Regenerate the seeded mock catalog, reviews and images |
 
-## 4a. The backend API (BRD 19 to 23)
+## 4a. The backend API (BRD 19 to 24)
 
 Sign-in, profile, addresses, browsing/searching the catalog, and cart/checkout/orders (cash on delivery) all run on the real API now, backed by Redis caching/rate limiting and RabbitMQ messaging. Online payment needs your own Razorpay test keys (see below); everything else needs nothing extra.
 
@@ -54,6 +54,16 @@ Caching and rate limits (BRD 22) need nothing extra beyond Redis already being u
 
 Messaging (BRD 23) needs nothing extra beyond RabbitMQ already being up: placing, cancelling or paying for an order (and, every 5 minutes, an abandoned signed-in-customer cart) writes a row to a transactional outbox, which is relayed to RabbitMQ and turned into a real email in `/dev/outbox` — usually within a couple of seconds. `GET /orders/:id/stream` is a Server-Sent Events endpoint: open it in a browser tab (or `curl -N`) on an order you own, and a later status change (cancel it, or advance it from the admin console) appears in that same open connection with no reload. A message that fails processing three times lands in the dead-letter queue instead of blocking anything else; an admin with `system:read`/`system:write` can inspect and replay it at `GET`/`POST /admin/system/dead-letters(/replay)`. RabbitMQ's own management UI is at http://localhost:15672 (guest/guest).
 
+Observability and resilience (BRD 24):
+```bash
+docker compose up -d prometheus grafana alertmanager alert-log loki promtail
+```
+- **Metrics**: `GET /metrics` (no auth, same posture as `/healthz`) is a real Prometheus exposition — request rate/duration/status, the BRD 22 cache hit ratio, circuit-breaker state, the BRD 23 outbox backlog, and Node's own baseline. Prometheus (http://localhost:9090) scrapes it every 15s; Grafana (http://localhost:3001, anonymous viewer access) is pre-provisioned with a real "eCommerce API overview" dashboard — nothing to set up to see it. Running the API in Docker (`pnpm docker:up`) instead of on your host needs the scrape target in `deploy/observability/prometheus.yml` changed from `host.docker.internal:3333` to `api:3333` (a comment there says the same thing).
+- **Resilience**: every Razorpay and Meilisearch call goes through a circuit breaker (timeout, a couple of quick retries, then open for a cooldown after 3 consecutive failures) — `GET /admin/system/resilience` (`system:read`) shows both breakers' live state. While Meilisearch is down, search-driven catalog pages and `/search/suggest` return a clear "temporarily unavailable" message (never a raw exception); cash on delivery and plain category/product-page browsing are completely unaffected either way.
+- **Alerts**: 5 real Prometheus rules (`deploy/observability/alert-rules.yml`) route through Alertmanager (http://localhost:9093) to a webhook receiver that logs every alert (`docker compose logs alert-log`) — no real Slack/email account exists in this environment, so point `deploy/observability/alertmanager.yml`'s webhook at your own Slack/PagerDuty/SMTP-bridge URL for a real destination; nothing else needs to change.
+- **Logs**: Promtail ships every docker-compose container's own stdout into Loki (http://localhost:3100), searchable in Grafana's Explore by the `service` label or by the API's own `requestId` field. Only picks up containers actually run via `docker compose` — a host-run `pnpm start:api` dev server's logs stay in your own terminal.
+- **Backups**: `pnpm backup` runs a real `pg_dump`/`mongodump` against the running containers into `backups/` (gitignored); `pnpm restore:drill` restores the most recent Postgres backup into a disposable database (never over the real one), verifies row counts, times the whole thing, and reports it against the BRD's RPO/RTO targets.
+
 ## 4. Containers (Docker)
 
 ```bash
@@ -71,6 +81,10 @@ pnpm docker:down    # stops and removes them
 | RabbitMQ | localhost:5672 (management UI: http://localhost:15672) | — | `rabbitmq-diagnostics ping` |
 | MongoDB | localhost:27017 | — | `mongosh --eval db.runCommand('ping')` |
 | Meilisearch | http://localhost:7700 | — | `/health` |
+| Prometheus | http://localhost:9090 | — | `/-/healthy` |
+| Grafana | http://localhost:3001 | — | `/api/health` |
+| Alertmanager | http://localhost:9093 | — | `/-/healthy` |
+| Loki | http://localhost:3100 | — | `/ready` |
 
 Notes
 - The storefront only answers to hosts listed in `ALLOWED_HOSTS` (comma separated, wildcards like `*.example.com` allowed). Set it for real domains.
@@ -109,6 +123,9 @@ HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop
 | A message keeps showing up in `GET /admin/system/dead-letters` | It failed processing 3 times; check `lastError` in the listing, fix the underlying cause, then `POST /admin/system/dead-letters/replay` |
 | A catalog page shows stale data right after an admin edit or a placed order | Should self-correct within the route's cache TTL (60s home, 300s category tree, 30s listing, 120s product); if it persists, check `GET /admin/system/cache-stats` for a hit ratio near 100% (cache not being invalidated) |
 | `429 Too Many Requests` on search, coupon or checkout calls during manual testing | Working as designed — wait for the `Retry-After` seconds, or raise `RATE_LIMIT_*_PER_MIN` in `apps/api/.env` for local testing |
+| Search or online payment returns "temporarily unavailable" | The circuit breaker for that dependency is open (3 consecutive failures) — check `GET /admin/system/resilience`; it closes on its own once the dependency answers again, no restart needed |
+| Prometheus target `api` shows "down" | Running the API on your host: check `host.docker.internal:3333` resolves from inside the `prometheus` container (`docker compose exec prometheus wget -qO- http://host.docker.internal:3333/metrics`); running it in `pnpm docker:up` mode instead, change the scrape target to `api:3333` in `deploy/observability/prometheus.yml` |
+| An alert never seems to fire | Check `curl http://localhost:9090/api/v1/rules` for its current state (`inactive`/`pending`/`firing`) — most rules have a `for:` duration, so a brief blip alone won't trigger one |
 | Catalog listing/search returns nothing even though `realCatalog: true` | The catalog store is empty or stale: `pnpm db:seed:catalog` |
 | "Online payment is not set up on this server yet" | No Razorpay test keys in `apps/api/.env`; use cash on delivery, or add your own `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` (test mode only — the API refuses a `rzp_live_...` key outright) |
 | Cart/order calls return 403 "Missing CSRF header" | The frontend adapter should already add this automatically; if calling the API directly (curl, Postman), add `x-csrf: 1` to any non-GET `/cart` or `/orders` request |
@@ -121,4 +138,4 @@ HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop
 
 ## 7. Not covered yet
 
-Invoices as a real PDF, and an automated job reconciling payments against Razorpay's own records, aren't built yet (need BRD 23/24's messaging and scheduling infrastructure first). CSV bulk import and an image upload pipeline for the catalog aren't built yet either. Cloud deployment, Helm, secrets management and observability stacks arrive later in the backend phase (BRD 24, 25).
+Invoices as a real PDF, and an automated job reconciling payments against Razorpay's own records, aren't built yet (BRD 23/24's messaging/scheduling infrastructure now exists, but no job was written to use it for either of these). CSV bulk import and an image upload pipeline for the catalog aren't built yet either. Distributed tracing (OpenTelemetry/Jaeger) and frontend error/performance reporting were explicitly deferred in BRD 24 (see its own change log for why); Kubernetes, cloud deployment, Helm and secrets management arrive in BRD 25.

@@ -21,6 +21,7 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
   private model!: ChannelModel;
   private confirmChannel!: ConfirmChannel;
   private consumeChannel!: import('amqplib').Channel;
+  private connected = false;
 
   constructor(@Inject(API_CONFIG) private readonly config: ApiConfig) {}
 
@@ -46,16 +47,29 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit(): Promise<void> {
     this.model = await connect(this.config.rabbitmqUrl);
-    this.model.on('error', (error) => this.logger.error(`connection error: ${(error as Error).message}`));
+    this.model.on('error', (error) => {
+      this.connected = false;
+      this.logger.error(`connection error: ${(error as Error).message}`);
+    });
+    this.model.on('close', () => (this.connected = false));
     this.confirmChannel = await this.model.createConfirmChannel();
     this.consumeChannel = await this.model.createChannel();
     await this.declareTopology(this.confirmChannel);
+    this.connected = true;
   }
 
   async onModuleDestroy(): Promise<void> {
     await this.confirmChannel?.close().catch(() => undefined);
     await this.consumeChannel?.close().catch(() => undefined);
     await this.model?.close().catch(() => undefined);
+  }
+
+  /** For `/readyz` (BRD 24): checks the connection's own last known state — deliberately not an actual
+   * round-trip call like `checkExchange`, which throws *and closes the channel* if it ever fails,
+   * breaking real publishing/consuming just to answer a health probe. `connected` is kept up to date by
+   * the connection's own `close`/`error` events, so this still reflects reality, just without the risk. */
+  async ping(): Promise<void> {
+    if (!this.connected) throw new Error('RabbitMQ connection is not open');
   }
 
   private async declareTopology(ch: ConfirmChannel): Promise<void> {

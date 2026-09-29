@@ -1,7 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Meilisearch } from 'meilisearch';
 import type { SortKey } from '@ecom/shared/models';
 import { API_CONFIG, type ApiConfig } from '../config';
+import { AppError } from '../common/app-error';
+import { CircuitBreaker, CircuitOpenError, type CircuitStats } from '../resilience/circuit-breaker';
+import { withRetry } from '../resilience/retry';
 
 /** The document shape written to the Meilisearch `products` index (BF-... / CS-03). Flattened and
  * denormalised on purpose: search and facet counting both need to run without touching Mongo per hit. */
@@ -83,6 +86,12 @@ const SORT_FIELD: Record<SortKey, string[] | undefined> = {
 export class SearchService {
   private readonly client: Meilisearch;
   readonly indexName: string;
+  /** Guards only the shopper-facing read paths (`search`/`suggestProducts`/`count`) — see the class doc
+   * on `search()` for why (BRD 24, OB-05). Indexing calls (admin writes, the seed script) are not
+   * guarded: those already run outside a request/response cycle and their own callers decide how to
+   * handle a failure (e.g. `AdminCatalogService` logs and continues rather than blocking the write). */
+  private readonly breaker = new CircuitBreaker('meilisearch', { failureThreshold: 3, cooldownMs: 20_000, timeoutMs: 3_000 });
+  private readonly logger = new Logger('SearchService');
 
   constructor(@Inject(API_CONFIG) private readonly config: ApiConfig) {
     this.client = new Meilisearch({ host: config.meiliUrl, apiKey: config.meiliMasterKey || undefined });
@@ -91,6 +100,29 @@ export class SearchService {
 
   private get index() {
     return this.client.index<CatalogSearchDoc>(this.indexName);
+  }
+
+  breakerStats(): CircuitStats {
+    return this.breaker.stats();
+  }
+
+  /** Every shopper-facing read goes through this: a couple of quick retries absorb a transient blip
+   * (counted as *one* failure toward the breaker, not several — see the note on `withRetry`), and once
+   * Meilisearch is genuinely down, the breaker fails fast with a clear, non-fatal error instead of every
+   * request queuing up behind a slow or dead dependency. Catalog browsing by category/product-page still
+   * works fine during an outage (that's plain Mongo reads); only search-driven results (this call) and
+   * the standalone `/search/suggest` degrade, on purpose rather than silently — see OB-05's acceptance
+   * criterion "a provider outage degrades gracefully, not fatally", not "invisibly". Every failure here
+   * — a single call that failed even after retrying, or the breaker already open — surfaces as the same
+   * friendly `AppError`, never the raw Meilisearch/fetch exception (which `ApiErrorFilter` would
+   * otherwise turn into an opaque generic 500 instead of a clear, actionable 503). */
+  private async guarded<T>(fn: () => Promise<T>): Promise<T> {
+    try {
+      return await this.breaker.exec(() => withRetry(fn, { attempts: 2, baseDelayMs: 150 }));
+    } catch (error) {
+      if (!(error instanceof CircuitOpenError)) this.logger.warn(`meilisearch call failed: ${(error as Error).message}`);
+      throw new AppError('network', 'Search is temporarily unavailable. Please try again shortly.');
+    }
   }
 
   /** Idempotent: safe to call every time the seed script runs. `attrFields` is every `attr_<key>` the
@@ -124,44 +156,48 @@ export class SearchService {
   }
 
   async search(query: SearchQuery): Promise<SearchResult> {
-    const allFilter = [...query.scope, ...query.facetFilters.map((f) => f.filter), ...(query.priceFilter ? [query.priceFilter] : [])];
-    const mainFilter = allFilter.length ? allFilter.join(' AND ') : undefined;
-    const main = await this.index.search(query.q ?? '', {
-      filter: mainFilter,
-      facets: query.facetFields.length ? [...query.facetFields, 'priceMin', 'priceMax'] : ['priceMin', 'priceMax'],
-      sort: SORT_FIELD[query.sort],
-      page: Math.max(1, query.page),
-      hitsPerPage: Math.max(1, query.pageSize),
-      showRankingScore: true,
+    return this.guarded(async () => {
+      const allFilter = [...query.scope, ...query.facetFilters.map((f) => f.filter), ...(query.priceFilter ? [query.priceFilter] : [])];
+      const mainFilter = allFilter.length ? allFilter.join(' AND ') : undefined;
+      const main = await this.index.search(query.q ?? '', {
+        filter: mainFilter,
+        facets: query.facetFields.length ? [...query.facetFields, 'priceMin', 'priceMax'] : ['priceMin', 'priceMax'],
+        sort: SORT_FIELD[query.sort],
+        page: Math.max(1, query.page),
+        hitsPerPage: Math.max(1, query.pageSize),
+        showRankingScore: true,
+      });
+
+      // For each active facet group, re-run with that group's own clause removed, so its own option counts
+      // reflect "if you added this option" rather than "given you already selected it" (mirrors the mock's
+      // matching(ignore) helper in libs/shared/data-access/src/mock/catalog-engine.ts).
+      const distribution: Record<string, Record<string, number>> = { ...(main.facetDistribution ?? {}) };
+      await Promise.all(
+        query.facetFilters.map(async (own) => {
+          const without = allFilter.filter((f) => f !== own.filter);
+          const res = await this.index.search(query.q ?? '', { filter: without.length ? without.join(' AND ') : undefined, facets: [own.field], limit: 0 });
+          if (res.facetDistribution?.[own.field]) distribution[own.field] = res.facetDistribution[own.field];
+        }),
+      );
+
+      const priceStats = main.facetStats ?? {};
+      const hits: { id: string; _rankingScore?: number }[] = main.hits;
+      return {
+        ids: hits.map((h) => h.id),
+        scores: new Map(hits.map((h) => [h.id, h._rankingScore ?? 0])),
+        total: main.totalHits ?? hits.length,
+        facetDistribution: distribution,
+        priceBounds: { min: priceStats['priceMin']?.min ?? 0, max: priceStats['priceMax']?.max ?? 0 },
+      };
     });
-
-    // For each active facet group, re-run with that group's own clause removed, so its own option counts
-    // reflect "if you added this option" rather than "given you already selected it" (mirrors the mock's
-    // matching(ignore) helper in libs/shared/data-access/src/mock/catalog-engine.ts).
-    const distribution: Record<string, Record<string, number>> = { ...(main.facetDistribution ?? {}) };
-    await Promise.all(
-      query.facetFilters.map(async (own) => {
-        const without = allFilter.filter((f) => f !== own.filter);
-        const res = await this.index.search(query.q ?? '', { filter: without.length ? without.join(' AND ') : undefined, facets: [own.field], limit: 0 });
-        if (res.facetDistribution?.[own.field]) distribution[own.field] = res.facetDistribution[own.field];
-      }),
-    );
-
-    const priceStats = main.facetStats ?? {};
-    const hits: { id: string; _rankingScore?: number }[] = main.hits;
-    return {
-      ids: hits.map((h) => h.id),
-      scores: new Map(hits.map((h) => [h.id, h._rankingScore ?? 0])),
-      total: main.totalHits ?? hits.length,
-      facetDistribution: distribution,
-      priceBounds: { min: priceStats['priceMin']?.min ?? 0, max: priceStats['priceMax']?.max ?? 0 },
-    };
   }
 
   async suggestProducts(q: string, limit: number): Promise<string[]> {
-    const res = await this.index.search(q, { limit });
-    const hits: { id: string }[] = res.hits;
-    return hits.map((h) => h.id);
+    return this.guarded(async () => {
+      const res = await this.index.search(q, { limit });
+      const hits: { id: string }[] = res.hits;
+      return hits.map((h) => h.id);
+    });
   }
 
   /** Exact count of documents matching `filters` (ANDed). Used for the mock's threshold-style facets
@@ -169,7 +205,9 @@ export class SearchService {
    * can facet-count directly. `page`/`hitsPerPage` (rather than `limit`) makes Meilisearch compute an
    * exact `totalHits` instead of an estimate. */
   async count(filters: string[]): Promise<number> {
-    const res = await this.index.search('', { filter: filters.length ? filters.join(' AND ') : undefined, page: 1, hitsPerPage: 1 });
-    return res.totalHits ?? 0;
+    return this.guarded(async () => {
+      const res = await this.index.search('', { filter: filters.length ? filters.join(' AND ') : undefined, page: 1, hitsPerPage: 1 });
+      return res.totalHits ?? 0;
+    });
   }
 }
