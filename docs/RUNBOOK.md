@@ -139,3 +139,29 @@ HPA shows `cpu: <unknown>` until you also install metrics-server (Docker Desktop
 ## 7. Not covered yet
 
 Invoices as a real PDF, and an automated job reconciling payments against Razorpay's own records, aren't built yet (BRD 23/24's messaging/scheduling infrastructure now exists, but no job was written to use it for either of these). CSV bulk import and an image upload pipeline for the catalog aren't built yet either. Distributed tracing (OpenTelemetry/Jaeger) and frontend error/performance reporting were explicitly deferred in BRD 24 (see its own change log for why); Kubernetes, cloud deployment, Helm and secrets management arrive in BRD 25.
+
+## 8. Kubernetes (BRD 25)
+
+Full-stack local deployment (needs Docker Desktop's Kubernetes, ingress-nginx and metrics-server - the latter patched with `--kubelet-insecure-tls`):
+
+```bash
+cp deploy/k8s/base/secrets/postgres.env.example deploy/k8s/base/secrets/postgres.env   # first time only (gitignored)
+cp deploy/k8s/base/secrets/api.env.example deploy/k8s/base/secrets/api.env
+cp deploy/k8s/data-tier/secrets/postgres.env.example deploy/k8s/data-tier/secrets/postgres.env
+docker compose build api api-migrate                    # then tag it UNIQUELY, see below
+kubectl apply -k deploy/k8s/data-tier                   # Postgres, in its own namespace (shop-data)
+kubectl apply -k deploy/k8s/base                        # everything else, in namespace shop
+```
+
+- **Use a unique image tag per build** (`docker tag shop-api:local shop-api:build-123`, then `kubectl -n shop set image deployment/api-stable api=shop-api:build-123`) - pods created from a reused `:local` tag can silently run the previous build. Compare `kubectl get pod <pod> -o jsonpath='{.status.containerStatuses[0].imageID}'` with `docker inspect`.
+- Reach it: `kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 18443:443`, then `curl -sk -H "Host: api.localtest.me" https://127.0.0.1:18443/readyz`. Use HTTPS - guest-cart cookies are `Secure`. (Docker Desktop's LoadBalancer stays `<pending>`.)
+- The `api-migrate` and `catalog-seed` Jobs run once and their spec is immutable: delete the Job before re-applying.
+- Canary release: `docs/CANARY-RELEASE.md`. Load tests: `deploy/load-tests/README.md`. Capacity, cost and disaster recovery: `docs/CAPACITY-PLAN.md`.
+- Cloud (`deploy/terraform/aws`) and the deploy workflow (`.github/workflows/deploy.yml`) are **unrun** - see their headers.
+
+| Symptom | Likely cause and fix |
+|---|---|
+| Pods `CrashLoopBackOff` with `Must call super constructor...` | The image was built with an old `apps/api/tsconfig.app.json` (target es2021) or the pod runs a stale image - rebuild, tag uniquely, check `imageID` |
+| A Job's pods time out reaching Mongo/Redis/RabbitMQ | Its `job-name` label isn't in `deploy/k8s/base/network-policy.yaml`'s allow rule |
+| `rabbitmq` never becomes ready though its log says startup complete | Exec probe timeout - keep `timeoutSeconds: 8` in `rabbitmq.yaml` |
+| Everything gone after a reboot | Start Docker Desktop (and its Kubernetes) first; compose containers may need `docker compose up -d`, and `docker start shop-mongo shop-meili` |

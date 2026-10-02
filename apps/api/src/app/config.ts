@@ -26,6 +26,9 @@ export interface ApiConfig {
    * without a redeploy. `login` isn't here: the 5-attempts/15-minutes-per-email lockout in AuthService
    * already covers it (BRD 22's own proposed default), enforced per account, not per IP. */
   rateLimits: {
+    /** The blanket per-IP ceiling on every route (BRD 19's original 300/minute, now tunable — BRD 25's load
+     * tests found it was the first thing a single test client hit, far below real backend capacity). */
+    global: { limit: number; windowSeconds: number };
     search: { limit: number; windowSeconds: number };
     coupon: { limit: number; windowSeconds: number };
     checkout: { limit: number; windowSeconds: number };
@@ -91,6 +94,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
   }
   if (razorpayKeyId && !razorpayKeySecret) problems.push('RAZORPAY_KEY_SECRET is required when RAZORPAY_KEY_ID is set');
   const rateLimits = {
+    global: { limit: int('RATE_LIMIT_GLOBAL_PER_MIN', 300), windowSeconds: 60 },
     search: { limit: int('RATE_LIMIT_SEARCH_PER_MIN', 60), windowSeconds: 60 },
     coupon: { limit: int('RATE_LIMIT_COUPON_PER_MIN', 20), windowSeconds: 60 },
     checkout: { limit: int('RATE_LIMIT_CHECKOUT_PER_MIN', 20), windowSeconds: 60 },

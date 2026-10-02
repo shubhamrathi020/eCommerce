@@ -60,7 +60,7 @@ export class AppModule implements NestModule {
       module: AppModule,
       imports: [
         // Global default for every route; auth endpoints set a stricter limit of their own (BF-09).
-        ThrottlerModule.forRoot({ throttlers: [{ name: 'default', ttl: 60_000, limit: 300 }], skipIf: () => !config.rateLimit }),
+        ThrottlerModule.forRoot({ throttlers: [{ name: 'default', ttl: 60_000, limit: config.rateLimits.global.limit }], skipIf: () => !config.rateLimit }),
       ],
       controllers: [
         HealthController,

@@ -13,6 +13,8 @@ describe('loadConfig', () => {
     const config = loadConfig({ ...base, RATE_LIMIT_CHECKOUT_PER_MIN: '5' });
     expect(config.rateLimits.checkout).toEqual({ limit: 5, windowSeconds: 60 });
     expect(config.rateLimits.search).toEqual({ limit: 60, windowSeconds: 60 });
+    expect(config.rateLimits.global).toEqual({ limit: 300, windowSeconds: 60 });
+    expect(loadConfig({ ...base, RATE_LIMIT_GLOBAL_PER_MIN: '5000' }).rateLimits.global.limit).toBe(5000);
   });
 
   it('rejects a non-numeric or non-positive abandoned-cart override, and namespaces MQ topology for tests', () => {

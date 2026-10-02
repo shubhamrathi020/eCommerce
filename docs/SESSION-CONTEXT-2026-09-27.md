@@ -343,3 +343,15 @@ Docs updated: `brds/24-observability-reliability.md` (status: Built), `brds/READ
 Status now: **BRDs 19 through 24 are all built and verified.** The shop runs end to end on the real backend with caching, messaging and now real observability: every number on the Grafana dashboard, every alert, and the restore drill's timing came from an actual, induced failure and an actual recovery, not seeded data. Remaining backend track: BRD 25 (Kubernetes, cloud, load testing). Not pushed — the user pushes.
 
 User messages since the previous update: none new — this BRD continued under the same "proceed with remaining BRDs" go-ahead as BRD 23.
+
+### After BRD 25: Kubernetes, load testing and what could not be done without a cloud account
+
+Trigger: "proceed with remaining BRDs", then "finish inprogress BRD and stop" (the BRD was interrupted by a usage limit and finished after the user asked what was left).
+
+Built and verified locally: the full stack on the Docker Desktop cluster (frontends, API, Postgres, Mongo, Redis, RabbitMQ, Meilisearch), ingress, secrets from gitignored files, enforced NetworkPolicies, HPA (API grew 2 to 7 pods), disruption budgets, and a replica-ratio canary with an automatic-abort script. k6 load tests: browse p95 7.8 ms, search 53 ms, checkout 88 ms (223 orders, no 5xx, no outbox backlog), and the flash-sale last-unit race - 80 buyers for 20 units ended at stock exactly 0 with exactly 20 orders, twice.
+
+Bugs only the Kubernetes run could find: an es2021 build target that broke every Prisma query in the production image (never in `nx serve`) - fixed by targeting es2022; Postgres cannot run under the `restricted` Pod Security level, so it lives alone in `shop-data` at `baseline`; RabbitMQ's exec probe needs a longer timeout; the migrate Job needed `COREPACK_HOME`; the catalog-seed Job needed a NetworkPolicy rule (which also proved Docker Desktop enforces them); stale `:local` image tags. Also made the global per-IP rate limit configurable, because it was the first thing every test hit.
+
+Written but never run: `deploy/terraform/aws`, `.github/workflows/deploy.yml` (no cloud account; `terraform` not installed). The CI image job now also builds and Trivy-scans the API image. The 10,000-user / 1,000-orders-per-minute targets were not tested. Details and honest caveats: `docs/CAPACITY-PLAN.md`.
+
+Status: **BRDs 19-25 are built**; the backend track is complete apart from what needs a cloud account. Remaining overall: frontend phases 2-3 (BRDs 13-18, still drafts), your phase 1 sign-off, the deferred items listed in the BRD 22-24 change logs, and real credentials (email provider, Razorpay, alert channel, cloud). Nothing is pushed - the user pushes.
