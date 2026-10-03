@@ -49,4 +49,22 @@ describe('flash deals in the shop (PE-02)', () => {
     const other = products.find((p) => p.id === 'p-0002') as (typeof products)[number];
     expect((await open(`/p/${other.slug}`)).querySelector('section[aria-label="Flash deal"]')).toBeNull();
   }, 30_000);
+
+  it('shows who sells a marketplace product, with their rating and policies, and nothing for the store own products', async () => {
+    const { products } = await loadCatalogData();
+    const owned = products.find((p) => p.id === 'p-0010') as (typeof products)[number];
+    const page = await open(`/p/${owned.slug}`);
+    const card = page.querySelector('section[aria-label="Seller"]');
+    expect(card?.textContent).toContain('Sold by Urban Threads');
+    expect(card?.textContent).toMatch(/seller rating from \d+ reviews/);
+    expect(card?.textContent).toContain('Returns: 7-day returns');
+    expect(card?.textContent).not.toMatch(/GSTIN|PAN|bank/i);
+    expect(await violations(page)).toEqual([]);
+
+    const live = await open('/p/handloom-cotton-kurta-sp-0001');
+    expect(live.querySelector('section[aria-label="Seller"]')?.textContent).toContain('Sold by Urban Threads'); // a new listing shows its seller's rating
+
+    const own = products.find((p) => p.id === 'p-0002') as (typeof products)[number];
+    expect((await open(`/p/${own.slug}`)).querySelector('section[aria-label="Seller"]')).toBeNull();
+  }, 30_000);
 });

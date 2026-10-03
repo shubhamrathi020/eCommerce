@@ -15,6 +15,7 @@ import { ProductRecosComponent } from '../recommendations/reco-row';
 import { RecentlyViewedComponent } from '../recently-viewed/recently-viewed';
 import { DealBannerComponent } from '../deals/deal-banner';
 import { DeliveryCheckComponent } from './delivery-check';
+import { SellerCardComponent } from './seller-card';
 import { ReviewsSectionComponent } from './reviews-section';
 
 type Selection = Record<string, string>;
@@ -47,6 +48,7 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
     RecentlyViewedComponent,
     DeliveryCheckComponent,
     DealBannerComponent,
+    SellerCardComponent,
     ReviewsSectionComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -126,6 +128,10 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
           </div>
 
           <app-deal-banner [productId]="p.id" />
+
+          @if (p.sellerId) {
+            <app-seller-card [sellerId]="p.sellerId" />
+          }
 
           <app-delivery-check />
 

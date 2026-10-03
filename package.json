@@ -5,6 +5,7 @@
   "scripts": {
     "start:storefront": "nx serve storefront",
     "start:admin": "nx serve admin",
+    "start:seller": "nx serve seller",
     "start:api": "nx serve api",
     "db:generate": "prisma generate --config apps/api/prisma.config.ts --schema apps/api/prisma/schema.prisma",
     "db:migrate": "prisma migrate dev --config apps/api/prisma.config.ts --schema apps/api/prisma/schema.prisma",

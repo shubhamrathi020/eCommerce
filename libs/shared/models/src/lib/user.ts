@@ -1,9 +1,11 @@
 import type { Address } from './order';
 
-export type Role = 'customer' | 'admin';
+export type Role = 'customer' | 'admin' | 'seller';
 
 const CUSTOMER_PERMISSIONS = ['profile:write:own', 'address:write:own', 'order:read:own', 'order:cancel:own', 'return:write:own', 'support:write:own'];
-const ADMIN_PERMISSIONS = ['product:read', 'product:write', 'order:read:any', 'order:refund', 'user:read', 'coupon:write', 'review:moderate', 'content:write', 'inventory:write', 'notification:manage', 'return:manage', 'support:manage', 'promotion:manage', 'recommendation:manage', 'analytics:read', 'system:read', 'system:write'];
+/** A seller works in the seller portal on their own data only; the API derives which seller from the signed-in user. */
+const SELLER_PERMISSIONS = ['seller:portal'];
+const ADMIN_PERMISSIONS = ['seller:manage', 'product:read', 'product:write', 'order:read:any', 'order:refund', 'user:read', 'coupon:write', 'review:moderate', 'content:write', 'inventory:write', 'notification:manage', 'return:manage', 'support:manage', 'promotion:manage', 'recommendation:manage', 'analytics:read', 'system:read', 'system:write'];
 
 /**
  * The single source of truth for what each role grants. Both the mock frontend adapters and the real
@@ -19,6 +21,7 @@ export function passwordProblem(password: string): string | null {
 
 export function permissionsFor(roles: Role[]): string[] {
   const set = new Set<string>(CUSTOMER_PERMISSIONS);
+  if (roles.includes('seller')) for (const p of SELLER_PERMISSIONS) set.add(p);
   if (roles.includes('admin')) for (const p of ADMIN_PERMISSIONS) set.add(p);
   return [...set];
 }

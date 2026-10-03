@@ -19,3 +19,4 @@ export * from './lib/returns';
 export * from './lib/promotions';
 export * from './lib/recommendations';
 export * from './lib/analytics';
+export * from './lib/marketplace';

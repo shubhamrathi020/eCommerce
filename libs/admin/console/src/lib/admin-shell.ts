@@ -20,6 +20,7 @@ const NAV: NavItem[] = [
   { label: 'Promotions', link: '/promotions', permission: 'promotion:manage' },
   { label: 'Recommendations', link: '/recommendations', permission: 'recommendation:manage' },
   { label: 'Analytics', link: '/analytics', permission: 'analytics:read' },
+  { label: 'Marketplace', link: '/marketplace', permission: 'seller:manage' },
   { label: 'Content', link: '/content', permission: 'content:write' },
   { label: 'Notifications', link: '/notifications', permission: 'notification:manage' },
   { label: 'Reviews', link: '/reviews', permission: 'review:moderate' },

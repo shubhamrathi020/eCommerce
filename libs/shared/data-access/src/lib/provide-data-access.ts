@@ -1,4 +1,4 @@
-import { EnvironmentProviders, inject, makeEnvironmentProviders } from '@angular/core';
+import { EnvironmentProviders, inject, makeEnvironmentProviders, provideEnvironmentInitializer } from '@angular/core';
 import { EVENT_SINK } from '@ecom/shared/core';
 import { AddressBookApi, AuthApi } from './account.api';
 import { CatalogApi } from './catalog.api';
@@ -13,6 +13,9 @@ import { AlertApi, NotificationApi, PreferenceApi } from './notification.api';
 import { ReturnApi, SupportApi } from './returns.api';
 import { PromotionApi, WalletApi } from './promotion.api';
 import { RecommendationApi } from './recommendation.api';
+import { SellerPortalApi, SellerPublicApi } from './marketplace.api';
+import { MockSellerPortalApi, MockSellerPublicApi } from '../mock/mock-seller.api';
+import { MockSellerStore } from '../mock/seller-store';
 import { MockEventStore } from '../mock/event-store';
 import { MockRecommendationApi } from '../mock/mock-recommendation.api';
 import { MockPromotionApi, MockWalletApi } from '../mock/mock-promotion.api';
@@ -77,6 +80,11 @@ export function provideDataAccess(options: { useMocks: boolean; realAuth?: boole
     { provide: WalletApi, useClass: MockWalletApi },
     // Behaviour events and recommendations (BRD 15): mock only. The sink stores anonymous events on this device.
     { provide: RecommendationApi, useClass: MockRecommendationApi },
+    // Marketplace (BRD 17): mock only. Creating the seller store at start-up registers it with the catalog, so approved
+    // seller listings and seller ownership reach every shop and cart read.
+    provideEnvironmentInitializer(() => void inject(MockSellerStore)),
+    { provide: SellerPublicApi, useClass: MockSellerPublicApi },
+    { provide: SellerPortalApi, useClass: MockSellerPortalApi },
     {
       provide: EVENT_SINK,
       useFactory: () => {

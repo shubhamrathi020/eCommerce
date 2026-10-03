@@ -31,6 +31,7 @@ import { createMockResponder } from '../mock-latency';
 import { MockNotificationStore } from '../notification-store';
 import { MockOrderStore } from '../mock-order-store';
 import { MockPromotionStore } from '../promotion-store';
+import { MockSellerStore } from '../seller-store';
 import { MockUserStore } from '../mock-user-store';
 import { type AdminOverlay, MockAdminState } from './admin-state';
 import { SEED_CUSTOMERS, seedOrders } from './seed-orders';
@@ -340,6 +341,7 @@ export class MockAdminOrderApi extends AdminOrderApi {
   private readonly notifications = inject(MockNotificationStore);
   private readonly wallet = inject(MockPromotionStore);
   private readonly orderStore = inject(MockOrderStore);
+  private readonly sellerStore = inject(MockSellerStore);
 
   list(query: AdminOrderQuery) {
     return this.respond.okAsync<Paged<AdminOrderRow>>(async () => {
@@ -387,6 +389,7 @@ export class MockAdminOrderApi extends AdminOrderApi {
         // A gift card or store credit that paid for the order goes back to where it came from.
         const stored = this.orderStore.find(id);
         if (stored?.tender) this.orderStore.save(this.wallet.refund(stored, this.state.require('order:refund').name));
+        this.sellerStore.cancelShipments(id);
       }
       const template = TEMPLATE_FOR_STATUS[status];
       if (template) this.notifications.deliver(template, order.contact.email, { name: order.contact.name, orderId: order.id }, { userId: order.userId, link: `/orders/${order.id}` });

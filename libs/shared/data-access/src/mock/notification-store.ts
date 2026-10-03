@@ -48,6 +48,9 @@ const SEED_TEMPLATES: MessageTemplate[] = [
   seedTemplate('return_rejected', 'Return not accepted', 'Sent when a return is rejected, at review or at the quality check.', 'order', ['name', 'returnId', 'reason'], 'Return {{returnId}} was not accepted', 'Hi {{name}}, we could not accept return {{returnId}}. Reason: {{reason}}'),
   seedTemplate('refund_issued', 'Refund issued', 'Sent when a refund is paid out.', 'order', ['name', 'returnId', 'amount', 'method'], 'Refund of {{amount}} issued', 'Hi {{name}}, we have refunded {{amount}} for {{returnId}} ({{method}}).'),
   seedTemplate('support_reply', 'Support reply', 'Sent when staff reply to a support ticket.', 'support', ['name', 'ticketId', 'subject'], 'New reply on {{ticketId}}', 'Hi {{name}}, our team replied to your question "{{subject}}". Open the ticket to read it.'),
+  seedTemplate('seller_decision', 'Seller application decision', 'Sent when an application to sell is approved or rejected.', 'account', ['name', 'store', 'outcome', 'reason'], 'Your seller application: {{outcome}}', 'Hi {{name}}, your application for {{store}} was {{outcome}}. {{reason}}'),
+  seedTemplate('seller_product_decision', 'Seller listing decision', 'Sent when a seller listing is approved or rejected.', 'account', ['name', 'product', 'outcome', 'reason'], 'Your listing "{{product}}": {{outcome}}', 'Hi {{name}}, your listing "{{product}}" was {{outcome}}. {{reason}}'),
+  seedTemplate('shipment_update', 'Shipment update', 'Sent when a seller moves their part of an order along.', 'order', ['name', 'orderId', 'seller', 'status'], 'Part of order {{orderId}} is {{status}}', 'Hi {{name}}, the items from {{seller}} in your order {{orderId}} are now {{status}}.'),
 ];
 
 /** A couple of seeded delivery-log rows (one failed) so the admin screen has something to demo immediately. */
@@ -350,7 +353,7 @@ export class MockNotificationStore {
 
   /** Sample values for every template variable, for the admin "send test" action. */
   private sampleVars(template: MessageTemplate): Record<string, string> {
-    const samples: Record<string, string> = { name: 'Test User', orderId: 'ORD-TEST123', total: formatMoney({ amount: 249900, currency: 'INR' }), title: 'A sample review', status: 'is now live on the product page', product: 'Sample Product', price: formatMoney({ amount: 149900, currency: 'INR' }), link: '/p/sample-product', returnId: 'RET-TEST123', pickupDate: '12 Oct 2026', reason: 'The item was used', amount: formatMoney({ amount: 129900, currency: 'INR' }), method: 'original payment method', ticketId: 'TKT-TEST123', subject: 'A sample question' };
+    const samples: Record<string, string> = { name: 'Test User', orderId: 'ORD-TEST123', total: formatMoney({ amount: 249900, currency: 'INR' }), title: 'A sample review', status: 'is now live on the product page', product: 'Sample Product', price: formatMoney({ amount: 149900, currency: 'INR' }), link: '/p/sample-product', returnId: 'RET-TEST123', store: 'Sample Store', outcome: 'approved', seller: 'Sample Seller', pickupDate: '12 Oct 2026', reason: 'The item was used', amount: formatMoney({ amount: 129900, currency: 'INR' }), method: 'original payment method', ticketId: 'TKT-TEST123', subject: 'A sample question' };
     return Object.fromEntries(template.variables.map((v) => [v, samples[v] ?? `{{${v}}}`]));
   }
 

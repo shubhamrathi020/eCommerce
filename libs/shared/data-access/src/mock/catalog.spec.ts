@@ -32,7 +32,8 @@ describe('MockCatalogApi', () => {
 
   it('scopes a root category to its sub-categories and gives a breadcrumb', async () => {
     const r = await list({ categorySlug: 'fashion', pageSize: 100 });
-    expect(r.total).toBe(6 * 6);
+    // Six sub-categories of six products, plus the one live seller listing in the demo marketplace (BRD 17).
+    expect(r.total).toBe(6 * 6 + 1);
     expect(r.breadcrumb.map((c) => c.slug)).toEqual(['fashion']);
     expect(r.facets.some((f) => f.key === 'brand')).toBe(true);
   });

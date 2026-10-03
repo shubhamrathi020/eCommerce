@@ -7,6 +7,7 @@ import { createMockResponder } from './mock-latency';
 import { MockNotificationStore } from './notification-store';
 import { MockOrderStore, withProgress } from './mock-order-store';
 import { MockUserStore } from './mock-user-store';
+import { MockSellerStore } from './seller-store';
 import { RETURN_LIMITS, MockReturnStore, checkAttachments, eligibilityFor, newReturnId } from './return-store';
 
 const inr = (amount: number): Money => ({ amount, currency: 'INR' });
@@ -26,12 +27,14 @@ export class MockReturnApi extends ReturnApi {
   private readonly orders = inject(MockOrderStore);
   private readonly store = inject(MockReturnStore);
   private readonly notifications = inject(MockNotificationStore);
+  private readonly sellers = inject(MockSellerStore);
 
   /** The customer's own order, with delivery progress applied; anything else is "not found" so other people's orders can't be probed. */
   private ownOrder(userId: string, orderId: string): Order {
     const found = this.orders.find(orderId);
     if (!found || found.userId !== userId) throw new ApiException('not_found', 'Order not found');
-    return withProgress(found, Date.now());
+    // A multi-seller order is delivered only when every shipment is, and a return window counts from then.
+    return this.sellers.applyShipments(withProgress(found, Date.now()));
   }
 
   private async eligible(userId: string, orderId: string): Promise<{ order: Order; eligibility: ReturnEligibility }> {

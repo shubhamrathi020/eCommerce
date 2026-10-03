@@ -1,3 +1,4 @@
+import type { Shipment } from './marketplace';
 import type { AppliedPromotion } from './promotions';
 import type { CartLine, CartTotals, PaymentMethod, ShippingMethodId } from './cart';
 
@@ -34,6 +35,8 @@ export interface Order {
   totals: CartTotals;
   couponCode?: string;
   promotions?: AppliedPromotion[];
+  /** Present when the order includes marketplace items: one shipment per seller, each with its own status (BRD 17). */
+  shipments?: Shipment[];
   /** The first and last marketing touch before the order, when the shopper accepted analytics (BRD 16, AN-05). */
   attribution?: { first?: { source: string; medium?: string; campaign?: string }; last?: { source: string; medium?: string; campaign?: string } };
   /** What a gift card and store credit paid; refunds of such orders go back as store credit. */

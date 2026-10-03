@@ -10,6 +10,7 @@ import { createMockResponder } from './mock-latency';
 import { MockOrderStore, cancelExpiredOrders } from './mock-order-store';
 import { MockNotificationStore } from './notification-store';
 import { MockPromotionStore } from './promotion-store';
+import { MockSellerStore } from './seller-store';
 import { MockUserStore } from './mock-user-store';
 
 /** Public test key id (never a secret). */
@@ -34,6 +35,7 @@ export class MockPaymentApi extends PaymentApi {
   private readonly notifications = inject(MockNotificationStore);
   private readonly users = inject(MockUserStore);
   private readonly wallet = inject(MockPromotionStore);
+  private readonly sellers = inject(MockSellerStore);
 
   private orderOrThrow(orderId: string): Order {
     const order = this.store.find(orderId);
@@ -52,7 +54,10 @@ export class MockPaymentApi extends PaymentApi {
   confirm(orderId: string, result: PaymentResult) {
     return this.respond.okAsync<Order>(async () => {
       const { products } = await loadCatalogData();
-      cancelExpiredOrders(this.store, this.inventory, products, Date.now(), (o) => this.wallet.refund(o, 'System'));
+      cancelExpiredOrders(this.store, this.inventory, products, Date.now(), (o) => {
+        this.sellers.cancelShipments(o.id);
+        return this.wallet.refund(o, 'System');
+      });
       const order = this.orderOrThrow(orderId);
       if (order.paymentStatus === 'paid') return order;
       if (order.status === 'cancelled') throw new ApiException('validation', 'The payment window for this order expired and its items were released. Please place the order again.');

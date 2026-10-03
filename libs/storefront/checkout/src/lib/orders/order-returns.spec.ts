@@ -5,7 +5,7 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
-import { AdminReturnApi, AuthApi, DEMO_ACCOUNTS, MockOrderStore, loadCatalogData, provideAdminDataAccess, provideDataAccess } from '@ecom/shared/data-access';
+import { AdminReturnApi, AuthApi, CartApi, DEMO_ACCOUNTS, MockOrderStore, OrderApi, SellerPortalApi, loadCatalogData, provideAdminDataAccess, provideDataAccess } from '@ecom/shared/data-access';
 import type { Order } from '@ecom/shared/models';
 import { AuthStore } from '@ecom/shared/state';
 import { checkoutRoutes } from '../checkout.routes';
@@ -110,5 +110,35 @@ describe('order page: returns, help and refund status', () => {
     await settle(harness);
     root = harness.routeNativeElement as HTMLElement;
     expect(root.textContent).toContain('Refunded to your original payment method on');
+  });
+
+  it('shows a multi-seller order as separate shipments, each with its own status and tracking', async () => {
+    const { harness, auth } = await setup();
+    await auth.login(customer.email, customer.password);
+    const { products } = await loadCatalogData();
+    const variantOf = (id: string) => products.find((p) => p.id === id)?.variants[0].id as string;
+    await firstValueFrom(TestBed.inject(CartApi).add(variantOf('p-0010'), 1));
+    await firstValueFrom(TestBed.inject(CartApi).add(variantOf('p-0100'), 1));
+    const order = await firstValueFrom(TestBed.inject(OrderApi).place({ idempotencyKey: 'k-split', contact: { name: 'Asha Rao', email: customer.email, phone: '9876543210' }, address: { line1: '12 MG Road', city: 'Bengaluru', state: 'Karnataka', pincode: '560001' }, paymentMethod: 'cod' }));
+
+    await auth.logout();
+    await auth.login('seller@shop.test', 'Seller@1234');
+    const portal = TestBed.inject(SellerPortalApi);
+    const [mine] = await firstValueFrom(portal.shipments());
+    await firstValueFrom(portal.advanceShipment(mine.id));
+    await firstValueFrom(portal.advanceShipment(mine.id, 'DLV-SPLIT-1'));
+    await auth.logout();
+    await auth.login(customer.email, customer.password);
+
+    await harness.navigateByUrl(`/orders/${order.id}`);
+    await settle(harness);
+    const root = harness.routeNativeElement as HTMLElement;
+    const section = root.querySelector('section[aria-labelledby="shipments"]') as HTMLElement;
+    expect(section.textContent).toContain('ships in 2 parts');
+    expect(section.textContent).toContain('From Urban Threads');
+    expect(section.textContent).toContain('Shipped');
+    expect(section.textContent).toContain('DLV-SPLIT-1');
+    expect(section.textContent).toContain('From Acme Home & Kitchen');
+    expect(section.textContent).toContain('Confirmed');
   });
 });

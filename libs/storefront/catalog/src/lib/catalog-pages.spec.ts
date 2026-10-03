@@ -66,7 +66,7 @@ describe('catalog pages', () => {
       await new Promise((r) => setTimeout(r, 20));
       harness.detectChanges();
     }
-    expect(el.querySelectorAll('ui-product-card')).toHaveLength(36); // appended, not replaced
+    expect(el.querySelectorAll('ui-product-card')).toHaveLength(37); // appended, not replaced: 36 catalog products plus the one live seller listing
     expect(el.textContent).toContain("You've seen every result");
 
     // Changing a filter is a different listing: it replaces the list rather than keeps appending.
@@ -77,7 +77,7 @@ describe('catalog pages', () => {
       harness.detectChanges();
     }
     const afterFilter = el.querySelectorAll('ui-product-card').length;
-    expect(afterFilter).toBeLessThan(36);
+    expect(afterFilter).toBeLessThan(37);
   }, 30000);
 
   it('unknown category shows the not-found page', async () => {

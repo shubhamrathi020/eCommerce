@@ -78,9 +78,11 @@ export class MockUserStore {
   /** Seeds the demo accounts once. Call before reading users. */
   ensureSeeded(): Promise<void> {
     this.seeding ??= (async () => {
-      if (this.storage.getItem(USERS_KEY)) return;
-      const users: StoredUser[] = [];
-      for (const demo of DEMO_ACCOUNTS) {
+      // Demo accounts added by later features (for example the demo seller) are created for browsers that already hold users.
+      const users: StoredUser[] = this.storage.getItem(USERS_KEY) ? this.users() : [];
+      const missing = DEMO_ACCOUNTS.filter((d) => !users.some((u) => u.id === d.id));
+      if (missing.length === 0) return;
+      for (const demo of missing) {
         const salt = randomToken();
         users.push({ id: demo.id, name: demo.name, email: demo.email, roles: demo.roles, emailVerified: true, createdAt: new Date().toISOString(), salt, passwordHash: await hashPassword(demo.password, salt) });
       }

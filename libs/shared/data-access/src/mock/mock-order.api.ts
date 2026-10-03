@@ -9,6 +9,7 @@ import { MockInventoryStore } from './inventory-store';
 import { MockNotificationStore } from './notification-store';
 import { MockPromotionStore } from './promotion-store';
 import { AttributionService } from '@ecom/shared/core';
+import { MockSellerStore } from './seller-store';
 import { codEligibility, validateDeliverable } from './mock-checkout.api';
 import { MockCartState } from './mock-cart-state';
 import { createMockResponder } from './mock-latency';
@@ -32,11 +33,15 @@ export class MockOrderApi extends OrderApi {
   private readonly notifications = inject(MockNotificationStore);
   private readonly wallet = inject(MockPromotionStore);
   private readonly attribution = inject(AttributionService);
+  private readonly sellers = inject(MockSellerStore);
 
   /** Frees the stock of unpaid orders whose reservation expired; returns the seeded catalog for stock work. */
   private async sweep() {
     const { products } = await loadCatalogData();
-    cancelExpiredOrders(this.store, this.inventory, products, Date.now(), (o) => this.wallet.refund(o, 'System'));
+    cancelExpiredOrders(this.store, this.inventory, products, Date.now(), (o) => {
+      this.sellers.cancelShipments(o.id);
+      return this.wallet.refund(o, 'System');
+    });
     return products;
   }
 
@@ -110,6 +115,8 @@ export class MockOrderApi extends OrderApi {
         throw new ApiException('validation', e instanceof Error ? e.message : 'Could not use your gift card or store credit.');
       }
       this.store.save(order);
+      // A cart with marketplace items becomes one shipment per seller, each with its own status and tracking (BRD 17).
+      this.sellers.createShipments(order);
       this.store.rememberKey(request.idempotencyKey, order.id);
       const userId = this.users.currentUserId() ?? undefined;
       if (settled) {
@@ -119,7 +126,7 @@ export class MockOrderApi extends OrderApi {
       } else if (userId) {
         this.notifications.notify(userId, 'order', 'Order placed', `Order ${order.id} is placed. Complete your payment to confirm it.`, `/orders/${order.id}`);
       }
-      return order;
+      return this.sellers.applyShipments(order);
     });
   }
 
@@ -128,7 +135,7 @@ export class MockOrderApi extends OrderApi {
       await this.sweep();
       const order = this.store.find(orderId);
       if (!order) throw new ApiException('not_found', 'Order not found');
-      return withProgress(order, Date.now());
+      return this.sellers.applyShipments(withProgress(order, Date.now()));
     });
   }
 
@@ -137,7 +144,7 @@ export class MockOrderApi extends OrderApi {
       await this.sweep();
       // Signed-in customers see their own orders; guests see the orders placed on this device.
       const userId = this.users.currentUserId();
-      return this.store.all().filter((o) => (userId ? o.userId === userId : !o.userId)).map((o) => withProgress(o, Date.now()));
+      return this.store.all().filter((o) => (userId ? o.userId === userId : !o.userId)).map((o) => this.sellers.applyShipments(withProgress(o, Date.now())));
     });
   }
 
@@ -160,6 +167,7 @@ export class MockOrderApi extends OrderApi {
         timeline: [...found.timeline.filter((t) => t.status === 'placed' || t.status === 'paid' || t.status === 'confirmed'), { status: 'cancelled', label: 'Order cancelled', at: new Date().toISOString() }],
       }, 'Customer');
       this.store.save(cancelled);
+      this.sellers.cancelShipments(cancelled.id);
       this.notifications.deliver('order_cancelled', cancelled.contact.email, { name: cancelled.contact.name, orderId: cancelled.id }, { userId: this.users.currentUserId() ?? undefined, link: `/orders/${cancelled.id}` });
       return cancelled;
     });

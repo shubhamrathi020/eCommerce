@@ -64,6 +64,10 @@ export default [
               onlyDependOnLibsWithTags: ['scope:admin', 'scope:shared'],
             },
             {
+              sourceTag: 'scope:seller',
+              onlyDependOnLibsWithTags: ['scope:seller', 'scope:shared'],
+            },
+            {
               sourceTag: 'scope:shared',
               onlyDependOnLibsWithTags: ['scope:shared'],
             },

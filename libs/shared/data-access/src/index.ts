@@ -31,6 +31,8 @@ export * from './lib/returns.api';
 export * from './lib/promotion.api';
 export * from './lib/recommendation.api';
 export * from './lib/analytics.api';
+export * from './lib/marketplace.api';
+export { MockSellerStore, SEED_OWNERSHIP } from './mock/seller-store';
 export { MockEventStore, seedEvents } from './mock/event-store';
 export { MockPromotionStore } from './mock/promotion-store';
 export { RETURN_LIMITS } from './mock/return-store';

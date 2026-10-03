@@ -53,6 +53,24 @@ const PAYMENT_TEXT: Record<Order['paymentStatus'], string> = {
             </ol>
           </section>
 
+          @if (o.shipments?.length) {
+            <section aria-labelledby="shipments">
+              <h2 id="shipments" class="mb-1 text-lg font-semibold">Shipments</h2>
+              <p class="mb-3 text-sm text-text-muted">Your order ships in {{ o.shipments?.length }} parts. Each seller sends and tracks their own.</p>
+              <ul class="space-y-3">
+                @for (s of o.shipments; track s.id) {
+                  <li class="rounded-lg border border-border p-3 text-sm">
+                    <p class="flex flex-wrap items-center gap-2"><strong>From {{ s.sellerName }}</strong> <ui-badge [tone]="s.status === 'delivered' ? 'success' : s.status === 'cancelled' ? 'danger' : 'primary'">{{ shipmentLabel(s.status) }}</ui-badge></p>
+                    <p class="text-text-muted">{{ shipmentItems(o, s) }}</p>
+                    @if (s.trackingNumber) {
+                      <p>Tracking number: <span class="font-mono">{{ s.trackingNumber }}</span></p>
+                    }
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+
           <section aria-labelledby="items">
             <h2 id="items" class="mb-3 text-lg font-semibold">Items</h2>
             <ul class="divide-y divide-border rounded-lg border border-border px-4">
@@ -158,6 +176,17 @@ export class OrderPageComponent {
 
   protected statusLabel(o: Order): string {
     return { pending_payment: 'Awaiting payment', confirmed: 'Confirmed', packed: 'Packed', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled' }[o.status];
+  }
+
+  protected shipmentLabel(status: string): string {
+    return { confirmed: 'Confirmed', packed: 'Packed', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled' }[status] ?? status;
+  }
+
+  protected shipmentItems(o: Order, s: { variantIds: string[] }): string {
+    return o.lines
+      .filter((l) => s.variantIds.includes(l.variantId))
+      .map((l) => `${l.quantity} × ${l.title}`)
+      .join(', ');
   }
 
   protected paymentText(o: Order): string {
