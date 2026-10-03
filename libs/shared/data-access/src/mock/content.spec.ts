@@ -53,12 +53,12 @@ describe('content management (mock)', () => {
     expect((await firstValueFrom(content.homeConfig())).banners).toHaveLength(5);
 
     const created = all[all.length - 1];
-    all = await firstValueFrom(adminContent.saveBanner({ ...banner, id: created.id, active: false }));
+    await firstValueFrom(adminContent.saveBanner({ ...banner, id: created.id, active: false }));
     expect((await firstValueFrom(content.homeConfig())).banners).toHaveLength(4);
 
-    all = await firstValueFrom(adminContent.saveBanner({ ...banner, id: created.id, startsAt: new Date(Date.now() + 86_400_000).toISOString() }));
+    await firstValueFrom(adminContent.saveBanner({ ...banner, id: created.id, startsAt: new Date(Date.now() + 86_400_000).toISOString() }));
     expect((await firstValueFrom(content.homeConfig())).banners.some((b) => b.id === created.id)).toBe(false); // not started yet
-    all = await firstValueFrom(adminContent.saveBanner({ ...banner, id: created.id, startsAt: undefined, endsAt: new Date(Date.now() - 1000).toISOString() }));
+    await firstValueFrom(adminContent.saveBanner({ ...banner, id: created.id, startsAt: undefined, endsAt: new Date(Date.now() - 1000).toISOString() }));
     expect((await firstValueFrom(content.homeConfig())).banners.some((b) => b.id === created.id)).toBe(false); // already ended
 
     all = await firstValueFrom(adminContent.saveBanner({ ...banner, id: created.id, startsAt: undefined, endsAt: undefined }));
@@ -122,8 +122,8 @@ describe('content management (mock)', () => {
     await signInAdmin();
     await expect(firstValueFrom(adminContent.addRedirect('old', '/new'))).rejects.toMatchObject({ fields: { from: expect.any(String) } });
     await expect(firstValueFrom(adminContent.addRedirect('/a', '/a/'))).rejects.toMatchObject({ fields: { to: expect.any(String) } });
-    let list = await firstValueFrom(adminContent.addRedirect('/old-shoes', '/c/footwear'));
-    list = await firstValueFrom(adminContent.addRedirect('/oldest-shoes', '/old-shoes'));
+    await firstValueFrom(adminContent.addRedirect('/old-shoes', '/c/footwear'));
+    const list = await firstValueFrom(adminContent.addRedirect('/oldest-shoes', '/old-shoes'));
     await expect(firstValueFrom(adminContent.addRedirect('/old-shoes', '/x'))).rejects.toMatchObject({ fields: { from: expect.any(String) } });
     await expect(firstValueFrom(adminContent.addRedirect('/c/footwear', '/oldest-shoes'))).rejects.toMatchObject({ code: 'validation', message: 'This redirect would create a loop.' });
 
@@ -131,7 +131,7 @@ describe('content management (mock)', () => {
     expect(await firstValueFrom(content.redirectFor('/oldest-shoes'))).toBe('/old-shoes'.replace('/old-shoes', '/c/footwear')); // followed through the chain
     expect(await firstValueFrom(content.redirectFor('/nothing'))).toBeNull();
 
-    list = await firstValueFrom(adminContent.removeRedirect(list[0].id));
+    await firstValueFrom(adminContent.removeRedirect(list[0].id));
     expect(await firstValueFrom(content.redirectFor('/old-shoes'))).toBeNull();
   });
 
