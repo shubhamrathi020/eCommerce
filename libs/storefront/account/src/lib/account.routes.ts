@@ -21,6 +21,7 @@ export const accountRoutes: Route[] = [
   { path: 'account/support', canActivate: [authGuard], loadComponent: () => import('./returns/support-pages').then((m) => m.SupportListPageComponent) },
   { path: 'account/support/new', canActivate: [authGuard], loadComponent: () => import('./returns/support-pages').then((m) => m.SupportNewPageComponent) },
   { path: 'account/support/:id', canActivate: [authGuard], loadComponent: () => import('./returns/support-pages').then((m) => m.SupportDetailPageComponent) },
+  { path: 'personalisation', loadComponent: () => import('./pages/personalisation-page').then((m) => m.PersonalisationPageComponent) },
   { path: 'notifications', canActivate: [authGuard], loadComponent: () => import('./pages/notifications-page').then((m) => m.NotificationsPageComponent) },
   { path: 'unsubscribe', loadComponent: () => import('./pages/unsubscribe-page').then((m) => m.UnsubscribePageComponent) },
   { path: 'wishlist', loadComponent: () => import('./pages/wishlist-page').then((m) => m.WishlistPageComponent) },

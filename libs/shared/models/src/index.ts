@@ -17,3 +17,4 @@ export * from './lib/inventory';
 export * from './lib/notification';
 export * from './lib/returns';
 export * from './lib/promotions';
+export * from './lib/recommendations';

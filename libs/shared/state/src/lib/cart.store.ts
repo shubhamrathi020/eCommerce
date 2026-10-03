@@ -1,7 +1,7 @@
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { firstValueFrom, type Observable } from 'rxjs';
-import { type AddToCartRequest, type CartFacade, ToastService } from '@ecom/shared/core';
+import { AnalyticsService, type AddToCartRequest, type CartFacade, ToastService } from '@ecom/shared/core';
 import { CartApi } from '@ecom/shared/data-access';
 import type { Cart, ShippingMethodId } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -20,6 +20,7 @@ export interface CartResult {
 export class CartStore implements CartFacade {
   private readonly api = inject(CartApi);
   private readonly toast = inject(ToastService);
+  private readonly analytics = inject(AnalyticsService);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   private readonly _cart = signal<Cart | null>(null);
@@ -51,6 +52,8 @@ export class CartStore implements CartFacade {
       this.toast.error(result.message ?? 'Could not add to cart.');
       return false;
     }
+    const added = this._cart()?.lines.find((l) => l.variantId === request.variantId);
+    if (added) this.analytics.track({ name: 'add_to_cart', props: { productId: added.productId, quantity: request.quantity } });
     if (request.openMiniCart !== false) this.miniCartOpen.set(true);
     else this.toast.success('Added to cart');
     return true;

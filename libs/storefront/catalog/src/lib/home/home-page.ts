@@ -9,11 +9,12 @@ import { CountdownComponent, ErrorStateComponent, SkeletonComponent } from '@eco
 import { ProductRowComponent } from '../product-row/product-row';
 import { RecentlyViewedComponent } from '../recently-viewed/recently-viewed';
 import { DealsStripComponent } from '../deals/deal-banner';
+import { HomeRecosComponent } from '../recommendations/reco-row';
 import { HeroCarouselComponent } from './hero-carousel';
 
 @Component({
   selector: 'app-home-page',
-  imports: [NgOptimizedImage, RouterLink, DealsStripComponent, CountdownComponent, ErrorStateComponent, SkeletonComponent, HeroCarouselComponent, ProductRowComponent, RecentlyViewedComponent],
+  imports: [NgOptimizedImage, RouterLink, DealsStripComponent, HomeRecosComponent, CountdownComponent, ErrorStateComponent, SkeletonComponent, HeroCarouselComponent, ProductRowComponent, RecentlyViewedComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="sr-only">Shop: fashion, electronics, groceries and more</h1>
@@ -38,6 +39,10 @@ import { HeroCarouselComponent } from './hero-carousel';
             }
 
             <app-deals-strip />
+
+            @defer (on idle) {
+              <app-home-recos />
+            }
 
             @for (section of sections(); track section.key) {
               @switch (section.key) {

@@ -73,6 +73,7 @@ export const adminRoutes: Route[] = [
           { path: 'price-health', loadComponent: () => import('./promotions/price-health-page').then((m) => m.PriceHealthPageComponent) },
         ],
       },
+      { path: 'recommendations', canActivate: [permissionGuard('recommendation:manage')], loadComponent: () => import('./recommendations/recommendations-page').then((m) => m.RecommendationsPageComponent) },
       { path: 'support', canActivate: [permissionGuard('support:manage')], loadComponent: () => import('./support/support-pages').then((m) => m.SupportQueuePageComponent) },
       { path: 'support/:id', canActivate: [permissionGuard('support:manage')], loadComponent: () => import('./support/support-pages').then((m) => m.SupportDetailPageComponent) },
       {

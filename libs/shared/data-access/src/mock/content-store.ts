@@ -35,6 +35,7 @@ export const DEFAULT_LINKS: NavLink[] = [
   { id: 'lnk-4', label: 'Track order', href: '/orders', group: 'help', order: 2 },
   { id: 'lnk-5', label: 'Terms and conditions', href: '/pages/terms', group: 'legal', order: 1 },
   { id: 'lnk-6', label: 'Privacy policy', href: '/pages/privacy', group: 'legal', order: 2 },
+  { id: 'lnk-7', label: 'Personalisation and privacy', href: '/personalisation', group: 'legal', order: 3 },
 ];
 
 const seededBanners = (): ContentBanner[] => (home.banners as ContentBanner[]).map((b, i) => ({ ...b, active: true, order: i + 1 }));

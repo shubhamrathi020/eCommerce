@@ -373,3 +373,11 @@ Built: `libs/shared/models/src/lib/promotions.ts` (pure engine: `evaluatePromoti
 Try it: add the "Casa Moda Pro Cotton Slim Shirt" to the cart as a guest and see "Fashion fest" and "Welcome offer" as separate lines; apply the demo gift card `GIFT500`; add two of the signature tee (p-0001) and apply `FLAT100` to see the exclusive flash deal beat the coupon and explain why; in the admin, run the same cart through the Simulator.
 
 Limitations: with `realCommerce` on, none of this applies (the real cart has no promotion engine yet); the 5-second per-test timeout was raised to 30 seconds in the heavy UI specs because they load the whole catalog and run axe on a busy machine.
+
+### After BRD 15: recommendations and personalisation (frontend, mock-backed)
+
+Built: `libs/shared/models/src/lib/recommendations.ts` (pure rules: `activityByProduct`, `coPurchases`, `similarity`, `interestProfile`, `applyRules`), `PersonalisationService` and the `EVENT_SINK` token in `@ecom/shared/core` (`AnalyticsService.track` now records a `SinkEvent` with an anonymous visitor id, only with consent and not while opted out), `MockEventStore` with deterministic demo events (`seedEvents`), `RecommendationApi`/`AdminRecommendationApi` and their mocks (`RecommendationEngine` builds all rows), `MockRecConfigStore` (key `ecom.mock.rec-config.v1`, events key `ecom.mock.events.v1`). Events are emitted for product views (product page), add-to-cart (`CartStore`), `checkout_start`/`payment_start`/`purchase` (checkout), and the existing search events. Storefront: `app-reco-row`, `app-product-recos`, `app-home-recos` (deferred) and `/personalisation`. Admin: `/recommendations`, permission `recommendation:manage`. BRD 16 (analytics) reads the same event stream, including the search, funnel and `utm_source` events the seeds already contain.
+
+Try it: accept analytics in the cookie banner, browse a few products in one category, and reload the home page to see "Recommended for you" replace "Popular right now"; open `/personalisation` to opt out or clear your history; in the admin pin a product and press Preview.
+
+Limitations: the visitor id is per browser, so there is no cross-device personalisation; the real backend has no event store yet.

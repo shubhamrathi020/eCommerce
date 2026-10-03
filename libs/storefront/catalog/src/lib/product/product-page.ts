@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, injec
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { RESPONSE_INIT } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BottomBarService, CART_FACADE, CompareStore, ConsentService, RecentlyViewedStore, SeoService, ToastService, WishlistStore } from '@ecom/shared/core';
+import { AnalyticsService, BottomBarService, CART_FACADE, CompareStore, ConsentService, RecentlyViewedStore, SeoService, ToastService, WishlistStore } from '@ecom/shared/core';
 import { AlertApi, CatalogApi, CategoryApi, LOW_STOCK_THRESHOLD } from '@ecom/shared/data-access';
 import type { AlertKind, AttributeDef, CategoryNode, Product, Variant } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -11,7 +11,7 @@ import { AuthStore } from '@ecom/shared/state';
 import { firstValueFrom } from 'rxjs';
 import { BadgeComponent, BreadcrumbComponent, ButtonComponent, ErrorStateComponent, GalleryComponent, NotFoundComponent, PriceComponent, QuantityStepperComponent, RatingComponent, SkeletonComponent, TabDirective, TabsComponent } from '@ecom/shared/ui';
 import { signal } from '@angular/core';
-import { ProductRowComponent } from '../product-row/product-row';
+import { ProductRecosComponent } from '../recommendations/reco-row';
 import { RecentlyViewedComponent } from '../recently-viewed/recently-viewed';
 import { DealBannerComponent } from '../deals/deal-banner';
 import { DeliveryCheckComponent } from './delivery-check';
@@ -43,7 +43,7 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
     SkeletonComponent,
     TabDirective,
     TabsComponent,
-    ProductRowComponent,
+    ProductRecosComponent,
     RecentlyViewedComponent,
     DeliveryCheckComponent,
     DealBannerComponent,
@@ -174,8 +174,7 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
       </ui-tabs>
 
       <div class="mt-12 space-y-10">
-        <app-product-row title="Frequently bought together" [items]="together()" />
-        <app-product-row title="Related products" [items]="related()" />
+        <app-product-recos [productId]="p.id" />
         <app-recently-viewed [excludeId]="p.id" />
       </div>
 
@@ -215,6 +214,7 @@ export class ProductPageComponent {
   private readonly wishlist = inject(WishlistStore);
   private readonly compare = inject(CompareStore);
   private readonly recent = inject(RecentlyViewedStore);
+  private readonly analytics = inject(AnalyticsService);
   private readonly response = inject(RESPONSE_INIT, { optional: true });
   private readonly alertApi = inject(AlertApi);
   protected readonly auth = inject(AuthStore);
@@ -291,11 +291,6 @@ export class ProductPageComponent {
     ];
   });
 
-  protected readonly relatedResource = rxResource({ params: () => this.product()?.id, stream: ({ params }) => this.api.related(params) });
-  protected readonly togetherResource = rxResource({ params: () => this.product()?.id, stream: ({ params }) => this.api.boughtTogether(params) });
-  protected readonly related = computed(() => (this.relatedResource.hasValue() ? this.relatedResource.value() : []));
-  protected readonly together = computed(() => (this.togetherResource.hasValue() ? this.togetherResource.value() : []));
-
   constructor() {
     effect(() => {
       if (this.resource.hasValue()) {
@@ -311,7 +306,11 @@ export class ProductPageComponent {
     effect(() => {
       const p = this.product();
       if (!p) return;
-      untracked(() => this.recent.add(p.id));
+      untracked(() => {
+        this.recent.add(p.id);
+        // Behaviour event (BRD 15): recorded only with consent and never while opted out; no personal data.
+        this.analytics.track({ name: 'product_view', props: { productId: p.id, categoryId: p.categoryId } });
+      });
       const v = this.variant();
       const stock = p.variants.some((x) => x.stock > 0);
       const prices = p.variants.map((x) => x.price.amount);

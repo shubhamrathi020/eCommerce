@@ -50,6 +50,7 @@ export class AccountHomeComponent {
     { title: 'Your alerts', text: 'Products you asked to be told about', link: '/account/alerts' },
     { title: 'Profile and password', text: 'Update your details', link: '/account/profile' },
     { title: 'Privacy', text: 'Export or delete your data', link: '/account/privacy' },
+    { title: 'Personalisation', text: 'Control recommendations and activity tracking', link: '/personalisation' },
   ];
 
   constructor() {

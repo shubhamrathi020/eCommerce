@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@ang
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { AnalyticsService, SeoService, ToastService } from '@ecom/shared/core';
 import { AddressBookApi, CheckoutApi, OrderApi, PaymentApi } from '@ecom/shared/data-access';
 import type { Order, PaymentMethod, PaymentOption, SavedAddress, ShippingMethodId, ShippingOption } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -179,6 +179,7 @@ export class CheckoutPageComponent {
   private readonly orders = inject(OrderApi);
   private readonly payments = inject(PaymentApi);
   private readonly launcher = inject(PaymentLauncher);
+  private readonly analytics = inject(AnalyticsService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
   protected readonly auth = inject(AuthStore);
@@ -212,6 +213,7 @@ export class CheckoutPageComponent {
 
   constructor() {
     inject(SeoService).set({ title: 'Checkout', noindex: true, path: '/checkout' });
+    this.analytics.track({ name: 'checkout_start' });
     void this.prefillFromAccount();
     // Move keyboard focus to the new step's heading so screen-reader users know the page changed.
     effect(() => {
@@ -360,6 +362,7 @@ export class CheckoutPageComponent {
   }
 
   private async pay(orderId: string): Promise<void> {
+    this.analytics.track({ name: 'payment_start' });
     const session = await firstValueFrom(this.payments.initiate(orderId));
     const outcome = await this.launcher.open(session);
     if (outcome.status === 'success') {
@@ -381,6 +384,8 @@ export class CheckoutPageComponent {
         // Saving the address is a convenience; the order already succeeded.
       }
     }
+    // One purchase event per product, grouped by order so "bought together" can be counted. No customer details.
+    for (const line of order.lines) this.analytics.track({ name: 'purchase', props: { productId: line.productId, quantity: line.quantity, orderId: order.id } });
     await this.store.refresh();
     this.toast.success(`Order placed. A confirmation was sent to ${order.contact.email}.`);
     await this.router.navigate(['/orders', order.id], { queryParams: { placed: 1 } });

@@ -29,6 +29,8 @@ export { MockInventoryStore, LOCATIONS, MAIN_LOCATION, DEFAULT_SETTINGS as DEFAU
 export * from './lib/notification.api';
 export * from './lib/returns.api';
 export * from './lib/promotion.api';
+export * from './lib/recommendation.api';
+export { MockEventStore, seedEvents } from './mock/event-store';
 export { MockPromotionStore } from './mock/promotion-store';
 export { RETURN_LIMITS } from './mock/return-store';
 export { ApiClient, toApiException } from './http/api-client';

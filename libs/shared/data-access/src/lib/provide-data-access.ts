@@ -1,4 +1,5 @@
-import { EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
+import { EnvironmentProviders, inject, makeEnvironmentProviders } from '@angular/core';
+import { EVENT_SINK } from '@ecom/shared/core';
 import { AddressBookApi, AuthApi } from './account.api';
 import { CatalogApi } from './catalog.api';
 import { CartApi, CheckoutApi, OrderApi, PaymentApi } from './commerce.api';
@@ -11,6 +12,9 @@ import { NewsletterApi } from './newsletter.api';
 import { AlertApi, NotificationApi, PreferenceApi } from './notification.api';
 import { ReturnApi, SupportApi } from './returns.api';
 import { PromotionApi, WalletApi } from './promotion.api';
+import { RecommendationApi } from './recommendation.api';
+import { MockEventStore } from '../mock/event-store';
+import { MockRecommendationApi } from '../mock/mock-recommendation.api';
 import { MockPromotionApi, MockWalletApi } from '../mock/mock-promotion.api';
 import { MockReturnApi, MockSupportApi } from '../mock/mock-return.api';
 import { MockAddressBookApi } from '../mock/mock-address-book.api';
@@ -71,5 +75,14 @@ export function provideDataAccess(options: { useMocks: boolean; realAuth?: boole
     // does not run the promotion engine yet, so these show nothing there (recorded in the BRD 14 change log).
     { provide: PromotionApi, useClass: MockPromotionApi },
     { provide: WalletApi, useClass: MockWalletApi },
+    // Behaviour events and recommendations (BRD 15): mock only. The sink stores anonymous events on this device.
+    { provide: RecommendationApi, useClass: MockRecommendationApi },
+    {
+      provide: EVENT_SINK,
+      useFactory: () => {
+        const store = inject(MockEventStore);
+        return (event: Parameters<MockEventStore['add']>[0]) => store.add(event);
+      },
+    },
   ]);
 }

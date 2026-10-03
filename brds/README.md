@@ -27,7 +27,7 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | 12 | [Frontend hardening and polish](12-frontend-hardening.md) | 1 | Built (FH-03, 04, 10 consciously deferred) | 01 to 11 |
 | 13 | [Returns, refunds and support](13-returns-refunds-support.md) | 2 | Built (mock) | 04, 05, 06, 10, 11 |
 | 14 | [Promotions engine and deals](14-promotions-deals.md) | 2 | Built (mock) | 04, 06 |
-| 15 | [Recommendations and personalisation](15-recommendations.md) | 2 | Draft | 02, 03, 05, 10 |
+| 15 | [Recommendations and personalisation](15-recommendations.md) | 2 | Built (mock) | 02, 03, 05, 10 |
 | 16 | [Analytics and reporting](16-analytics-reporting.md) | 2 | Draft | 06, 15 |
 | 17 | [Marketplace and seller portal](17-marketplace-seller-portal.md) | 2 | Draft | 05, 06, 11, 13 |
 | 18 | [Localisation, theming and PWA](18-localisation-theming-pwa.md) | 3 | Draft | 01 to 12 |
