@@ -8,11 +8,12 @@ import type { ProductRow, ProductSummary } from '@ecom/shared/models';
 import { CountdownComponent, ErrorStateComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { ProductRowComponent } from '../product-row/product-row';
 import { RecentlyViewedComponent } from '../recently-viewed/recently-viewed';
+import { DealsStripComponent } from '../deals/deal-banner';
 import { HeroCarouselComponent } from './hero-carousel';
 
 @Component({
   selector: 'app-home-page',
-  imports: [NgOptimizedImage, RouterLink, CountdownComponent, ErrorStateComponent, SkeletonComponent, HeroCarouselComponent, ProductRowComponent, RecentlyViewedComponent],
+  imports: [NgOptimizedImage, RouterLink, DealsStripComponent, CountdownComponent, ErrorStateComponent, SkeletonComponent, HeroCarouselComponent, ProductRowComponent, RecentlyViewedComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="sr-only">Shop: fashion, electronics, groceries and more</h1>
@@ -35,6 +36,8 @@ import { HeroCarouselComponent } from './hero-carousel';
             @if (config.hasValue() && config.value().banners.length) {
               <app-hero-carousel [banners]="config.value().banners" />
             }
+
+            <app-deals-strip />
 
             @for (section of sections(); track section.key) {
               @switch (section.key) {

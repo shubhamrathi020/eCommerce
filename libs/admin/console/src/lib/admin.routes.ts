@@ -59,6 +59,20 @@ export const adminRoutes: Route[] = [
           { path: 'policy', loadComponent: () => import('./returns/policy-page').then((m) => m.PolicyPageComponent) },
         ],
       },
+      {
+        path: 'promotions',
+        canActivate: [permissionGuard('promotion:manage')],
+        loadComponent: () => import('./promotions/promotions-layout').then((m) => m.PromotionsLayoutComponent),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'list' },
+          { path: 'list', loadComponent: () => import('./promotions/promotions-page').then((m) => m.PromotionsPageComponent) },
+          { path: 'list/new', loadComponent: () => import('./promotions/promotion-form-page').then((m) => m.PromotionFormPageComponent) },
+          { path: 'list/:id', loadComponent: () => import('./promotions/promotion-form-page').then((m) => m.PromotionFormPageComponent) },
+          { path: 'simulator', loadComponent: () => import('./promotions/simulator-page').then((m) => m.SimulatorPageComponent) },
+          { path: 'gift-cards', loadComponent: () => import('./promotions/gift-cards-page').then((m) => m.GiftCardsPageComponent) },
+          { path: 'price-health', loadComponent: () => import('./promotions/price-health-page').then((m) => m.PriceHealthPageComponent) },
+        ],
+      },
       { path: 'support', canActivate: [permissionGuard('support:manage')], loadComponent: () => import('./support/support-pages').then((m) => m.SupportQueuePageComponent) },
       { path: 'support/:id', canActivate: [permissionGuard('support:manage')], loadComponent: () => import('./support/support-pages').then((m) => m.SupportDetailPageComponent) },
       {

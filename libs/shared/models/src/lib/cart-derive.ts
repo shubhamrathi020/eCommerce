@@ -2,6 +2,7 @@ import type { AppliedCoupon, Cart, CartLine, ShippingMethodId } from './cart';
 import type { Money } from './money';
 import { formatMoney } from './money-format';
 import type { Product } from './catalog';
+import { type Promotion, type PromotionContext, type RuleTrace, type WalletInput, evaluatePromotions, spendFrom } from './promotions';
 
 /**
  * Pure cart-pricing rules shared by the mock cart (`@ecom/shared/data-access`) and the real commerce API
@@ -14,6 +15,10 @@ export interface StoredCart {
   items: { variantId: string; quantity: number; /** Price (paise) the shopper last saw. */ seenPrice: number }[];
   couponCode?: string;
   shippingMethod: ShippingMethodId;
+  /** Gift card on the cart (BRD 14); its balance is looked up by whoever prices the cart. */
+  giftCardCode?: string;
+  /** Spend store credit on this cart. */
+  useCredit?: boolean;
 }
 
 export const EMPTY_STORED_CART: StoredCart = { items: [], shippingMethod: 'standard' };
@@ -70,17 +75,27 @@ export function shippingFee(method: ShippingMethodId, amountAfterDiscount: numbe
   return amountAfterDiscount >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING;
 }
 
+/** Optional inputs for BRD 14. Without them a cart is priced exactly as before. */
+export interface PricingExtras {
+  promotions?: Promotion[];
+  context?: Partial<Pick<PromotionContext, 'priorOrders' | 'flashRemaining'>>;
+  wallet?: WalletInput & { giftCard?: { code: string; balance: number; problem?: string } };
+}
+
 export interface PricedCart {
   cart: Cart;
+  /** Which offers fired or didn't, and why (used by the admin simulator). */
+  trace: RuleTrace[];
   /** Stored cart after clamping quantities, dropping unknown items and removing an invalid coupon. */
   stored: StoredCart;
 }
 
 /** Recomputes a full cart from the catalog. Pure: all money logic lives here, never in the client. */
-export function priceCart(stored: StoredCart, products: Product[], now: number): PricedCart {
+export function priceCart(stored: StoredCart, products: Product[], now: number, extras: PricingExtras = {}): PricedCart {
   const notices: string[] = [];
   const lines: CartLine[] = [];
   const keptItems: StoredCart['items'] = [];
+  const categoriesOf = new Map<string, string[]>();
 
   for (const item of stored.items) {
     const product = products.find((p) => p.variants.some((v) => v.id === item.variantId));
@@ -129,6 +144,7 @@ export function priceCart(stored: StoredCart, products: Product[], now: number):
     if (issue) line.issue = issue;
     if (previousUnitPrice) line.previousUnitPrice = previousUnitPrice;
     lines.push(line);
+    categoriesOf.set(variant.id, [product.categoryId, ...product.categoryPath.map((c) => c.id)]);
     keptItems.push({ ...item, quantity });
   }
 
@@ -137,12 +153,30 @@ export function priceCart(stored: StoredCart, products: Product[], now: number):
   const mrpSavings = purchasable.reduce((sum, l) => sum + (l.mrp ? (l.mrp.amount - l.unitPrice.amount) * l.quantity : 0), 0);
   const tax = purchasable.reduce((sum, l) => sum + l.taxIncluded.amount, 0);
 
+  // Automatic offers first (BRD 14), then the coupon on what is left, then shipping.
+  const promo = extras.promotions?.length
+    ? evaluatePromotions(
+        purchasable.map((l) => ({ variantId: l.variantId, productId: l.productId, categoryIds: categoriesOf.get(l.variantId) ?? [], unitPrice: l.unitPrice.amount, quantity: l.quantity })),
+        extras.promotions,
+        { now, priorOrders: extras.context?.priorOrders ?? 0, flashRemaining: extras.context?.flashRemaining ?? {} },
+        (after) => {
+          const r = stored.couponCode ? evaluateCoupon(stored.couponCode, after, now) : undefined;
+          return r?.ok ? r.discount : 0;
+        },
+      )
+    : undefined;
+  const promotionDiscount = promo?.discount ?? 0;
+  const afterOffers = subtotal - promotionDiscount;
+
   let couponCode = stored.couponCode;
   let coupon: AppliedCoupon | undefined;
   let discount = 0;
   if (couponCode) {
-    const result = evaluateCoupon(couponCode, subtotal, now);
-    if (result.ok) {
+    const result = evaluateCoupon(couponCode, afterOffers, now);
+    if (promo && !promo.couponAllowed) {
+      const blocker = promo.applied[0]?.name ?? 'an offer';
+      notices.push(`Coupon ${couponCode} was not applied: "${blocker}" saves you more and cannot be combined with a coupon.`);
+    } else if (result.ok) {
       discount = result.discount;
       coupon = { code: result.coupon.code, description: result.coupon.description, discount: inr(discount), freeShipping: result.coupon.kind === 'free_shipping' };
     } else {
@@ -151,9 +185,27 @@ export function priceCart(stored: StoredCart, products: Product[], now: number):
     }
   }
 
-  const afterDiscount = subtotal - discount;
+  const afterDiscount = afterOffers - discount;
   const shipping = shippingFee(stored.shippingMethod, afterDiscount, coupon?.freeShipping ?? false);
-  const total = afterDiscount + shipping;
+  const due = afterDiscount + shipping;
+
+  // Gift card, then store credit: neither can take the total below zero (PE-05).
+  let giftCardCode = stored.giftCardCode;
+  let giftCardApplied = 0;
+  const card = extras.wallet?.giftCard;
+  if (giftCardCode) {
+    if (!card || card.code !== giftCardCode) {
+      notices.push(`Gift card ${giftCardCode} was removed because it could not be found.`);
+      giftCardCode = undefined;
+    } else if (card.problem) {
+      notices.push(`Gift card ${giftCardCode} was removed. ${card.problem}`);
+      giftCardCode = undefined;
+    } else {
+      giftCardApplied = spendFrom(card.balance, due).spent;
+    }
+  }
+  const creditApplied = stored.useCredit ? spendFrom(extras.wallet?.credit ?? 0, due - giftCardApplied).spent : 0;
+  const total = due - giftCardApplied - creditApplied;
   const toFree = stored.shippingMethod === 'standard' && !coupon?.freeShipping && afterDiscount > 0 && afterDiscount < FREE_SHIPPING_THRESHOLD ? FREE_SHIPPING_THRESHOLD - afterDiscount : 0;
 
   const cart: Cart = {
@@ -164,6 +216,9 @@ export function priceCart(stored: StoredCart, products: Product[], now: number):
       subtotal: inr(subtotal),
       mrpSavings: inr(mrpSavings),
       couponDiscount: inr(discount),
+      ...(promotionDiscount > 0 ? { promotionDiscount: inr(promotionDiscount) } : {}),
+      ...(giftCardApplied > 0 ? { giftCardApplied: inr(giftCardApplied) } : {}),
+      ...(creditApplied > 0 ? { creditApplied: inr(creditApplied) } : {}),
       shipping: inr(shipping),
       taxIncluded: inr(subtotal > 0 ? (tax * afterDiscount) / subtotal : 0),
       total: inr(total),
@@ -173,8 +228,15 @@ export function priceCart(stored: StoredCart, products: Product[], now: number):
     blocked: lines.some((l) => l.issue === 'out_of_stock'),
   };
   if (coupon) cart.coupon = coupon;
+  if (promo && promo.applied.length > 0) cart.promotions = promo.applied;
+  if (giftCardCode) cart.giftCardCode = giftCardCode;
+  if (stored.useCredit) cart.useCredit = true;
 
-  return { cart, stored: { items: keptItems, shippingMethod: stored.shippingMethod, ...(couponCode ? { couponCode } : {}) } };
+  return {
+    cart,
+    trace: promo?.trace ?? [],
+    stored: { items: keptItems, shippingMethod: stored.shippingMethod, ...(couponCode ? { couponCode } : {}), ...(giftCardCode ? { giftCardCode } : {}), ...(stored.useCredit ? { useCredit: true } : {}) },
+  };
 }
 
 const PINCODE = /^[1-9][0-9]{5}$/;

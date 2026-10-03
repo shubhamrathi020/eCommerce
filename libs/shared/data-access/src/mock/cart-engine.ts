@@ -15,5 +15,6 @@ export {
   type Coupon,
   type CouponResult,
   type PricedCart,
+  type PricingExtras,
   type StoredCart,
 } from '@ecom/shared/models';

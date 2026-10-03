@@ -5,10 +5,11 @@ import { SeoService } from '@ecom/shared/core';
 import { CartStore } from '@ecom/shared/state';
 import { ButtonComponent, CartLineComponent, EmptyStateComponent, FormFieldComponent, InputDirective, OrderSummaryComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { MoneyPipe } from '@ecom/shared/util';
+import { WalletPanelComponent } from './wallet-panel';
 
 @Component({
   selector: 'app-cart-page',
-  imports: [FormsModule, RouterLink, MoneyPipe, ButtonComponent, CartLineComponent, EmptyStateComponent, FormFieldComponent, InputDirective, OrderSummaryComponent, SkeletonComponent],
+  imports: [FormsModule, RouterLink, WalletPanelComponent, MoneyPipe, ButtonComponent, CartLineComponent, EmptyStateComponent, FormFieldComponent, InputDirective, OrderSummaryComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-4 text-2xl font-bold md:text-3xl">Your cart</h1>
@@ -62,7 +63,8 @@ import { MoneyPipe } from '@ecom/shared/util';
                   <button uiButton variant="secondary" type="submit" [loading]="store.busy()">Apply</button>
                 </form>
               }
-              <ui-order-summary [totals]="cart.totals" [coupon]="cart.coupon" />
+              <app-wallet-panel />
+              <ui-order-summary [totals]="cart.totals" [coupon]="cart.coupon" [promotions]="cart.promotions" />
               <a uiButton class="mt-4 w-full" routerLink="/checkout" [attr.aria-disabled]="cart.blocked ? 'true' : null" (click)="guard($event, cart.blocked)">Proceed to checkout</a>
               @if (cart.blocked) {
                 <p class="mt-2 text-sm text-danger" role="alert">Remove out-of-stock items to continue.</p>

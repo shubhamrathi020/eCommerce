@@ -28,6 +28,8 @@ export * from './lib/inventory.api';
 export { MockInventoryStore, LOCATIONS, MAIN_LOCATION, DEFAULT_SETTINGS as DEFAULT_INVENTORY_SETTINGS } from './mock/inventory-store';
 export * from './lib/notification.api';
 export * from './lib/returns.api';
+export * from './lib/promotion.api';
+export { MockPromotionStore } from './mock/promotion-store';
 export { RETURN_LIMITS } from './mock/return-store';
 export { ApiClient, toApiException } from './http/api-client';
 export { HttpAuthApi, HttpAddressBookApi } from './http/http-auth.api';

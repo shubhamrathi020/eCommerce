@@ -10,6 +10,8 @@ import { SearchApi } from './search.api';
 import { NewsletterApi } from './newsletter.api';
 import { AlertApi, NotificationApi, PreferenceApi } from './notification.api';
 import { ReturnApi, SupportApi } from './returns.api';
+import { PromotionApi, WalletApi } from './promotion.api';
+import { MockPromotionApi, MockWalletApi } from '../mock/mock-promotion.api';
 import { MockReturnApi, MockSupportApi } from '../mock/mock-return.api';
 import { MockAddressBookApi } from '../mock/mock-address-book.api';
 import { MockAuthApi } from '../mock/mock-auth.api';
@@ -65,5 +67,9 @@ export function provideDataAccess(options: { useMocks: boolean; realAuth?: boole
     // realCommerce on they cannot see backend orders yet (recorded in the BRD 13 change log).
     { provide: ReturnApi, useClass: MockReturnApi },
     { provide: SupportApi, useClass: MockSupportApi },
+    // Promotions, flash deals, gift cards and store credit (BRD 14): mock only. With realCommerce the real cart
+    // does not run the promotion engine yet, so these show nothing there (recorded in the BRD 14 change log).
+    { provide: PromotionApi, useClass: MockPromotionApi },
+    { provide: WalletApi, useClass: MockWalletApi },
   ]);
 }

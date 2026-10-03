@@ -1,8 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
+import { giftCardProblem } from '@ecom/shared/models';
 import { loadCatalogData } from './catalog-data';
 import { MockInventoryStore } from './inventory-store';
-import { EMPTY_STORED_CART, MAX_LINE_QUANTITY, type PricedCart, type StoredCart, priceCart } from './cart-engine';
+import { MockOrderStore } from './mock-order-store';
+import { MockPromotionStore } from './promotion-store';
+import { MockReturnStore } from './return-store';
+import { EMPTY_STORED_CART, MAX_LINE_QUANTITY, type PricedCart, type PricingExtras, type StoredCart, priceCart } from './cart-engine';
 import { MockUserStore } from './mock-user-store';
 
 const GUEST_KEY = 'ecom.mock.cart.v1';
@@ -14,6 +18,9 @@ export class MockCartState {
   private readonly storage = inject(STORAGE);
   private readonly users = inject(MockUserStore);
   private readonly inventory = inject(MockInventoryStore);
+  private readonly promotions = inject(MockPromotionStore);
+  private readonly orders = inject(MockOrderStore);
+  private readonly returns = inject(MockReturnStore);
 
   /** Guests use one device-wide cart; signed-in customers have their own. */
   private key(): string {
@@ -67,10 +74,32 @@ export class MockCartState {
     }
   }
 
+  /**
+   * What the price engine needs besides the cart (BRD 14): live promotions, how many orders this shopper has placed,
+   * how many flash-deal units are left, and the wallet (gift card and store credit). Pricing itself stays in the engine.
+   */
+  extrasFor(stored: StoredCart, now = Date.now()): PricingExtras {
+    const userId = this.users.currentUserId();
+    const orders = this.orders.all();
+    const promotions = this.promotions.promotions(now);
+    const mine = orders.filter((o) => o.status !== 'cancelled' && (userId ? o.userId === userId : !o.userId));
+    const code = stored.giftCardCode;
+    const card = code ? this.promotions.giftCard(code) : undefined;
+    return {
+      promotions,
+      context: { priorOrders: mine.length, flashRemaining: this.promotions.flashRemaining(orders, promotions) },
+      wallet: {
+        ...(code ? { giftCard: card ? { code, balance: card.balance, ...(giftCardProblem(card, now) ? { problem: giftCardProblem(card, now) as string } : {}) } : undefined } : {}),
+        credit: userId ? (this.returns.read().credit[userId] ?? 0) : 0,
+      },
+    };
+  }
+
   /** Prices the stored cart against the catalog and saves the cleaned-up result. */
   async priced(): Promise<PricedCart> {
     const { products } = await loadCatalogData();
-    const result = priceCart(this.read(), this.inventory.apply(products), Date.now());
+    const stored = this.read();
+    const result = priceCart(stored, this.inventory.apply(products), Date.now(), this.extrasFor(stored));
     this.write(result.stored);
     return result;
   }
@@ -90,7 +119,7 @@ export class MockCartState {
         return variant ? { ...item, seenPrice: variant.price.amount } : item;
       }),
     };
-    const result = priceCart(acknowledged, catalog.products, Date.now());
+    const result = priceCart(acknowledged, catalog.products, Date.now(), this.extrasFor(acknowledged));
     this.write(result.stored);
     return result;
   }

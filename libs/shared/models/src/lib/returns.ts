@@ -202,7 +202,7 @@ const inr = (amount: number): Money => ({ amount, currency: 'INR' });
 
 /**
  * Works out a refund. Rules (BRD 13 business rules, our chosen defaults):
- * - each item is refunded at the price paid, less its proportional share of any coupon discount;
+ * - each item is refunded at the price paid, less its proportional share of any coupon and offer discounts;
  * - the shipping charge is refunded only when we are the reason for the return AND this request completes the return of the whole order;
  * - when the customer is the reason, the policy's return fee is deducted (never more than the items are worth);
  * - the money goes back to the original online payment when there was one; cash-on-delivery has no original method, so it becomes store credit.
@@ -211,7 +211,7 @@ export function computeRefund(order: Order, items: ReturnItemSelection[], reason
   const reason = reasonOf(reasonCode);
   const ourFault = reason?.ourFault ?? false;
   const subtotal = order.totals.subtotal.amount;
-  const discount = order.totals.couponDiscount.amount;
+  const discount = order.totals.couponDiscount.amount + (order.totals.promotionDiscount?.amount ?? 0);
   let gross = 0;
   let share = 0;
   const notes: string[] = [];
@@ -222,7 +222,7 @@ export function computeRefund(order: Order, items: ReturnItemSelection[], reason
     gross += value;
     share += subtotal > 0 ? Math.round((discount * value) / subtotal) : 0;
   }
-  if (share > 0) notes.push('A proportional share of your coupon discount is deducted.');
+  if (share > 0) notes.push('A proportional share of the discounts you received is deducted.');
 
   const returnedAfter = (variantId: string) => (alreadyReturned[variantId] ?? 0) + (items.find((i) => i.variantId === variantId)?.quantity ?? 0);
   const wholeOrder = order.lines.every((l) => returnedAfter(l.variantId) >= l.quantity);
@@ -239,8 +239,8 @@ export function computeRefund(order: Order, items: ReturnItemSelection[], reason
   if (fee > 0) notes.push('A return shipping fee applies because the return is not due to a problem on our side.');
   if (ourFault) notes.push('Return pickup is free.');
 
-  const online = order.paymentMethod === 'razorpay' && order.paymentStatus === 'paid';
-  notes.push(online ? 'Refunded to your original payment method.' : 'Cash-on-delivery orders have no original payment method, so this is refunded as store credit.');
+  const online = order.paymentMethod === 'razorpay' && order.paymentStatus === 'paid' && !order.tender;
+  notes.push(online ? 'Refunded to your original payment method.' : order.tender ? 'Part of this order was paid with a gift card or store credit, so the refund is added to your store credit.' : 'Cash-on-delivery orders have no original payment method, so this is refunded as store credit.');
   return { items: inr(gross), discountShare: inr(share), shippingRefund: inr(shipping), returnFee: inr(fee), total: inr(net + shipping - fee), method: online ? 'original' : 'store_credit', notes };
 }
 

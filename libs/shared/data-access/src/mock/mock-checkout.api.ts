@@ -27,7 +27,7 @@ export class MockCheckoutApi extends CheckoutApi {
       validateDeliverable(pincode);
       const { cart } = await this.state.priced();
       const base = computeServiceability(pincode);
-      const afterDiscount = cart.totals.subtotal.amount - cart.totals.couponDiscount.amount;
+      const afterDiscount = cart.totals.subtotal.amount - (cart.totals.promotionDiscount?.amount ?? 0) - cart.totals.couponDiscount.amount;
       const free = cart.coupon?.freeShipping ?? false;
       const standardDays = base.estimatedDays ?? 3;
       const expressDays = Math.max(1, standardDays - 2);

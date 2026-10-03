@@ -61,11 +61,20 @@ import { MoneyPipe } from '@ecom/shared/util';
         </table>
         <dl class="ml-auto mt-4 w-full max-w-xs space-y-1 text-sm">
           <div class="flex justify-between"><dt>Subtotal</dt><dd>{{ o.totals.subtotal | money }}</dd></div>
+          @for (offer of o.promotions ?? []; track offer.promotionId) {
+            <div class="flex justify-between"><dt>{{ offer.name }}</dt><dd>−{{ offer.amount | money }}</dd></div>
+          }
           @if (o.totals.couponDiscount.amount > 0) {
             <div class="flex justify-between"><dt>Coupon {{ o.couponCode }}</dt><dd>−{{ o.totals.couponDiscount | money }}</dd></div>
           }
           <div class="flex justify-between"><dt>Shipping</dt><dd>{{ o.totals.shipping.amount === 0 ? 'Free' : (o.totals.shipping | money) }}</dd></div>
-          <div class="flex justify-between border-t border-border pt-1 text-base font-semibold"><dt>Total</dt><dd>{{ o.totals.total | money }}</dd></div>
+          @if (o.totals.giftCardApplied; as gift) {
+            <div class="flex justify-between"><dt>Paid with gift card</dt><dd>−{{ gift | money }}</dd></div>
+          }
+          @if (o.totals.creditApplied; as credit) {
+            <div class="flex justify-between"><dt>Paid with store credit</dt><dd>−{{ credit | money }}</dd></div>
+          }
+          <div class="flex justify-between border-t border-border pt-1 text-base font-semibold"><dt>{{ o.tender ? 'Amount due' : 'Total' }}</dt><dd>{{ o.totals.total | money }}</dd></div>
           <div class="flex justify-between text-text-muted"><dt>GST included in total</dt><dd>{{ o.totals.taxIncluded | money }}</dd></div>
         </dl>
         <p class="mt-6 text-xs text-text-muted">This is a system generated demo invoice.</p>

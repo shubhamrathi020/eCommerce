@@ -69,11 +69,13 @@ export class MockOrderStore {
 }
 
 /** Cancels unpaid orders whose stock reservation ran out, so abandoned payments free their units. */
-export function cancelExpiredOrders(orders: MockOrderStore, inventory: MockInventoryStore, products: Product[], now = Date.now()): void {
+/** `onCancel` lets the caller undo anything else the order held, e.g. a gift card, and returns the order to save. */
+export function cancelExpiredOrders(orders: MockOrderStore, inventory: MockInventoryStore, products: Product[], now = Date.now(), onCancel?: (order: Order) => Order): void {
   for (const id of inventory.expire(products, now)) {
     const order = orders.find(id);
     if (order?.status !== 'pending_payment') continue;
-    orders.save({ ...order, status: 'cancelled', paymentStatus: 'failed', timeline: [...order.timeline, { status: 'cancelled', label: 'Cancelled: payment window expired', at: new Date(now).toISOString() }] });
+    const cancelled: Order = { ...order, status: 'cancelled', paymentStatus: 'failed', timeline: [...order.timeline, { status: 'cancelled', label: 'Cancelled: payment window expired', at: new Date(now).toISOString() }] };
+    orders.save(onCancel ? onCancel(cancelled) : cancelled);
   }
 }
 

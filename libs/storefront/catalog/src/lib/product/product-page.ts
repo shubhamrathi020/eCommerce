@@ -13,6 +13,7 @@ import { BadgeComponent, BreadcrumbComponent, ButtonComponent, ErrorStateCompone
 import { signal } from '@angular/core';
 import { ProductRowComponent } from '../product-row/product-row';
 import { RecentlyViewedComponent } from '../recently-viewed/recently-viewed';
+import { DealBannerComponent } from '../deals/deal-banner';
 import { DeliveryCheckComponent } from './delivery-check';
 import { ReviewsSectionComponent } from './reviews-section';
 
@@ -45,6 +46,7 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
     ProductRowComponent,
     RecentlyViewedComponent,
     DeliveryCheckComponent,
+    DealBannerComponent,
     ReviewsSectionComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -122,6 +124,8 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
               <button uiButton variant="ghost" type="button" [attr.aria-pressed]="isSubscribed('price_drop')" [loading]="alertBusy() === 'price_drop'" (click)="toggleAlert('price_drop', v.id)">{{ isSubscribed('price_drop') ? "You'll be alerted on a price drop" : 'Alert me on price drop' }}</button>
             }
           </div>
+
+          <app-deal-banner [productId]="p.id" />
 
           <app-delivery-check />
 

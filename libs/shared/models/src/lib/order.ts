@@ -1,3 +1,4 @@
+import type { AppliedPromotion } from './promotions';
 import type { CartLine, CartTotals, PaymentMethod, ShippingMethodId } from './cart';
 
 export interface ContactDetails {
@@ -32,6 +33,9 @@ export interface Order {
   lines: CartLine[];
   totals: CartTotals;
   couponCode?: string;
+  promotions?: AppliedPromotion[];
+  /** What a gift card and store credit paid; refunds of such orders go back as store credit. */
+  tender?: { giftCard?: { code: string; amount: number }; storeCredit?: number; refundedAt?: string };
   shippingMethod: ShippingMethodId;
   contact: ContactDetails;
   address: Address;

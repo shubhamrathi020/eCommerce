@@ -165,7 +165,7 @@ const INVALID_MESSAGES: Partial<Record<FieldName, string>> = { email: 'Enter a v
 
         <aside class="h-fit rounded-lg border border-border p-4" aria-label="Order summary">
           <h2 class="mb-3 font-semibold">Order summary</h2>
-          <ui-order-summary [totals]="cart.totals" [coupon]="cart.coupon" />
+          <ui-order-summary [totals]="cart.totals" [coupon]="cart.coupon" [promotions]="cart.promotions" />
           <a routerLink="/cart" class="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline">Edit cart</a>
         </aside>
       </div>
@@ -322,7 +322,8 @@ export class CheckoutPageComponent {
           paymentMethod: this.method(),
         }),
       );
-      if (order.paymentMethod === 'cod') {
+      // Cash on delivery, or a gift card / store credit that covered the whole order: nothing to pay online.
+      if (order.paymentMethod === 'cod' || order.status === 'confirmed') {
         await this.finish(order);
         return;
       }

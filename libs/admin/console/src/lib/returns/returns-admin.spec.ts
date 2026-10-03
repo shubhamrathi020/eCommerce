@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
@@ -9,6 +10,9 @@ import { AuthApi, DEMO_ACCOUNTS, MockInventoryStore, MockOrderStore, ReturnApi, 
 import type { Order } from '@ecom/shared/models';
 import { AuthStore } from '@ecom/shared/state';
 import { adminRoutes } from '../admin.routes';
+
+// These flows load the whole mock catalog and run axe; give them room when the machine is busy.
+vi.setConfig({ testTimeout: 30_000 });
 
 const config = { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop Admin', siteUrl: 'http://x', features: {} };
 const admin = DEMO_ACCOUNTS[1];

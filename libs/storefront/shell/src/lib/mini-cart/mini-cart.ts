@@ -21,7 +21,7 @@ import { ButtonComponent, CartLineComponent, DrawerComponent, OrderSummaryCompon
               </li>
             }
           </ul>
-          <ui-order-summary class="mt-4" [totals]="cart.totals" [coupon]="cart.coupon" />
+          <ui-order-summary class="mt-4" [totals]="cart.totals" [coupon]="cart.coupon" [promotions]="cart.promotions" />
           <div class="mt-4 grid gap-2">
             <a uiButton routerLink="/checkout" (click)="store.miniCartOpen.set(false)">Checkout</a>
             <a uiButton variant="secondary" routerLink="/cart" (click)="store.miniCartOpen.set(false)">View cart</a>

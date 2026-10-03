@@ -66,7 +66,7 @@ const PAYMENT_TEXT: Record<Order['paymentStatus'], string> = {
         <aside class="space-y-4">
           <section class="rounded-lg border border-border p-4" aria-labelledby="sum">
             <h2 id="sum" class="mb-3 font-semibold">Summary</h2>
-            <ui-order-summary [totals]="o.totals" [coupon]="undefined" />
+            <ui-order-summary [totals]="o.totals" [coupon]="undefined" [promotions]="o.promotions" />
             <p class="mt-3 text-sm text-text-muted">{{ paymentText(o) }}</p>
             @if (o.paymentStatus === 'refund_pending') {
               @if (refund.hasValue() && refund.value()?.refundedAt; as paidOn) {

@@ -3,6 +3,8 @@ import { AdminContentApi } from './content.api';
 import { AdminInventoryApi } from './inventory.api';
 import { AdminNotificationApi } from './notification.api';
 import { AdminReturnApi, AdminSupportApi } from './returns.api';
+import { AdminGiftCardApi, AdminPromotionApi } from './promotion.api';
+import { MockAdminGiftCardApi, MockAdminPromotionApi } from '../mock/admin/mock-admin-promotion.api';
 import { MockAdminReturnApi, MockAdminSupportApi } from '../mock/admin/mock-admin-returns.api';
 import { MockAdminInventoryApi } from '../mock/admin/mock-admin-inventory.api';
 import { MockAdminNotificationApi } from '../mock/admin/mock-admin-notification.api';
@@ -29,6 +31,8 @@ export function provideAdminDataAccess(options: { useMocks: boolean; realCatalog
     { provide: AdminNotificationApi, useClass: MockAdminNotificationApi },
     { provide: AdminReturnApi, useClass: MockAdminReturnApi },
     { provide: AdminSupportApi, useClass: MockAdminSupportApi },
+    { provide: AdminPromotionApi, useClass: MockAdminPromotionApi },
+    { provide: AdminGiftCardApi, useClass: MockAdminGiftCardApi },
     { provide: AdminReviewApi, useClass: MockAdminReviewApi },
     { provide: AdminDashboardApi, useClass: MockAdminDashboardApi },
     { provide: AuditApi, useClass: MockAuditApi },

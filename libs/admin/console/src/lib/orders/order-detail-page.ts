@@ -79,7 +79,7 @@ const ACTION_LABEL: Partial<Record<OrderStatus, string>> = { packed: 'Mark as pa
           </section>
         </div>
         <aside class="space-y-4">
-          <section class="rounded-lg border border-border p-4"><h2 class="mb-2 font-semibold">Totals</h2><ui-order-summary [totals]="o.totals" [coupon]="undefined" />@if (o.couponCode) { <p class="mt-2 text-sm text-text-muted">Coupon {{ o.couponCode }}</p> }</section>
+          <section class="rounded-lg border border-border p-4"><h2 class="mb-2 font-semibold">Totals</h2><ui-order-summary [totals]="o.totals" [coupon]="undefined" [promotions]="o.promotions" />@if (o.couponCode) { <p class="mt-2 text-sm text-text-muted">Coupon {{ o.couponCode }}</p> }</section>
           <section class="rounded-lg border border-border p-4 text-sm"><h2 class="mb-1 font-semibold">Payment</h2><p>{{ o.paymentMethod === 'cod' ? 'Cash on delivery' : 'Online (Razorpay)' }}</p><p class="text-text-muted">{{ o.paymentStatus.replace('_', ' ') }}</p></section>
           <section class="rounded-lg border border-border p-4 text-sm"><h2 class="mb-1 font-semibold">Customer</h2><p>{{ o.contact.name }}</p><p class="text-text-muted">{{ o.contact.email }} · {{ o.contact.phone }}</p><p class="mt-1 text-text-muted">{{ o.address.line1 }}, {{ o.address.city }}, {{ o.address.state }} {{ o.address.pincode }}</p></section>
         </aside>

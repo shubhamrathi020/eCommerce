@@ -29,6 +29,8 @@ import { COUPONS } from '../cart-engine';
 import { loadCatalogData } from '../catalog-data';
 import { createMockResponder } from '../mock-latency';
 import { MockNotificationStore } from '../notification-store';
+import { MockOrderStore } from '../mock-order-store';
+import { MockPromotionStore } from '../promotion-store';
 import { MockUserStore } from '../mock-user-store';
 import { type AdminOverlay, MockAdminState } from './admin-state';
 import { SEED_CUSTOMERS, seedOrders } from './seed-orders';
@@ -336,6 +338,8 @@ export class MockAdminOrderApi extends AdminOrderApi {
   private readonly respond = createMockResponder();
   private readonly state = inject(MockAdminState);
   private readonly notifications = inject(MockNotificationStore);
+  private readonly wallet = inject(MockPromotionStore);
+  private readonly orderStore = inject(MockOrderStore);
 
   list(query: AdminOrderQuery) {
     return this.respond.okAsync<Paged<AdminOrderRow>>(async () => {
@@ -380,6 +384,9 @@ export class MockAdminOrderApi extends AdminOrderApi {
         const baselines = (await loadProducts(this.state)).map((e) => e.baseline);
         if (order.status === 'pending_payment') this.state.inventory.release(id, baselines);
         else this.state.inventory.restore(id, baselines, order.lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })), this.state.require('order:refund').name);
+        // A gift card or store credit that paid for the order goes back to where it came from.
+        const stored = this.orderStore.find(id);
+        if (stored?.tender) this.orderStore.save(this.wallet.refund(stored, this.state.require('order:refund').name));
       }
       const template = TEMPLATE_FOR_STATUS[status];
       if (template) this.notifications.deliver(template, order.contact.email, { name: order.contact.name, orderId: order.id }, { userId: order.userId, link: `/orders/${order.id}` });

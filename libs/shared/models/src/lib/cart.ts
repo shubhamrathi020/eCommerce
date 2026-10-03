@@ -1,5 +1,6 @@
 import type { ImageRef } from './catalog';
 import type { Money } from './money';
+import type { AppliedPromotion } from './promotions';
 
 export type ShippingMethodId = 'standard' | 'express';
 
@@ -42,6 +43,11 @@ export interface CartTotals {
   /** Total saved versus MRP. */
   mrpSavings: Money;
   couponDiscount: Money;
+  /** Automatic offers (BRD 14). Absent when none applied. */
+  promotionDiscount?: Money;
+  /** Gift card and store credit spent on this cart; `total` is what is left to pay. */
+  giftCardApplied?: Money;
+  creditApplied?: Money;
   shipping: Money;
   taxIncluded: Money;
   total: Money;
@@ -54,6 +60,11 @@ export interface Cart {
   coupon?: AppliedCoupon;
   shippingMethod: ShippingMethodId;
   totals: CartTotals;
+  /** Each automatic offer that applied, as its own saving line. */
+  promotions?: AppliedPromotion[];
+  /** Gift card on the cart, if any. */
+  giftCardCode?: string;
+  useCredit?: boolean;
   /** Human-readable notices from validation (price changes, reduced quantities). */
   notices: string[];
   /** True when at least one line blocks checkout (e.g. out of stock). */
