@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminSupportApi } from '@ecom/shared/data-access';
 import { ApiException, TICKET_STATUS_LABEL, type TicketQuery, type TicketStatus } from '@ecom/shared/models';
 import { AuthStore } from '@ecom/shared/state';
@@ -17,7 +16,7 @@ const tone = (s: TicketStatus) => (s === 'closed' ? 'neutral' : s === 'pending' 
 /** Support queue (RF-06): filter by status and assignee, open one to reply. */
 @Component({
   selector: 'adm-support-queue',
-  imports: [DatePipe, RouterLink, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, RouterLink, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-3 text-2xl font-bold">Support</h1>
@@ -52,7 +51,7 @@ const tone = (s: TicketStatus) => (s === 'closed' ? 'neutral' : s === 'pending' 
         <ui-empty-state title="No tickets" description="Customer questions appear here." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[44rem] text-left text-sm">
+          <table class="w-full min-w-[44rem] text-start text-sm">
             <caption class="sr-only">Support tickets</caption>
             <thead class="bg-surface-alt">
               <tr>
@@ -119,7 +118,7 @@ export class SupportQueuePageComponent {
 /** One ticket: the conversation, a reply box, assignment and status. */
 @Component({
   selector: 'adm-support-detail',
-  imports: [DatePipe, RouterLink, BadgeComponent, ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, RouterLink, BadgeComponent, ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (missing()) {

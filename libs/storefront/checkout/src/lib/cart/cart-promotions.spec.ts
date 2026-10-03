@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
@@ -9,8 +8,6 @@ import { loadCatalogData, provideDataAccess } from '@ecom/shared/data-access';
 import { CartStore } from '@ecom/shared/state';
 import { checkoutRoutes } from '../checkout.routes';
 
-// These flows load the whole mock catalog and run axe; give them room when the machine is busy.
-vi.setConfig({ testTimeout: 30_000 });
 
 const config = { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop', siteUrl: 'http://x', features: {} };
 

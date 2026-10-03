@@ -1,7 +1,6 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { SeoService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import type { AppNotification } from '@ecom/shared/models';
 import { NotificationStore } from '@ecom/shared/state';
 import { ButtonComponent, EmptyStateComponent } from '@ecom/shared/ui';
@@ -9,7 +8,7 @@ import { ButtonComponent, EmptyStateComponent } from '@ecom/shared/ui';
 /** The notification centre: order, review and alert events, newest first. */
 @Component({
   selector: 'app-notifications-page',
-  imports: [DatePipe, ButtonComponent, EmptyStateComponent],
+  imports: [LocaleDatePipe, ButtonComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -27,7 +26,7 @@ import { ButtonComponent, EmptyStateComponent } from '@ecom/shared/ui';
       <ul class="divide-y divide-border rounded-lg border border-border" aria-live="polite">
         @for (n of store.notifications(); track n.id) {
           <li>
-            <button type="button" class="flex w-full min-h-11 items-start gap-3 p-4 text-left hover:bg-surface-alt" [class.bg-surface-alt]="!n.read" (click)="open(n)">
+            <button type="button" class="flex w-full min-h-11 items-start gap-3 p-4 text-start hover:bg-surface-alt" [class.bg-surface-alt]="!n.read" (click)="open(n)">
               @if (!n.read) {
                 <span class="mt-2 size-2 shrink-0 rounded-full bg-primary" aria-hidden="true"></span>
               } @else {

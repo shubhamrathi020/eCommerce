@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ecom/shared/core';
 
 export type PageItem = number | 'gap';
 
@@ -19,16 +20,16 @@ export function pageItems(page: number, pages: number): PageItem[] {
 /** Crawlable page links: each page is a real link that merges `?page=n` into the current query. */
 @Component({
   selector: 'ui-pagination',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     @if (pages() > 1) {
-      <nav aria-label="Pagination">
+      <nav [attr.aria-label]="'common.pagination' | t">
         <ul class="flex flex-wrap items-center justify-center gap-1">
           <li>
             @if (page() > 1) {
-              <a [routerLink]="[]" [queryParams]="{ page: page() - 1 }" queryParamsHandling="merge" rel="prev" class="inline-flex min-h-11 items-center rounded-md px-3 hover:bg-surface-alt">Previous</a>
+              <a [routerLink]="[]" [queryParams]="{ page: page() - 1 }" queryParamsHandling="merge" rel="prev" class="inline-flex min-h-11 items-center rounded-md px-3 hover:bg-surface-alt">{{ 'common.previous' | t }}</a>
             }
           </li>
           @for (item of items(); track $index) {
@@ -43,7 +44,7 @@ export function pageItems(page: number, pages: number): PageItem[] {
                   class="inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-alt"
                   [class]="item === page() ? 'bg-primary font-semibold text-primary-contrast hover:bg-primary' : ''"
                   [attr.aria-current]="item === page() ? 'page' : null"
-                  [attr.aria-label]="'Page ' + item"
+                  [attr.aria-label]="'common.page' | t: { n: item }"
                   >{{ item }}</a
                 >
               }
@@ -51,7 +52,7 @@ export function pageItems(page: number, pages: number): PageItem[] {
           }
           <li>
             @if (page() < pages()) {
-              <a [routerLink]="[]" [queryParams]="{ page: page() + 1 }" queryParamsHandling="merge" rel="next" class="inline-flex min-h-11 items-center rounded-md px-3 hover:bg-surface-alt">Next</a>
+              <a [routerLink]="[]" [queryParams]="{ page: page() + 1 }" queryParamsHandling="merge" rel="next" class="inline-flex min-h-11 items-center rounded-md px-3 hover:bg-surface-alt">{{ 'common.next' | t }}</a>
             }
           </li>
         </ul>

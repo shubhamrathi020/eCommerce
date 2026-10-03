@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminUserApi } from '@ecom/shared/data-access';
 import type { AdminUser } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -11,24 +10,24 @@ import { BadgeComponent, ErrorStateComponent, SkeletonComponent } from '@ecom/sh
 
 @Component({
   selector: 'adm-users',
-  imports: [DatePipe, BadgeComponent, ErrorStateComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, BadgeComponent, ErrorStateComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-4 text-2xl font-bold">Users</h1>
     @if (users().length) {
       <div class="overflow-x-auto rounded-lg border border-border">
-        <table class="w-full min-w-[40rem] text-left text-sm">
+        <table class="w-full min-w-[40rem] text-start text-sm">
           <caption class="sr-only">Users and roles</caption>
-          <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Name</th><th scope="col" class="p-2">Email</th><th scope="col" class="p-2">Roles</th><th scope="col" class="p-2 text-right">Orders</th><th scope="col" class="p-2">Joined</th><th scope="col" class="p-2"><span class="sr-only">Actions</span></th></tr></thead>
+          <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Name</th><th scope="col" class="p-2">Email</th><th scope="col" class="p-2">Roles</th><th scope="col" class="p-2 text-end">Orders</th><th scope="col" class="p-2">Joined</th><th scope="col" class="p-2"><span class="sr-only">Actions</span></th></tr></thead>
           <tbody class="divide-y divide-border">
             @for (u of users(); track u.id) {
               <tr>
                 <th scope="row" class="p-2 font-medium">{{ u.name }}</th>
-                <td class="p-2">{{ u.email }}@if (!u.emailVerified) { <span class="ml-1 text-xs text-warning">(unverified)</span> }</td>
-                <td class="p-2">@for (r of u.roles; track r) { <ui-badge [tone]="r === 'admin' ? 'primary' : 'neutral'" class="mr-1">{{ r }}</ui-badge> }</td>
-                <td class="p-2 text-right">{{ u.ordersCount }}</td>
+                <td class="p-2">{{ u.email }}@if (!u.emailVerified) { <span class="ms-1 text-xs text-warning">(unverified)</span> }</td>
+                <td class="p-2">@for (r of u.roles; track r) { <ui-badge [tone]="r === 'admin' ? 'primary' : 'neutral'" class="me-1">{{ r }}</ui-badge> }</td>
+                <td class="p-2 text-end">{{ u.ordersCount }}</td>
                 <td class="p-2 text-text-muted">{{ u.createdAt | date: 'd MMM y' }}</td>
-                <td class="p-2 text-right">
+                <td class="p-2 text-end">
                   @if (u.id !== me()?.id) {
                     <button type="button" class="min-h-11 px-2 font-medium text-primary hover:underline" (click)="toggleAdmin(u)">{{ isAdmin(u) ? 'Revoke admin' : 'Grant admin' }}<span class="sr-only"> for {{ u.name }}</span></button>
                   } @else {

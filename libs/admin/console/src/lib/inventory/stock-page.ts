@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminInventoryApi } from '@ecom/shared/data-access';
 import type { AdjustKind, InventoryFilter, InventoryQuery, InventoryRow } from '@ecom/shared/models';
 import { ApiException, STOCK_REASONS } from '@ecom/shared/models';
@@ -18,7 +17,7 @@ const KIND_LABEL: Record<AdjustKind, string> = { receive: 'Receive stock', retur
 /** Stock on hand, reserved and available per variant, with adjust, transfer and policy tools and the low-stock alerts. */
 @Component({
   selector: 'adm-inventory-stock',
-  imports: [DatePipe, ReactiveFormsModule, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, PaginationComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, ReactiveFormsModule, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, PaginationComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (alerts.hasValue() && alerts.value().length) {
@@ -148,14 +147,14 @@ const KIND_LABEL: Record<AdjustKind, string> = { receive: 'Receive stock', retur
         <ui-empty-state title="Nothing matches" description="Try a different search or filter." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[46rem] text-left text-sm">
+          <table class="w-full min-w-[46rem] text-start text-sm">
             <caption class="sr-only">Stock by variant</caption>
             <thead class="bg-surface-alt">
               <tr>
                 <th scope="col" class="p-2">Product</th>
-                <th scope="col" class="p-2 text-right">On hand</th>
-                <th scope="col" class="p-2 text-right">Reserved</th>
-                <th scope="col" class="p-2 text-right">Available</th>
+                <th scope="col" class="p-2 text-end">On hand</th>
+                <th scope="col" class="p-2 text-end">Reserved</th>
+                <th scope="col" class="p-2 text-end">Available</th>
                 <th scope="col" class="p-2">Status</th>
                 <th scope="col" class="p-2"><span class="sr-only">Actions</span></th>
               </tr>
@@ -167,12 +166,12 @@ const KIND_LABEL: Record<AdjustKind, string> = { receive: 'Receive stock', retur
                     <span class="block max-w-xs truncate font-medium" [attr.title]="r.title">{{ r.title }}</span>
                     <span class="text-xs text-text-muted">{{ r.sku }}@if (optionsText(r)) { · {{ optionsText(r) }} }</span>
                   </th>
-                  <td class="p-2 text-right">
+                  <td class="p-2 text-end">
                     {{ r.onHand }}
                     <span class="block text-xs text-text-muted">{{ locationSummary(r) }}</span>
                   </td>
-                  <td class="p-2 text-right">{{ r.reserved }}</td>
-                  <td class="p-2 text-right font-medium" [class.text-danger]="r.available <= 0">{{ r.available }}</td>
+                  <td class="p-2 text-end">{{ r.reserved }}</td>
+                  <td class="p-2 text-end font-medium" [class.text-danger]="r.available <= 0">{{ r.available }}</td>
                   <td class="p-2">
                     @if (r.available <= 0 && !r.backorder) {
                       <ui-badge tone="danger">Out of stock</ui-badge>
@@ -185,7 +184,7 @@ const KIND_LABEL: Record<AdjustKind, string> = { receive: 'Receive stock', retur
                       <ui-badge tone="neutral">Backorder{{ r.expectedDate ? ' ' + (r.expectedDate | date: 'd MMM') : '' }}</ui-badge>
                     }
                   </td>
-                  <td class="p-2 text-right"><button type="button" class="min-h-11 px-2 font-medium text-primary hover:underline" (click)="open(r)">Manage<span class="sr-only"> {{ r.title }} {{ r.sku }}</span></button></td>
+                  <td class="p-2 text-end"><button type="button" class="min-h-11 px-2 font-medium text-primary hover:underline" (click)="open(r)">Manage<span class="sr-only"> {{ r.title }} {{ r.sku }}</span></button></td>
                 </tr>
               }
             </tbody>

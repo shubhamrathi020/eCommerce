@@ -75,9 +75,9 @@ const ids = (text: string) => text.split(/[\s,]+/).filter(Boolean);
         }
         @for (row of pv.rows; track row.strategy) {
           <section class="mb-4 rounded-lg border border-border p-3" [attr.aria-label]="row.title">
-            <h3 class="font-semibold">{{ row.title }}@if (row.coldStart) { <span class="ml-2 text-xs font-normal text-text-muted">(cold start)</span> }</h3>
+            <h3 class="font-semibold">{{ row.title }}@if (row.coldStart) { <span class="ms-2 text-xs font-normal text-text-muted">(cold start)</span> }</h3>
             <p class="mb-2 text-sm text-text-muted">{{ row.subtitle }}</p>
-            <ol class="list-decimal space-y-0.5 pl-5 text-sm">
+            <ol class="list-decimal space-y-0.5 ps-5 text-sm">
               @for (item of row.items; track item.product.id) {
                 <li>{{ item.product.title }} <span class="text-xs text-text-muted">({{ item.product.id }}) · {{ item.reason }}</span></li>
               }

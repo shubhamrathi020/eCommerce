@@ -55,12 +55,12 @@ import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateCompone
         <h2 class="mb-2 mt-8 text-lg font-semibold">Items the store assigned to you</h2>
         <p class="mb-2 text-sm text-text-muted">These catalog items ship from you. The store manages their price and stock.</p>
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[30rem] text-left text-sm">
+          <table class="w-full min-w-[30rem] text-start text-sm">
             <caption class="sr-only">Assigned catalog items</caption>
-            <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Item</th><th scope="col" class="p-2 text-right">Price</th><th scope="col" class="p-2 text-right">In stock</th><th scope="col" class="p-2 text-right">Rating</th></tr></thead>
+            <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Item</th><th scope="col" class="p-2 text-end">Price</th><th scope="col" class="p-2 text-end">In stock</th><th scope="col" class="p-2 text-end">Rating</th></tr></thead>
             <tbody class="divide-y divide-border">
               @for (a of assigned.value(); track a.productId) {
-                <tr><th scope="row" class="p-2 font-normal">{{ a.title }}</th><td class="p-2 text-right">{{ a.price | money }}</td><td class="p-2 text-right">{{ a.stock }}</td><td class="p-2 text-right">{{ a.rating.count ? a.rating.average + ' (' + a.rating.count + ')' : 'No reviews' }}</td></tr>
+                <tr><th scope="row" class="p-2 font-normal">{{ a.title }}</th><td class="p-2 text-end">{{ a.price | money }}</td><td class="p-2 text-end">{{ a.stock }}</td><td class="p-2 text-end">{{ a.rating.count ? a.rating.average + ' (' + a.rating.count + ')' : 'No reviews' }}</td></tr>
               }
             </tbody>
           </table>

@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
@@ -10,7 +9,6 @@ import { CartApi, DEMO_ACCOUNTS, OrderApi, loadCatalogData, provideDataAccess } 
 import { AuthStore } from '@ecom/shared/state';
 import { sellerRoutes } from './seller.routes';
 
-vi.setConfig({ testTimeout: 30_000 });
 const config = { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Seller Centre', siteUrl: 'http://x', features: {} };
 const [customer, , seller] = DEMO_ACCOUNTS;
 
@@ -158,7 +156,7 @@ describe('seller portal', () => {
     fillLabelled(root, 'Description', 'Hand-cast brass diyas.');
     fillLabelled(root, 'Price', '599');
     fillLabelled(root, 'Units in stock', '12');
-    const category = root.querySelector<HTMLSelectElement>('select') as HTMLSelectElement;
+    const category = root.querySelector<HTMLSelectElement>('main select') as HTMLSelectElement;
     category.value = Array.from(category.options).find((o) => o.textContent?.includes('Home Decor'))?.value ?? '';
     category.dispatchEvent(new Event('change', { bubbles: true }));
     button(root, 'Save')?.click();

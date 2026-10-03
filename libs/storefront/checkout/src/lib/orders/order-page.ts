@@ -1,10 +1,9 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, PLATFORM_ID, RESPONSE_INIT, computed, effect, inject, input, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, firstValueFrom, of } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { OrderApi, ReturnApi } from '@ecom/shared/data-access';
 import type { Order } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -22,7 +21,7 @@ const PAYMENT_TEXT: Record<Order['paymentStatus'], string> = {
 /** Order confirmation and tracking. Reachable by the (unguessable) order id, so guests can revisit it. */
 @Component({
   selector: 'app-order-page',
-  imports: [DatePipe, RouterLink, BadgeComponent, ButtonComponent, CartLineComponent, ErrorStateComponent, NotFoundComponent, OrderSummaryComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, RouterLink, BadgeComponent, ButtonComponent, CartLineComponent, ErrorStateComponent, NotFoundComponent, OrderSummaryComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (notFound()) {
@@ -42,10 +41,10 @@ const PAYMENT_TEXT: Record<Order['paymentStatus'], string> = {
         <div class="space-y-6">
           <section aria-labelledby="tl">
             <h2 id="tl" class="mb-3 text-lg font-semibold">Tracking</h2>
-            <ol class="space-y-3 border-l-2 border-border pl-4">
+            <ol class="space-y-3 border-s-2 border-border ps-4">
               @for (step of o.timeline; track step.status) {
                 <li class="relative">
-                  <span class="absolute -left-[1.4rem] top-1 size-3 rounded-full" [class]="step.at ? (step.status === 'cancelled' ? 'bg-danger' : 'bg-success') : 'bg-border-strong'" aria-hidden="true"></span>
+                  <span class="absolute -start-[1.4rem] top-1 size-3 rounded-full" [class]="step.at ? (step.status === 'cancelled' ? 'bg-danger' : 'bg-success') : 'bg-border-strong'" aria-hidden="true"></span>
                   <p [class]="step.at ? 'font-medium' : 'text-text-muted'">{{ step.label }}</p>
                   <p class="text-sm text-text-muted">{{ step.at ? (step.at | date: 'd MMM, h:mm a') : 'Pending' }}</p>
                 </li>
@@ -56,7 +55,7 @@ const PAYMENT_TEXT: Record<Order['paymentStatus'], string> = {
           @if (o.shipments?.length) {
             <section aria-labelledby="shipments">
               <h2 id="shipments" class="mb-1 text-lg font-semibold">Shipments</h2>
-              <p class="mb-3 text-sm text-text-muted">Your order ships in {{ o.shipments?.length }} parts. Each seller sends and tracks their own.</p>
+              <p class="mb-3 text-sm text-text-muted">Your order ships in {{ o.shipments.length }} parts. Each seller sends and tracks their own.</p>
               <ul class="space-y-3">
                 @for (s of o.shipments; track s.id) {
                   <li class="rounded-lg border border-border p-3 text-sm">

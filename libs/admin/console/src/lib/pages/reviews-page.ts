@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminReviewApi } from '@ecom/shared/data-access';
 import type { AdminReviewRow } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -14,7 +13,7 @@ const TONES = { pending: 'warning', approved: 'success', rejected: 'danger' } as
 /** Reviews held by the automatic checks. Text is shown as plain text (never as HTML). */
 @Component({
   selector: 'adm-reviews',
-  imports: [DatePipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, RatingComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, RatingComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-4 text-2xl font-bold">Review moderation</h1>

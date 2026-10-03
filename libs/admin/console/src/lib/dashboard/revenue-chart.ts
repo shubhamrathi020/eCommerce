@@ -1,6 +1,6 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { MoneyPipe, formatMoney } from '@ecom/shared/util';
+import { LocaleDatePipe } from '@ecom/shared/core';
 
 interface Day {
   date: string;
@@ -15,7 +15,7 @@ const PAD = { top: 12, right: 8, bottom: 22, left: 8 };
 /** Revenue-per-day bar chart with a text summary and a table alternative for screen readers and keyboard users. */
 @Component({
   selector: 'adm-revenue-chart',
-  imports: [DatePipe, MoneyPipe],
+  imports: [LocaleDatePipe, MoneyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -31,12 +31,12 @@ const PAD = { top: 12, right: 8, bottom: 22, left: 8 };
     <details class="mt-2 text-sm">
       <summary class="min-h-11 cursor-pointer py-2 font-medium text-primary">View as table</summary>
       <div class="max-h-64 overflow-auto">
-        <table class="w-full text-left">
+        <table class="w-full text-start">
           <caption class="sr-only">Revenue and orders per day</caption>
-          <thead><tr class="border-b border-border"><th scope="col" class="py-1">Date</th><th scope="col" class="py-1 text-right">Orders</th><th scope="col" class="py-1 text-right">Revenue</th></tr></thead>
+          <thead><tr class="border-b border-border"><th scope="col" class="py-1">Date</th><th scope="col" class="py-1 text-end">Orders</th><th scope="col" class="py-1 text-end">Revenue</th></tr></thead>
           <tbody>
             @for (d of data(); track d.date) {
-              <tr class="border-b border-border"><th scope="row" class="py-1 font-normal">{{ d.date | date: 'd MMM y' }}</th><td class="py-1 text-right">{{ d.orders }}</td><td class="py-1 text-right">{{ { amount: d.revenue, currency: 'INR' } | money }}</td></tr>
+              <tr class="border-b border-border"><th scope="row" class="py-1 font-normal">{{ d.date | date: 'd MMM y' }}</th><td class="py-1 text-end">{{ d.orders }}</td><td class="py-1 text-end">{{ { amount: d.revenue, currency: 'INR' } | money }}</td></tr>
             }
           </tbody>
         </table>

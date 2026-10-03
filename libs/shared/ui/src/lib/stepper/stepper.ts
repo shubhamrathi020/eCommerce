@@ -11,7 +11,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
         <li class="flex items-center gap-2" [attr.aria-current]="i === current() ? 'step' : null">
           <span
             class="inline-flex size-7 items-center justify-center rounded-full border text-xs font-semibold"
-            [class]="i < current() ? 'border-success bg-success text-white' : i === current() ? 'border-primary bg-primary text-primary-contrast' : 'border-border-strong text-text-muted'"
+            [class]="i < current() ? 'border-success bg-success text-on-status' : i === current() ? 'border-primary bg-primary text-primary-contrast' : 'border-border-strong text-text-muted'"
             aria-hidden="true"
             >{{ i < current() ? '✓' : i + 1 }}</span
           >

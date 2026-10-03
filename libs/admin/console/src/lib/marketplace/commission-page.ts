@@ -15,15 +15,15 @@ import { ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirectiv
     <p class="mb-4 max-w-2xl text-sm text-text-muted">The percentage the marketplace keeps from each sale. A seller's own override (set under Sellers) beats everything. Otherwise the most specific rule here applies: seller, then category, then the default.</p>
     @if (resource.hasValue()) {
       <div class="mb-6 overflow-x-auto rounded-lg border border-border">
-        <table class="w-full min-w-[32rem] text-left text-sm">
+        <table class="w-full min-w-[32rem] text-start text-sm">
           <caption class="sr-only">Commission rules</caption>
-          <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Applies to</th><th scope="col" class="p-2 text-right">Commission</th><th scope="col" class="p-2"><span class="sr-only">Actions</span></th></tr></thead>
+          <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Applies to</th><th scope="col" class="p-2 text-end">Commission</th><th scope="col" class="p-2"><span class="sr-only">Actions</span></th></tr></thead>
           <tbody class="divide-y divide-border">
             @for (r of resource.value(); track r.id) {
               <tr>
                 <th scope="row" class="p-2 font-normal">{{ describe(r) }}</th>
-                <td class="p-2 text-right">{{ r.percent }}%</td>
-                <td class="p-2 text-right">
+                <td class="p-2 text-end">{{ r.percent }}%</td>
+                <td class="p-2 text-end">
                   @if (r.scope !== 'default') {
                     <button uiButton size="sm" variant="ghost" type="button" (click)="remove(r)">Remove<span class="sr-only"> the rule for {{ describe(r) }}</span></button>
                   }

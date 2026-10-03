@@ -21,7 +21,7 @@ import { IconComponent } from '../icon/icon';
         cdkTrapFocus
         [cdkTrapFocusAutoCapture]="true"
         class="fixed inset-y-0 z-30 flex w-[min(20rem,85vw)] flex-col bg-surface shadow-modal"
-        [class]="side() === 'left' ? 'left-0' : 'right-0'"
+        [class]="side() === 'left' ? 'start-0' : 'end-0'"
       >
         <div class="flex items-center justify-between border-b border-border p-4">
           <h2 class="text-lg font-semibold">{{ label() }}</h2>

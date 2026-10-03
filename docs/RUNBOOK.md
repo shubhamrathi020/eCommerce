@@ -17,6 +17,7 @@ Needs Node 22 and pnpm (`corepack enable` picks the pinned version). Docker Desk
 | `pnpm start:storefront` | Shop at http://localhost:4200 (live reload, server-side rendering) |
 | `pnpm start:admin` | Admin console at http://localhost:4201 |
 | `pnpm start:seller` | Seller portal at http://localhost:4202 (marketplace, BRD 17; mock data only) |
+| `node scripts/pwa-check.mjs [url]` | Real-browser check of offline pages, dark mode and language against a production build on http://localhost:4000 (BRD 18) |
 | `pnpm start:api` | Backend API at http://localhost:3333 (needs Postgres running, see §4a) |
 
 Development-only helpers: on the sign-in pages a "Development only: fill demo ..." button fills the seeded demo accounts, and `/dev/mailbox` (storefront) shows the emails the shop would send.

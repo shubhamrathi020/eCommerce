@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { OrderApi, SupportApi } from '@ecom/shared/data-access';
 import { type AttachmentMeta, ApiException, TICKET_LIMITS, TICKET_STATUS_LABEL, type TicketStatus } from '@ecom/shared/models';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent } from '@ecom/shared/ui';
@@ -14,7 +13,7 @@ const tone = (s: TicketStatus) => (s === 'closed' ? 'neutral' : s === 'pending' 
 /** The customer's support tickets (RF-06). They only ever see their own. */
 @Component({
   selector: 'app-support-list-page',
-  imports: [DatePipe, RouterLink, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, RouterLink, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -144,7 +143,7 @@ export class SupportNewPageComponent {
 /** One conversation: timestamped messages, a reply box, and a close button. */
 @Component({
   selector: 'app-support-detail-page',
-  imports: [DatePipe, RouterLink, BadgeComponent, ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent, AttachmentPickerComponent],
+  imports: [LocaleDatePipe, RouterLink, BadgeComponent, ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent, AttachmentPickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (notFound()) {

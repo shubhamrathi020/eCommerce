@@ -16,7 +16,7 @@ import { OfflineBannerComponent } from './offline-banner/offline-banner';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex min-h-screen flex-col' },
   template: `
-    <a href="#main" class="sr-only print:hidden z-50 rounded-md bg-primary px-4 py-2 text-primary-contrast focus:not-sr-only focus:fixed focus:left-2 focus:top-2">Skip to main content</a>
+    <a href="#main" class="sr-only print:hidden z-50 rounded-md bg-primary px-4 py-2 text-primary-contrast focus:not-sr-only focus:fixed focus:start-2 focus:top-2">Skip to main content</a>
     <app-offline-banner />
     <app-header />
     <main #main id="main" tabindex="-1" class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-6"><router-outlet /></main>

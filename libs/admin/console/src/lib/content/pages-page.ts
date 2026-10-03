@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom, type Observable } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminContentApi } from '@ecom/shared/data-access';
 import type { ManagedPage, PageStatus } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -14,7 +13,7 @@ type Field = 'slug' | 'title' | 'source' | 'seoDescription';
 
 @Component({
   selector: 'adm-pages',
-  imports: [DatePipe, ReactiveFormsModule, BadgeComponent, ButtonComponent, EmptyStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
+  imports: [LocaleDatePipe, ReactiveFormsModule, BadgeComponent, ButtonComponent, EmptyStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mb-4 flex items-center justify-between">
@@ -45,7 +44,7 @@ type Field = 'slug' | 'title' | 'source' | 'seoDescription';
           </div>
           <div>
             <p class="mb-1 text-sm font-medium" id="preview-h">Preview</p>
-            <div class="min-h-40 space-y-3 rounded-md border border-border bg-surface-alt p-3 text-sm [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:pl-5 [&_a]:text-primary [&_a]:underline" aria-labelledby="preview-h" [innerHTML]="preview()"></div>
+            <div class="min-h-40 space-y-3 rounded-md border border-border bg-surface-alt p-3 text-sm [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:ps-5 [&_a]:text-primary [&_a]:underline" aria-labelledby="preview-h" [innerHTML]="preview()"></div>
           </div>
         </div>
         <div class="grid gap-4 md:grid-cols-2">
@@ -71,17 +70,17 @@ type Field = 'slug' | 'title' | 'source' | 'seoDescription';
 
     @if (pages().length) {
       <div class="overflow-x-auto rounded-lg border border-border">
-        <table class="w-full min-w-[36rem] text-left text-sm">
+        <table class="w-full min-w-[36rem] text-start text-sm">
           <caption class="sr-only">Pages</caption>
           <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Page</th><th scope="col" class="p-2">Address</th><th scope="col" class="p-2">Status</th><th scope="col" class="p-2">Updated</th><th scope="col" class="p-2"><span class="sr-only">Actions</span></th></tr></thead>
           <tbody class="divide-y divide-border">
             @for (p of pages(); track p.slug) {
               <tr>
-                <th scope="row" class="p-2 font-medium">{{ p.title }}@if (p.locked) { <span class="ml-1 text-xs text-text-muted">(legal)</span> }</th>
+                <th scope="row" class="p-2 font-medium">{{ p.title }}@if (p.locked) { <span class="ms-1 text-xs text-text-muted">(legal)</span> }</th>
                 <td class="p-2 font-mono text-xs">/pages/{{ p.slug }}</td>
                 <td class="p-2"><ui-badge [tone]="p.status === 'published' ? 'success' : 'warning'">{{ p.status }}</ui-badge></td>
                 <td class="p-2 text-text-muted">{{ p.updatedAt | date: 'd MMM y' }}</td>
-                <td class="p-2 text-right">
+                <td class="p-2 text-end">
                   <button type="button" class="min-h-11 px-2 font-medium text-primary hover:underline" (click)="edit(p)">Edit<span class="sr-only"> {{ p.title }}</span></button>
                   @if (!p.locked) {
                     <button type="button" class="min-h-11 px-2 font-medium text-danger hover:underline" (click)="remove(p)">Delete<span class="sr-only"> {{ p.title }}</span></button>

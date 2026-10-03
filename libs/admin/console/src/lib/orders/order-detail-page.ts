@@ -1,10 +1,9 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom, type Observable } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminOrderApi } from '@ecom/shared/data-access';
 import type { AdminOrderDetail, OrderStatus } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -15,7 +14,7 @@ const ACTION_LABEL: Partial<Record<OrderStatus, string>> = { packed: 'Mark as pa
 
 @Component({
   selector: 'adm-order-detail',
-  imports: [DatePipe, ReactiveFormsModule, RouterLink, BadgeComponent, ButtonComponent, CartLineComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, OrderSummaryComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, ReactiveFormsModule, RouterLink, BadgeComponent, ButtonComponent, CartLineComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, OrderSummaryComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (missing()) {
@@ -49,7 +48,7 @@ const ACTION_LABEL: Partial<Record<OrderStatus, string>> = { packed: 'Mark as pa
         <div class="space-y-6">
           <section aria-labelledby="tl">
             <h2 id="tl" class="mb-3 text-lg font-semibold">Timeline</h2>
-            <ol class="space-y-2 border-l-2 border-border pl-4 text-sm">
+            <ol class="space-y-2 border-s-2 border-border ps-4 text-sm">
               @for (t of o.timeline; track $index) {
                 <li><span class="font-medium">{{ t.label }}</span> <span class="text-text-muted">{{ t.at ? (t.at | date: 'd MMM, h:mm a') : 'Pending' }}</span></li>
               }

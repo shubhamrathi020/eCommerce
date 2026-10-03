@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminNotificationApi } from '@ecom/shared/data-access';
 import type { MessageTemplate } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -17,7 +16,7 @@ function preview(text: string, vars: readonly string[]): string {
 /** Message templates: list, an editor with a live preview, version history and "send a test". */
 @Component({
   selector: 'adm-templates',
-  imports: [DatePipe, ReactiveFormsModule, BadgeComponent, ButtonComponent, FormFieldComponent, InputDirective, SkeletonComponent],
+  imports: [LocaleDatePipe, ReactiveFormsModule, BadgeComponent, ButtonComponent, FormFieldComponent, InputDirective, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p class="mb-4 max-w-2xl text-sm text-text-muted">Edit the wording customers receive. Use only the listed variables, written as <code>{{ '{{name}}' }}</code>; anything else is refused. Every save keeps the previous version so you can go back.</p>
@@ -27,7 +26,7 @@ function preview(text: string, vars: readonly string[]): string {
         <ul class="space-y-1" aria-label="Templates">
           @for (t of resource.value(); track t.key) {
             <li>
-              <button type="button" class="block w-full min-h-11 rounded-md px-3 py-2 text-left text-sm" [class]="selectedKey() === t.key ? 'bg-primary text-primary-contrast' : 'hover:bg-surface-alt'" (click)="select(t)">
+              <button type="button" class="block w-full min-h-11 rounded-md px-3 py-2 text-start text-sm" [class]="selectedKey() === t.key ? 'bg-primary text-primary-contrast' : 'hover:bg-surface-alt'" (click)="select(t)">
                 <span class="block font-medium">{{ t.name }}</span>
                 <span class="block text-xs opacity-80">v{{ t.version }} · {{ t.updatedAt | date: 'd MMM y' }}</span>
               </button>

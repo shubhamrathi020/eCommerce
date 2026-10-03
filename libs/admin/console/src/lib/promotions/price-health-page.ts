@@ -18,18 +18,18 @@ import { EmptyStateComponent, ErrorStateComponent, SkeletonComponent } from '@ec
         <ui-empty-state title="No misleading discounts" description="Every MRP in the catalog is a believable earlier price." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[40rem] text-left text-sm">
+          <table class="w-full min-w-[40rem] text-start text-sm">
             <caption class="sr-only">Variants with a questionable MRP</caption>
             <thead class="bg-surface-alt">
-              <tr><th scope="col" class="p-2">Product</th><th scope="col" class="p-2">SKU</th><th scope="col" class="p-2 text-right">Price</th><th scope="col" class="p-2 text-right">MRP</th><th scope="col" class="p-2">Problem</th></tr>
+              <tr><th scope="col" class="p-2">Product</th><th scope="col" class="p-2">SKU</th><th scope="col" class="p-2 text-end">Price</th><th scope="col" class="p-2 text-end">MRP</th><th scope="col" class="p-2">Problem</th></tr>
             </thead>
             <tbody class="divide-y divide-border">
               @for (i of resource.value(); track i.variantId) {
                 <tr>
                   <td class="p-2"><a [routerLink]="['/products', i.productId]" class="text-primary hover:underline">{{ i.title }}</a></td>
                   <td class="p-2 font-mono text-xs">{{ i.sku }}</td>
-                  <td class="p-2 text-right">{{ i.price | money }}</td>
-                  <td class="p-2 text-right">{{ i.mrp | money }}</td>
+                  <td class="p-2 text-end">{{ i.price | money }}</td>
+                  <td class="p-2 text-end">{{ i.mrp | money }}</td>
                   <td class="p-2">{{ i.problem }}</td>
                 </tr>
               }

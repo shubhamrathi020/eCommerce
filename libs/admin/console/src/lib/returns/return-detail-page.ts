@@ -1,9 +1,9 @@
-import { DatePipe, NgOptimizedImage } from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminReturnApi } from '@ecom/shared/data-access';
 import { ApiException, type Disposition, reasonOf } from '@ecom/shared/models';
 import { MoneyPipe } from '@ecom/shared/util';
@@ -15,7 +15,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 /** One return: what the customer asked for, the refund the API computed, and the next action for staff (RF-02, RF-03, RF-05). */
 @Component({
   selector: 'adm-return-detail',
-  imports: [DatePipe, NgOptimizedImage, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, NgOptimizedImage, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (missing()) {
@@ -133,7 +133,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 
           <section aria-labelledby="tl">
             <h3 id="tl" class="mb-3 text-lg font-semibold">Timeline</h3>
-            <ol class="space-y-2 border-l-2 border-border pl-4 text-sm">
+            <ol class="space-y-2 border-s-2 border-border ps-4 text-sm">
               @for (t of r.timeline; track $index) {
                 <li><span class="font-medium">{{ t.label }}</span> <span class="text-text-muted">{{ t.at | date: 'd MMM, h:mm a' }}</span>@if (t.note) { <span class="block text-text-muted">{{ t.note }}</span> }</li>
               }
@@ -151,7 +151,7 @@ const today = () => new Date().toISOString().slice(0, 10);
             <div class="flex justify-between border-t border-border pt-2 text-base font-semibold"><dt>Total</dt><dd>{{ r.refund.total | money }}</dd></div>
           </dl>
           <p class="mt-2 text-sm text-text-muted">{{ r.refund.method === 'original' ? 'To the original payment method' : 'As store credit' }}</p>
-          <ul class="mt-2 list-disc pl-5 text-xs text-text-muted">
+          <ul class="mt-2 list-disc ps-5 text-xs text-text-muted">
             @for (n of r.refund.notes; track n) {
               <li>{{ n }}</li>
             }

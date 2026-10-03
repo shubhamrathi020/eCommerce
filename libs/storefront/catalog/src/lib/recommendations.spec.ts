@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import axe from 'axe-core';
@@ -9,7 +8,6 @@ import { MockEventStore, loadCatalogData, provideDataAccess, seedEvents } from '
 import { coPurchases } from '@ecom/shared/models';
 import { catalogRoutes, homeRoute } from './catalog.routes';
 
-vi.setConfig({ testTimeout: 30_000 });
 const config = { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop', siteUrl: 'http://x', features: {} };
 
 async function open(url: string, prepare?: () => void) {

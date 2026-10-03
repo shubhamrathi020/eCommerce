@@ -15,6 +15,8 @@ export default defineConfig(() => ({
   test: {
     name: 'storefront-catalog',
     watch: false,
+    // jsdom plus axe over whole pages is slow, and slower still when Nx runs every project at once.
+    testTimeout: 120_000,
     globals: true,
     environment: 'jsdom',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],

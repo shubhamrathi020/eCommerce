@@ -1,13 +1,12 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, isDevMode } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { SeoService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { AuthStore } from '@ecom/shared/state';
 import { ButtonComponent } from '@ecom/shared/ui';
 
 @Component({
   selector: 'app-account-home',
-  imports: [DatePipe, RouterLink, ButtonComponent],
+  imports: [LocaleDatePipe, RouterLink, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (auth.user(); as user) {
@@ -17,7 +16,7 @@ import { ButtonComponent } from '@ecom/shared/ui';
       @if (!user.emailVerified) {
         <div class="mb-4 rounded-lg border border-warning p-4 text-sm" role="status">
           <p class="font-medium">Please verify your email address.</p>
-          <p class="text-text-muted">We sent you a link when you registered.@if (dev) { <a routerLink="/dev/mailbox" class="ml-1 text-primary underline">Development only: open the demo mailbox</a> }</p>
+          <p class="text-text-muted">We sent you a link when you registered.@if (dev) { <a routerLink="/dev/mailbox" class="ms-1 text-primary underline">Development only: open the demo mailbox</a> }</p>
         </div>
       }
 

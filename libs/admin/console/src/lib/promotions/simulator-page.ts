@@ -79,7 +79,7 @@ let nextKey = 0;
         }
         <h3 class="mb-2 font-semibold">Why each rule did or did not apply</h3>
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[36rem] text-left text-sm">
+          <table class="w-full min-w-[36rem] text-start text-sm">
             <caption class="sr-only">Rule by rule explanation</caption>
             <thead class="bg-surface-alt">
               <tr><th scope="col" class="p-2">Promotion</th><th scope="col" class="p-2">Outcome</th><th scope="col" class="p-2">Reason</th></tr>

@@ -105,14 +105,16 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-/** Content-hashed build files are cached for a year; everything else (favicon, mock images) for an hour. */
+/** Content-hashed build files are cached for a year; everything else (favicon, mock images) for an hour, except the service worker, which is always revalidated. */
 app.use(
   express.static(browserDistFolder, {
     index: false,
     redirect: false,
     setHeaders: (res, path) => {
-      const hashed = /-[A-Za-z0-9]{8}\.(?:js|css|woff2?)$/.test(path);
-      res.setHeader('Cache-Control', hashed ? 'public, max-age=31536000, immutable' : 'public, max-age=3600');
+      const hashed = /-[A-Za-z0-9_-]{8,12}\.(?:js|css|woff2?)$/.test(path);
+      // The service worker script itself must always be revalidated, or a fix to it would take an hour to reach visitors.
+      const worker = /[\\/]sw\.js$/.test(path);
+      res.setHeader('Cache-Control', worker ? 'no-cache' : hashed ? 'public, max-age=31536000, immutable' : 'public, max-age=3600');
     },
   }),
 );

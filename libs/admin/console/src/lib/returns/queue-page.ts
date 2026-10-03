@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { SeoService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { AdminReturnApi } from '@ecom/shared/data-access';
 import type { ReturnQuery, ReturnStatus } from '@ecom/shared/models';
 import { MoneyPipe } from '@ecom/shared/util';
@@ -16,7 +15,7 @@ const STATUSES = Object.keys(RETURN_STATUS_LABEL) as ReturnStatus[];
 /** Returns queue (RF-02): filter by stage, open one to act on it. */
 @Component({
   selector: 'adm-returns-queue',
-  imports: [DatePipe, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="mb-4 flex flex-wrap items-end gap-3" role="search" aria-label="Filter return requests" (submit)="search($event)">
@@ -42,7 +41,7 @@ const STATUSES = Object.keys(RETURN_STATUS_LABEL) as ReturnStatus[];
         <ui-empty-state title="No return requests" description="Requests from customers appear here." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[44rem] text-left text-sm">
+          <table class="w-full min-w-[44rem] text-start text-sm">
             <caption class="sr-only">Return requests</caption>
             <thead class="bg-surface-alt">
               <tr>
@@ -50,7 +49,7 @@ const STATUSES = Object.keys(RETURN_STATUS_LABEL) as ReturnStatus[];
                 <th scope="col" class="p-2">Customer</th>
                 <th scope="col" class="p-2">Order</th>
                 <th scope="col" class="p-2">Requested</th>
-                <th scope="col" class="p-2 text-right">Refund</th>
+                <th scope="col" class="p-2 text-end">Refund</th>
                 <th scope="col" class="p-2">Status</th>
               </tr>
             </thead>
@@ -61,7 +60,7 @@ const STATUSES = Object.keys(RETURN_STATUS_LABEL) as ReturnStatus[];
                   <td class="p-2">{{ r.customerName }}<span class="block text-xs text-text-muted">{{ r.customerEmail }}</span></td>
                   <td class="p-2"><a [routerLink]="['/orders', r.orderId]" class="hover:underline">{{ r.orderId }}</a></td>
                   <td class="whitespace-nowrap p-2 text-text-muted">{{ r.createdAt | date: 'd MMM y, h:mm a' }}</td>
-                  <td class="p-2 text-right">{{ r.refund.total | money }}</td>
+                  <td class="p-2 text-end">{{ r.refund.total | money }}</td>
                   <td class="p-2"><ui-badge [tone]="tone(r.status)">{{ labels[r.status] }}</ui-badge></td>
                 </tr>
               }

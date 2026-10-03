@@ -1,9 +1,9 @@
-import { DatePipe, NgOptimizedImage } from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { ReturnApi } from '@ecom/shared/data-access';
 import { ApiException, reasonOf } from '@ecom/shared/models';
 import { MoneyPipe } from '@ecom/shared/util';
@@ -16,7 +16,7 @@ const STEP_LABEL = { requested: 'Return requested', approved: 'Approved', picked
 /** One return with its refund timeline (RF-04), which matches what staff see. */
 @Component({
   selector: 'app-return-detail-page',
-  imports: [DatePipe, NgOptimizedImage, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, ErrorStateComponent, NotFoundComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, NgOptimizedImage, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, ErrorStateComponent, NotFoundComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (notFound()) {
@@ -30,10 +30,10 @@ const STEP_LABEL = { requested: 'Return requested', approved: 'Approved', picked
         <div class="space-y-6">
           <section aria-labelledby="progress">
             <h2 id="progress" class="mb-3 text-lg font-semibold">Progress</h2>
-            <ol class="space-y-3 border-l-2 border-border pl-4">
+            <ol class="space-y-3 border-s-2 border-border ps-4">
               @for (step of steps(); track step.status) {
                 <li class="relative">
-                  <span class="absolute -left-[1.4rem] top-1 size-3 rounded-full" [class]="step.at ? 'bg-success' : 'bg-border-strong'" aria-hidden="true"></span>
+                  <span class="absolute -start-[1.4rem] top-1 size-3 rounded-full" [class]="step.at ? 'bg-success' : 'bg-border-strong'" aria-hidden="true"></span>
                   <p [class]="step.at ? 'font-medium' : 'text-text-muted'">{{ step.label }}</p>
                   <p class="text-sm text-text-muted">{{ step.at ? (step.at | date: 'd MMM, h:mm a') : 'Pending' }}</p>
                 </li>

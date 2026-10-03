@@ -30,7 +30,7 @@ const flatten = (nodes: CategoryNode[]): CategoryNode[] => nodes.flatMap((n) => 
       <ui-skeleton class="h-64" />
     } @else {
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[40rem] border-collapse text-left text-sm">
+        <table class="w-full min-w-[40rem] border-collapse text-start text-sm">
           <caption class="sr-only">Product comparison</caption>
           <thead>
             <tr>

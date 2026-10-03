@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { SeoService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { OrderApi } from '@ecom/shared/data-access';
 import type { Order } from '@ecom/shared/models';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, SkeletonComponent } from '@ecom/shared/ui';
@@ -11,7 +10,7 @@ import { MoneyPipe } from '@ecom/shared/util';
 /** Orders placed on this device. Account-based order history arrives with the accounts module. */
 @Component({
   selector: 'app-orders-list-page',
-  imports: [DatePipe, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-4 text-2xl font-bold md:text-3xl">Your orders</h1>

@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, ToastService } from '@ecom/shared/core';
 import { CatalogApi, ReviewApi } from '@ecom/shared/data-access';
 import type { RatingSummary, Review, ReviewSort } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -16,7 +15,7 @@ const PAGE_SIZE = 5;
 /** Rating breakdown, review list (sort, load more, helpful votes) and the write/edit flow for verified buyers. */
 @Component({
   selector: 'app-reviews-section',
-  imports: [DatePipe, RouterLink, BadgeComponent, ButtonComponent, EmptyStateComponent, InputDirective, RatingComponent, ReviewFormComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, RouterLink, BadgeComponent, ButtonComponent, EmptyStateComponent, InputDirective, RatingComponent, ReviewFormComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -64,7 +63,7 @@ const PAGE_SIZE = 5;
               <li class="flex items-center gap-2 text-sm">
                 <span class="w-12 text-text-muted">{{ row.stars }} star</span>
                 <span class="h-2 flex-1 overflow-hidden rounded-full bg-surface-alt"><span class="block h-full bg-accent" [style.width.%]="row.percent"></span></span>
-                <span class="w-8 text-right text-text-muted">{{ row.count }}</span>
+                <span class="w-8 text-end text-text-muted">{{ row.count }}</span>
               </li>
             }
           </ul>

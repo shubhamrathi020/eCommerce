@@ -1,13 +1,13 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { SellerPublicApi } from '@ecom/shared/data-access';
 import { RatingComponent } from '@ecom/shared/ui';
+import { LocaleDatePipe } from '@ecom/shared/core';
 
 /** Who sells this product, how shoppers rate that seller, and the seller's own returns and shipping policy (MP-05). Hidden for the store's own products. */
 @Component({
   selector: 'app-seller-card',
-  imports: [DatePipe, RatingComponent],
+  imports: [LocaleDatePipe, RatingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (seller.hasValue() && seller.value(); as s) {

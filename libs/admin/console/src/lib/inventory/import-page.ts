@@ -49,7 +49,7 @@ function downloadText(filename: string, text: string): void {
           <p class="font-medium">{{ r.applied }} row(s) applied, {{ r.skipped.length }} skipped.</p>
           @if (r.skipped.length) {
             <div class="mt-3 overflow-x-auto rounded-lg border border-border">
-              <table class="w-full min-w-[28rem] text-left text-sm">
+              <table class="w-full min-w-[28rem] text-start text-sm">
                 <caption class="sr-only">Skipped rows</caption>
                 <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Line</th><th scope="col" class="p-2">SKU</th><th scope="col" class="p-2">Problem</th></tr></thead>
                 <tbody class="divide-y divide-border">

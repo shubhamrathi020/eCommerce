@@ -15,7 +15,7 @@ import { ButtonComponent } from '@ecom/shared/ui';
   template: `
     @if (store.count() > 0 && !consent.needsDecision()) {
       <div
-        class="print:hidden fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface p-3 shadow-modal md:bottom-4 md:left-auto md:right-4 md:w-80 md:rounded-lg md:border"
+        class="print:hidden fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface p-3 shadow-modal md:bottom-4 md:start-auto md:end-4 md:w-80 md:rounded-lg md:border"
         [class.max-md:hidden]="bottomBar.primaryActionVisible()"
         role="region"
         aria-label="Compare products"

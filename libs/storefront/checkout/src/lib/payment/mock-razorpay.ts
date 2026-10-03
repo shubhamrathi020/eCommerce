@@ -14,7 +14,7 @@ import { MockPaymentLauncher } from './payment-launcher';
     @if (launcher.pending(); as p) {
       <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
         <div role="dialog" aria-modal="true" aria-labelledby="pay-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" class="w-full max-w-sm rounded-lg bg-surface p-5 shadow-modal">
-          <p class="mb-1 inline-block rounded bg-warning px-2 py-0.5 text-xs font-semibold text-white">TEST MODE (mock Razorpay)</p>
+          <p class="mb-1 inline-block rounded bg-warning px-2 py-0.5 text-xs font-semibold text-on-status">TEST MODE (mock Razorpay)</p>
           <h2 id="pay-title" class="text-lg font-semibold">Pay {{ { amount: p.session.amount, currency: p.session.currency } | money }}</h2>
           <p class="mt-1 text-sm text-text-muted">Order {{ p.session.orderId }}. No real payment is taken and no card details are needed.</p>
           <div class="mt-4 grid gap-2">

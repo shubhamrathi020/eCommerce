@@ -30,7 +30,7 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | 15 | [Recommendations and personalisation](15-recommendations.md) | 2 | Built (mock) | 02, 03, 05, 10 |
 | 16 | [Analytics and reporting](16-analytics-reporting.md) | 2 | Built (mock) | 06, 15 |
 | 17 | [Marketplace and seller portal](17-marketplace-seller-portal.md) | 2 | Built (mock) | 05, 06, 11, 13 |
-| 18 | [Localisation, theming and PWA](18-localisation-theming-pwa.md) | 3 | Draft | 01 to 12 |
+| 18 | [Localisation, theming and PWA](18-localisation-theming-pwa.md) | 3 | Built (mock) | 01 to 12 |
 | 19 | [Backend foundation and identity API](19-backend-foundation.md) | Backend | Built (identity, accounts, addresses) | 05, 08 |
 | 20 | [Catalog and search services](20-catalog-search-services.md) | Backend | Built (catalog, search, admin products) | 19, 09, 11 |
 | 21 | [Commerce services](21-commerce-services.md) | Backend | Built (cart, checkout, orders, COD; online payment needs your own Razorpay test keys) | 19, 20, 11 |

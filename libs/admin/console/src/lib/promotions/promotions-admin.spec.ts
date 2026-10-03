@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
@@ -9,8 +8,6 @@ import { DEMO_ACCOUNTS, loadCatalogData, provideAdminDataAccess, provideDataAcce
 import { AuthStore } from '@ecom/shared/state';
 import { adminRoutes } from '../admin.routes';
 
-// These flows load the whole mock catalog and run axe; give them room when the machine is busy.
-vi.setConfig({ testTimeout: 30_000 });
 
 const config = { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop Admin', siteUrl: 'http://x', features: {} };
 const admin = DEMO_ACCOUNTS[1];
@@ -110,7 +107,7 @@ describe('admin promotions', () => {
     await harness.navigateByUrl('/promotions/list/promo-flash-tee');
     await settle(harness);
     let root = el(harness);
-    expect(root.querySelector<HTMLSelectElement>('select')?.disabled).toBe(true);
+    expect(root.querySelector<HTMLSelectElement>('main select')?.disabled).toBe(true);
     expect(root.textContent).toContain('Units at the deal price');
     expect(await violations(root)).toEqual([]);
     const price = Array.from(root.querySelectorAll<HTMLInputElement>('input')).find((i) => i.value === '1799') as HTMLInputElement;

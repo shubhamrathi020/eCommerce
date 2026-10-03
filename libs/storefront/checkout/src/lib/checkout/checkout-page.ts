@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { AnalyticsService, SeoService, ToastService } from '@ecom/shared/core';
+import { AnalyticsService, LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AddressBookApi, CheckoutApi, OrderApi, PaymentApi } from '@ecom/shared/data-access';
 import type { Order, PaymentMethod, PaymentOption, SavedAddress, ShippingMethodId, ShippingOption } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -21,7 +20,7 @@ const INVALID_MESSAGES: Partial<Record<FieldName, string>> = { email: 'Enter a v
 /** Four-step guest checkout. Money, stock and coupon rules are always decided by the API. */
 @Component({
   selector: 'app-checkout-page',
-  imports: [DatePipe, ReactiveFormsModule, RouterLink, MoneyPipe, ButtonComponent, CartLineComponent, FormFieldComponent, InputDirective, OrderSummaryComponent, SkeletonComponent, StepperComponent, MockRazorpayComponent],
+  imports: [LocaleDatePipe, ReactiveFormsModule, RouterLink, MoneyPipe, ButtonComponent, CartLineComponent, FormFieldComponent, InputDirective, OrderSummaryComponent, SkeletonComponent, StepperComponent, MockRazorpayComponent],
   providers: [{ provide: PaymentLauncher, useExisting: MockPaymentLauncher }],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

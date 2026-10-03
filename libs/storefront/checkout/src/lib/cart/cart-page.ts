@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { SeoService } from '@ecom/shared/core';
+import { I18nService, SeoService, TranslatePipe } from '@ecom/shared/core';
 import { CartStore } from '@ecom/shared/state';
 import { ButtonComponent, CartLineComponent, EmptyStateComponent, FormFieldComponent, InputDirective, OrderSummaryComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { MoneyPipe } from '@ecom/shared/util';
@@ -9,21 +9,21 @@ import { WalletPanelComponent } from './wallet-panel';
 
 @Component({
   selector: 'app-cart-page',
-  imports: [FormsModule, RouterLink, WalletPanelComponent, MoneyPipe, ButtonComponent, CartLineComponent, EmptyStateComponent, FormFieldComponent, InputDirective, OrderSummaryComponent, SkeletonComponent],
+  imports: [FormsModule, RouterLink, TranslatePipe, WalletPanelComponent, MoneyPipe, ButtonComponent, CartLineComponent, EmptyStateComponent, FormFieldComponent, InputDirective, OrderSummaryComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <h1 class="mb-4 text-2xl font-bold md:text-3xl">Your cart</h1>
+    <h1 class="mb-4 text-2xl font-bold md:text-3xl">{{ 'cart.title' | t }}</h1>
     @if (!store.loaded()) {
       <ui-skeleton class="h-40" />
     } @else if (store.cart(); as cart) {
       @if (cart.lines.length === 0) {
-        <ui-empty-state title="Your cart is empty" description="Browse the store and add something you like.">
-          <a uiButton routerLink="/">Continue shopping</a>
+        <ui-empty-state [title]="'cart.emptyTitle' | t" [description]="'cart.emptyText' | t">
+          <a uiButton routerLink="/">{{ 'cart.continue' | t }}</a>
         </ui-empty-state>
       } @else {
         @if (cart.notices.length) {
           <div class="mb-4 rounded-md border border-warning p-3 text-sm" role="status">
-            <ul class="list-disc space-y-1 pl-5">
+            <ul class="list-disc space-y-1 ps-5">
               @for (notice of cart.notices; track notice) {
                 <li>{{ notice }}</li>
               }
@@ -31,7 +31,7 @@ import { WalletPanelComponent } from './wallet-panel';
           </div>
         }
         <div class="grid gap-6 lg:grid-cols-[1fr_22rem]">
-          <section aria-label="Cart items">
+          <section [attr.aria-label]="'cart.items' | t">
             <ul class="divide-y divide-border rounded-lg border border-border px-4">
               @for (line of cart.lines; track line.variantId) {
                 <li class="py-4">
@@ -39,35 +39,35 @@ import { WalletPanelComponent } from './wallet-panel';
                 </li>
               }
             </ul>
-            <a routerLink="/" class="mt-4 inline-flex min-h-11 items-center font-medium text-primary hover:underline">Continue shopping</a>
+            <a routerLink="/" class="mt-4 inline-flex min-h-11 items-center font-medium text-primary hover:underline">{{ 'cart.continue' | t }}</a>
           </section>
 
-          <aside class="space-y-4" aria-label="Order summary">
+          <aside class="space-y-4" [attr.aria-label]="'cart.summary' | t">
             @if (cart.totals.amountToFreeShipping; as gap) {
-              <p class="rounded-md bg-surface-alt p-3 text-sm" role="status">Add <strong>{{ gap | money }}</strong> more for free shipping.</p>
+              <p class="rounded-md bg-surface-alt p-3 text-sm" role="status">{{ 'cart.addForFreeShipping' | t: { amount: (gap | money) } }}</p>
             } @else if (cart.totals.shipping.amount === 0 && cart.totals.itemCount > 0) {
-              <p class="rounded-md bg-surface-alt p-3 text-sm text-success" role="status">You have free shipping.</p>
+              <p class="rounded-md bg-surface-alt p-3 text-sm text-success" role="status">{{ 'cart.freeShipping' | t }}</p>
             }
 
             <div class="rounded-lg border border-border p-4">
               @if (cart.coupon; as coupon) {
                 <p class="mb-3 flex items-center justify-between text-sm">
-                  <span>Coupon <strong>{{ coupon.code }}</strong> applied</span>
-                  <button type="button" class="min-h-11 font-medium text-danger hover:underline" (click)="removeCoupon()">Remove</button>
+                  <span>{{ 'cart.couponApplied' | t: { code: coupon.code } }}</span>
+                  <button type="button" class="min-h-11 font-medium text-danger hover:underline" (click)="removeCoupon()">{{ 'common.remove' | t }}</button>
                 </p>
               } @else {
                 <form class="mb-3 flex items-end gap-2" (submit)="apply($event)" novalidate>
-                  <ui-form-field #f="uiFormField" label="Coupon code" class="flex-1" [error]="couponError()" hint="Demo codes: WELCOME10, FLAT100, FREESHIP">
+                  <ui-form-field #f="uiFormField" [label]="'cart.couponLabel' | t" class="flex-1" [error]="couponError()" [hint]="'cart.couponHint' | t">
                     <input uiInput [id]="f.id" [attr.aria-describedby]="f.describedBy()" [attr.aria-invalid]="couponError() ? 'true' : null" autocomplete="off" [(ngModel)]="code" name="code" />
                   </ui-form-field>
-                  <button uiButton variant="secondary" type="submit" [loading]="store.busy()">Apply</button>
+                  <button uiButton variant="secondary" type="submit" [loading]="store.busy()">{{ 'cart.apply' | t }}</button>
                 </form>
               }
               <app-wallet-panel />
               <ui-order-summary [totals]="cart.totals" [coupon]="cart.coupon" [promotions]="cart.promotions" />
-              <a uiButton class="mt-4 w-full" routerLink="/checkout" [attr.aria-disabled]="cart.blocked ? 'true' : null" (click)="guard($event, cart.blocked)">Proceed to checkout</a>
+              <a uiButton class="mt-4 w-full" routerLink="/checkout" [attr.aria-disabled]="cart.blocked ? 'true' : null" (click)="guard($event, cart.blocked)">{{ 'cart.checkout' | t }}</a>
               @if (cart.blocked) {
-                <p class="mt-2 text-sm text-danger" role="alert">Remove out-of-stock items to continue.</p>
+                <p class="mt-2 text-sm text-danger" role="alert">{{ 'cart.blocked' | t }}</p>
               }
             </div>
           </aside>
@@ -77,6 +77,7 @@ import { WalletPanelComponent } from './wallet-panel';
   `,
 })
 export class CartPageComponent {
+  private readonly i18n = inject(I18nService);
   protected readonly store = inject(CartStore);
   protected code = '';
   protected readonly couponError = signal('');
@@ -91,12 +92,12 @@ export class CartPageComponent {
     event.preventDefault();
     this.couponError.set('');
     if (!this.code.trim()) {
-      this.couponError.set('Enter a coupon code');
+      this.couponError.set(this.i18n.t('cart.couponEnter'));
       return;
     }
     const result = await this.store.applyCoupon(this.code);
     if (result.ok) this.code = '';
-    else this.couponError.set(result.message ?? 'Could not apply this coupon.');
+    else this.couponError.set(result.message ?? this.i18n.t('cart.couponFailed'));
   }
 
   protected async removeCoupon(): Promise<void> {

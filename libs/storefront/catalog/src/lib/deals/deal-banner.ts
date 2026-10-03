@@ -17,8 +17,8 @@ import { MoneyPipe } from '@ecom/shared/util';
         <p class="font-semibold">{{ d.name }}</p>
         <p>
           <strong class="text-base">{{ d.dealPrice | money }}</strong>
-          <span class="ml-1 text-text-muted line-through"><span class="sr-only">Regular price </span>{{ d.regularPrice | money }}</span>
-          <span class="ml-1 text-text-muted">in your cart, up to {{ d.cap }} units</span>
+          <span class="ms-1 text-text-muted line-through"><span class="sr-only">Regular price </span>{{ d.regularPrice | money }}</span>
+          <span class="ms-1 text-text-muted">in your cart, up to {{ d.cap }} units</span>
         </p>
         <p class="mt-1">Ends in <ui-countdown [endsAt]="d.endsAt" /> · <strong>{{ d.remaining }}</strong> of {{ d.cap }} left</p>
       </section>

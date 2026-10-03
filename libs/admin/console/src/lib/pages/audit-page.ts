@@ -1,14 +1,13 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { SeoService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { AuditApi } from '@ecom/shared/data-access';
 import { ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { injectListParams } from '../list-params';
 
 @Component({
   selector: 'adm-audit',
-  imports: [DatePipe, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-4 text-2xl font-bold">Audit log</h1>
@@ -26,7 +25,7 @@ import { injectListParams } from '../list-params';
         <ui-empty-state title="No audit entries" description="Changes made in this console show up here." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[40rem] text-left text-sm">
+          <table class="w-full min-w-[40rem] text-start text-sm">
             <caption class="sr-only">Audit log</caption>
             <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">When</th><th scope="col" class="p-2">Who</th><th scope="col" class="p-2">Action</th><th scope="col" class="p-2">Item</th><th scope="col" class="p-2">Detail</th></tr></thead>
             <tbody class="divide-y divide-border">

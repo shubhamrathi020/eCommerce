@@ -397,3 +397,13 @@ Built: a **new app** `apps/seller` (Seller Centre, port 4202, `pnpm start:seller
 Try it: place a cash-on-delivery order containing p-0010 (Urban Threads) and p-0100 (Acme) and the signature tee; on the order page see three shipments. Sign in at the seller app as `seller@shop.test`, open Orders, pack, ship (with a tracking number) and deliver; in the admin open Marketplace > Payouts, preview and issue a statement for Urban Threads, then mark it paid with a reference. Apply as a new seller in the seller app and approve yourself in the admin.
 
 Limitations: nothing of this exists in the real backend; `realCommerce` ignores it; the seller app is not in docker-compose, Kubernetes manifests or CI.
+
+### After BRD 18: localisation, dark mode and installable app (frontend)
+
+Built: `libs/shared/core/src/lib/i18n/` (`message-format.ts`, `messages.en.ts`, `messages.hi.ts`, `i18n.service.ts`, `translate.pipe.ts` named `t`, `locale-date.pipe.ts` named `date`), `theme.service.ts`, `pwa.ts` (`provideShopServiceWorker`, production only), `push-optin.service.ts`, `network-status.service.ts` (now also reads the saved-copy marker). `MoneyPipe` and `formatMoney` are locale-aware with cached `Intl` formatters. Shared UI has `ui-theme-toggle` and `ui-language-picker`; `theme.css` has dark tokens (`data-theme` plus `prefers-color-scheme`). Storefront public files: `sw.js`, `manifest.webmanifest`, `offline.html`, `theme-init.js` (copied to admin and seller), `icons/`. `apps/storefront/src/server.ts` serves `sw.js` with `Cache-Control: no-cache`.
+
+Rules to remember: add strings to `messages.en.ts` first (the Hindi file is typed against it, so a missing key fails the build); use `t`, `date` and `money` pipes, never `DatePipe`; use logical Tailwind classes (`ms-`, `ps-`, `text-start`, `start-0`) not `ml-`, `pl-`, `text-left`, `left-0`; use `text-on-status` on coloured backgrounds, not `text-white`. The service worker keeps a never-save list (cart, checkout, orders, account, notifications, wishlist, payment, personalisation, unsubscribe and `/api/`); change it only with a test in `pwa.spec.ts`.
+
+Try it: in the footer pick Hindi, then Light/Dark; after `pnpm exec nx build storefront` with the server started on port 4000 (`node dist/apps/storefront/server/server.mjs`) run `node scripts/pwa-check.mjs`. In development the service worker is off.
+
+Limitations: see the BRD change log (translated surfaces only, unreviewed Hindi, English flash before Hindi, mock push).

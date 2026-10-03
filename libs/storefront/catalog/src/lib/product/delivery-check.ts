@@ -1,15 +1,15 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CatalogApi } from '@ecom/shared/data-access';
 import type { Serviceability } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
 import { ButtonComponent, FormFieldComponent, InputDirective } from '@ecom/shared/ui';
+import { LocaleDatePipe } from '@ecom/shared/core';
 
 /** Pin-code delivery estimate. */
 @Component({
   selector: 'app-delivery-check',
-  imports: [DatePipe, FormsModule, ButtonComponent, FormFieldComponent, InputDirective],
+  imports: [LocaleDatePipe, FormsModule, ButtonComponent, FormFieldComponent, InputDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `

@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { SeoService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { OrderApi } from '@ecom/shared/data-access';
 import type { Order } from '@ecom/shared/models';
 import { ButtonComponent, NotFoundComponent, SkeletonComponent } from '@ecom/shared/ui';
@@ -11,7 +10,7 @@ import { MoneyPipe } from '@ecom/shared/util';
 /** Printable tax invoice (use the browser's "Save as PDF"). The site header and footer are hidden when printing. */
 @Component({
   selector: 'app-invoice-page',
-  imports: [DatePipe, RouterLink, MoneyPipe, ButtonComponent, NotFoundComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, RouterLink, MoneyPipe, ButtonComponent, NotFoundComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (order(); as o) {
@@ -36,30 +35,30 @@ import { MoneyPipe } from '@ecom/shared/util';
           <p>{{ o.contact.name }} · {{ o.contact.email }} · {{ o.contact.phone }}</p>
           <p class="text-text-muted">{{ o.address.line1 }}{{ o.address.line2 ? ', ' + o.address.line2 : '' }}, {{ o.address.city }}, {{ o.address.state }} {{ o.address.pincode }}</p>
         </section>
-        <table class="w-full text-left text-sm">
+        <table class="w-full text-start text-sm">
           <caption class="sr-only">Invoice items</caption>
           <thead>
             <tr class="border-y border-border">
               <th scope="col" class="py-2">Item</th>
-              <th scope="col" class="py-2 text-right">Qty</th>
-              <th scope="col" class="py-2 text-right">Unit price</th>
-              <th scope="col" class="py-2 text-right">GST incl.</th>
-              <th scope="col" class="py-2 text-right">Amount</th>
+              <th scope="col" class="py-2 text-end">Qty</th>
+              <th scope="col" class="py-2 text-end">Unit price</th>
+              <th scope="col" class="py-2 text-end">GST incl.</th>
+              <th scope="col" class="py-2 text-end">Amount</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border">
             @for (line of o.lines; track line.variantId) {
               <tr>
                 <td class="py-2">{{ line.title }}<span class="block text-text-muted">{{ line.brandName }}</span></td>
-                <td class="py-2 text-right">{{ line.quantity }}</td>
-                <td class="py-2 text-right">{{ line.unitPrice | money }}</td>
-                <td class="py-2 text-right">{{ line.taxIncluded | money }}</td>
-                <td class="py-2 text-right">{{ line.lineTotal | money }}</td>
+                <td class="py-2 text-end">{{ line.quantity }}</td>
+                <td class="py-2 text-end">{{ line.unitPrice | money }}</td>
+                <td class="py-2 text-end">{{ line.taxIncluded | money }}</td>
+                <td class="py-2 text-end">{{ line.lineTotal | money }}</td>
               </tr>
             }
           </tbody>
         </table>
-        <dl class="ml-auto mt-4 w-full max-w-xs space-y-1 text-sm">
+        <dl class="ms-auto mt-4 w-full max-w-xs space-y-1 text-sm">
           <div class="flex justify-between"><dt>Subtotal</dt><dd>{{ o.totals.subtotal | money }}</dd></div>
           @for (offer of o.promotions ?? []; track offer.promotionId) {
             <div class="flex justify-between"><dt>{{ offer.name }}</dt><dd>−{{ offer.amount | money }}</dd></div>

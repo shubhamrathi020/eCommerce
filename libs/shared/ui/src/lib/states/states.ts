@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ecom/shared/core';
 import { ButtonComponent } from '../button/button';
 
 @Component({
@@ -20,17 +21,18 @@ export class EmptyStateComponent {
 
 @Component({
   selector: 'ui-error-state',
-  imports: [ButtonComponent],
+  imports: [ButtonComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block rounded-lg border border-danger p-8 text-center', role: 'alert' },
   template: `
-    <h2 class="text-lg font-semibold text-text">{{ title() }}</h2>
-    <p class="mt-1 text-text-muted">{{ description() }}</p>
-    <button uiButton variant="secondary" class="mt-4" type="button" (click)="retry.emit()">Try again</button>
+    <h2 class="text-lg font-semibold text-text">{{ title() ?? ('common.somethingWrong' | t) }}</h2>
+    <p class="mt-1 text-text-muted">{{ description() ?? ('common.loadFailed' | t) }}</p>
+    <button uiButton variant="secondary" class="mt-4" type="button" (click)="retry.emit()">{{ 'common.tryAgain' | t }}</button>
   `,
 })
 export class ErrorStateComponent {
-  readonly title = input('Something went wrong');
-  readonly description = input('We could not load this. Please try again.');
+  /** Defaults to the translated generic message. */
+  readonly title = input<string | undefined>();
+  readonly description = input<string | undefined>();
   readonly retry = output<void>();
 }

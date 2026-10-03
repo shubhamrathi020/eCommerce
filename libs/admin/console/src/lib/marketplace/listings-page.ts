@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminSellerApi, type AdminSellerProduct } from '@ecom/shared/data-access';
 import { ApiException, SELLER_PRODUCT_STATUS_LABEL, type SellerProductStatus } from '@ecom/shared/models';
 import { MoneyPipe } from '@ecom/shared/util';
@@ -11,7 +10,7 @@ import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateCompone
 /** Seller listings waiting for approval (MP-06). Only approved listings from sellers in good standing appear in the shop. */
 @Component({
   selector: 'adm-seller-listings',
-  imports: [DatePipe, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
+  imports: [LocaleDatePipe, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mb-4 flex flex-wrap items-end gap-3">

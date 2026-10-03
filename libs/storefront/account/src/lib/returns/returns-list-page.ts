@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { SeoService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { ReturnApi } from '@ecom/shared/data-access';
 import { MoneyPipe } from '@ecom/shared/util';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, SkeletonComponent } from '@ecom/shared/ui';
@@ -11,11 +10,11 @@ import { RETURN_STATUS_LABEL, returnTone } from './return-labels';
 /** The customer's return requests, with their store credit balance. */
 @Component({
   selector: 'app-returns-list-page',
-  imports: [DatePipe, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-1 text-2xl font-bold md:text-3xl">Returns and refunds</h1>
-    <p class="mb-4 text-sm text-text-muted">To start a return, open a delivered order and choose “Return items”. @if (credit.hasValue() && credit.value().amount > 0) { <span class="ml-1 font-medium text-text">Store credit: {{ credit.value() | money }}</span> }</p>
+    <p class="mb-4 text-sm text-text-muted">To start a return, open a delivered order and choose “Return items”. @if (credit.hasValue() && credit.value().amount > 0) { <span class="ms-1 font-medium text-text">Store credit: {{ credit.value() | money }}</span> }</p>
 
     @if (resource.hasValue()) {
       @if (resource.value().length === 0) {

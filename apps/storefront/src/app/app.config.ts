@@ -2,7 +2,7 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import { provideCore } from '@ecom/shared/core';
+import { provideCore, provideShopServiceWorker } from '@ecom/shared/core';
 import { provideDataAccess } from '@ecom/shared/data-access';
 import { provideCartFacade } from '@ecom/shared/state';
 import { APP_CONFIG_VALUES } from './app-config.values';
@@ -21,5 +21,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch()),
     provideDataAccess({ useMocks: APP_CONFIG_VALUES.useMocks, realAuth: APP_CONFIG_VALUES.realAuth, realCatalog: APP_CONFIG_VALUES.realCatalog, realCommerce: APP_CONFIG_VALUES.realCommerce }),
     provideCartFacade(),
+    provideShopServiceWorker(),
   ],
 };

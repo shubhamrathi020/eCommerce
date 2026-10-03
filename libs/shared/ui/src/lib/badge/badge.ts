@@ -5,10 +5,10 @@ export type BadgeTone = 'neutral' | 'primary' | 'success' | 'warning' | 'danger'
 const TONES: Record<BadgeTone, string> = {
   neutral: 'bg-surface-alt text-text border border-border',
   primary: 'bg-primary text-primary-contrast',
-  success: 'bg-success text-white',
-  warning: 'bg-warning text-white',
-  danger: 'bg-danger text-white',
-  sale: 'bg-sale text-white',
+  success: 'bg-success text-on-status',
+  warning: 'bg-warning text-on-status',
+  danger: 'bg-danger text-on-status',
+  sale: 'bg-sale text-on-status',
 };
 
 @Component({

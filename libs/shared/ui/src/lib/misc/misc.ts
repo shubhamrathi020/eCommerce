@@ -30,7 +30,7 @@ export class CheckboxComponent {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex' },
   template: `
-    <span class="inline-flex min-h-9 items-center gap-1 rounded-full border border-border-strong bg-surface pl-3 pr-1 text-sm">
+    <span class="inline-flex min-h-9 items-center gap-1 rounded-full border border-border-strong bg-surface ps-3 pe-1 text-sm">
       <ng-content />
       @if (removable()) {
         <button type="button" class="inline-flex size-8 items-center justify-center rounded-full hover:bg-surface-alt" [attr.aria-label]="'Remove filter ' + label()" (click)="remove.emit()">

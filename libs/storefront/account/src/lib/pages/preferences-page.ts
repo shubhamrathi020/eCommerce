@@ -1,15 +1,15 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { I18nService, PushOptInService, SeoService, ToastService, TranslatePipe } from '@ecom/shared/core';
 import { PreferenceApi } from '@ecom/shared/data-access';
 import { ApiException, type NotificationPreferences } from '@ecom/shared/models';
-import { SkeletonComponent } from '@ecom/shared/ui';
+import { ButtonComponent, SkeletonComponent } from '@ecom/shared/ui';
 
 /** Order, security and payment messages are always on and are not shown as a toggle here. */
 @Component({
   selector: 'app-preferences-page',
-  imports: [SkeletonComponent],
+  imports: [SkeletonComponent, ButtonComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-1 text-2xl font-bold md:text-3xl">Notification preferences</h1>
@@ -60,6 +60,21 @@ import { SkeletonComponent } from '@ecom/shared/ui';
           </div>
         }
         <p aria-live="polite" class="text-sm text-success">{{ savedMessage() }}</p>
+
+        <section class="rounded-lg border border-border p-4" aria-labelledby="push-h">
+          <h2 id="push-h" class="font-medium">{{ 'push.title' | t }}</h2>
+          <p class="text-sm text-text-muted">{{ 'push.text' | t }}</p>
+          <p class="mt-1 text-xs text-text-muted">{{ 'push.demo' | t }}</p>
+          <p class="mt-2 text-sm" role="status">{{ pushMessage() }}</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            @if (push.state() === 'on') {
+              <button uiButton variant="secondary" size="sm" type="button" (click)="push.disable()">{{ 'push.disable' | t }}</button>
+              <button uiButton variant="secondary" size="sm" type="button" (click)="sendTest()">{{ 'push.test' | t }}</button>
+            } @else if (push.state() !== 'unsupported' && push.state() !== 'blocked') {
+              <button uiButton size="sm" type="button" (click)="push.enable()">{{ 'push.enable' | t }}</button>
+            }
+          </div>
+        </section>
       </div>
     } @else {
       <ui-skeleton class="h-64 max-w-xl" />
@@ -69,6 +84,13 @@ import { SkeletonComponent } from '@ecom/shared/ui';
 export class PreferencesPageComponent {
   private readonly api = inject(PreferenceApi);
   private readonly toast = inject(ToastService);
+  private readonly i18n = inject(I18nService);
+  protected readonly push = inject(PushOptInService);
+  protected readonly pushMessage = computed(() => ({ on: this.i18n.t('push.on'), off: this.i18n.t('push.off'), blocked: this.i18n.t('push.denied'), unsupported: this.i18n.t('push.unsupported') })[this.push.state()]);
+
+  protected async sendTest(): Promise<void> {
+    await this.push.sendTest(this.i18n.t('push.testTitle'), this.i18n.t('push.testBody'));
+  }
 
   protected readonly resource = rxResource({ stream: () => this.api.get() });
   protected readonly savedMessage = signal('');

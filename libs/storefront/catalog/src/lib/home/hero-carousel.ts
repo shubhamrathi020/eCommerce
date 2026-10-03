@@ -27,14 +27,14 @@ import { IconComponent } from '@ecom/shared/ui';
             <div class="absolute inset-0 flex flex-col justify-center gap-2 p-5 text-white md:gap-3 md:p-12">
               <h2 class="max-w-md text-2xl font-bold drop-shadow md:text-4xl">{{ banner.title }}</h2>
               <p class="max-w-md text-sm drop-shadow md:text-lg">{{ banner.subtitle }}</p>
-              <a [routerLink]="banner.link" class="mt-1 inline-flex min-h-11 w-fit items-center rounded-md bg-white px-5 font-semibold text-primary hover:bg-surface-alt">{{ banner.cta }}</a>
+              <a [routerLink]="banner.link" class="mt-1 inline-flex min-h-11 w-fit items-center rounded-md bg-white px-5 font-semibold text-[#4338ca] hover:bg-surface-alt">{{ banner.cta }}</a>
             </div>
           </div>
         }
       }
       @if (banners().length > 1) {
-        <button type="button" class="absolute left-2 top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/90 shadow-card hover:bg-surface" aria-label="Previous slide" (click)="step(-1)"><ui-icon name="chevron-right" class="rotate-180" /></button>
-        <button type="button" class="absolute right-2 top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/90 shadow-card hover:bg-surface" aria-label="Next slide" (click)="step(1)"><ui-icon name="chevron-right" /></button>
+        <button type="button" class="absolute start-2 top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/90 shadow-card hover:bg-surface" aria-label="Previous slide" (click)="step(-1)"><ui-icon name="chevron-right" class="rotate-180" /></button>
+        <button type="button" class="absolute end-2 top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/90 shadow-card hover:bg-surface" aria-label="Next slide" (click)="step(1)"><ui-icon name="chevron-right" /></button>
         <div class="absolute inset-x-0 bottom-2 flex justify-center gap-1">
           @for (banner of banners(); track banner.id; let i = $index) {
             <button type="button" class="inline-flex size-6 items-center justify-center" [attr.aria-label]="'Go to slide ' + (i + 1)" [attr.aria-current]="i === index() ? 'true' : null" (click)="index.set(i)">

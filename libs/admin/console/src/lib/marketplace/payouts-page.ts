@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminSellerApi } from '@ecom/shared/data-access';
 import { ApiException, type PayoutPreview, type PayoutStatement } from '@ecom/shared/models';
 import { MoneyPipe } from '@ecom/shared/util';
@@ -14,7 +13,7 @@ const money = (amount: number) => ({ amount, currency: 'INR' as const });
 /** Payout statements (MP-03): see what a seller is owed for a period, issue it, and record the transfer. No money moves in this demo. */
 @Component({
   selector: 'adm-payouts',
-  imports: [DatePipe, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
+  imports: [LocaleDatePipe, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p class="mb-4 max-w-2xl text-sm text-text-muted">A statement is built from the seller's delivered shipments in the period, less commission, minus any returns refunded in the period. Each shipment and return can be on one statement only.</p>
@@ -39,21 +38,21 @@ const money = (amount: number) => ({ amount, currency: 'INR' as const });
       <section class="mb-8 max-w-3xl" aria-labelledby="pv">
         <h2 id="pv" class="mb-2 text-lg font-semibold">{{ p.sellerName }}: {{ p.from }} to {{ p.to }}</h2>
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[34rem] text-left text-sm">
+          <table class="w-full min-w-[34rem] text-start text-sm">
             <caption class="sr-only">Statement preview</caption>
-            <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Order</th><th scope="col" class="p-2">Date</th><th scope="col" class="p-2 text-right">Sales</th><th scope="col" class="p-2 text-right">Commission</th><th scope="col" class="p-2 text-right">Net</th></tr></thead>
+            <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Order</th><th scope="col" class="p-2">Date</th><th scope="col" class="p-2 text-end">Sales</th><th scope="col" class="p-2 text-end">Commission</th><th scope="col" class="p-2 text-end">Net</th></tr></thead>
             <tbody class="divide-y divide-border">
               @for (l of p.lines; track l.shipmentId) {
-                <tr><th scope="row" class="p-2 font-normal">{{ l.orderId }}<span class="block text-xs text-text-muted">{{ l.percent }}%</span></th><td class="p-2">{{ l.deliveredAt | date: 'd MMM y' }}</td><td class="p-2 text-right">{{ m(l.gross) | money }}</td><td class="p-2 text-right">−{{ m(l.commission) | money }}</td><td class="p-2 text-right">{{ m(l.net) | money }}</td></tr>
+                <tr><th scope="row" class="p-2 font-normal">{{ l.orderId }}<span class="block text-xs text-text-muted">{{ l.percent }}%</span></th><td class="p-2">{{ l.deliveredAt | date: 'd MMM y' }}</td><td class="p-2 text-end">{{ m(l.gross) | money }}</td><td class="p-2 text-end">−{{ m(l.commission) | money }}</td><td class="p-2 text-end">{{ m(l.net) | money }}</td></tr>
               }
               @for (a of p.adjustments; track a.returnId) {
-                <tr><th scope="row" class="p-2 font-normal">Return {{ a.returnId }}<span class="block text-xs text-text-muted">order {{ a.orderId }}</span></th><td class="p-2">{{ a.refundedAt | date: 'd MMM y' }}</td><td class="p-2 text-right">{{ m(a.gross) | money }}</td><td class="p-2 text-right">{{ m(-a.commission) | money }}</td><td class="p-2 text-right">{{ m(a.net) | money }}</td></tr>
+                <tr><th scope="row" class="p-2 font-normal">Return {{ a.returnId }}<span class="block text-xs text-text-muted">order {{ a.orderId }}</span></th><td class="p-2">{{ a.refundedAt | date: 'd MMM y' }}</td><td class="p-2 text-end">{{ m(a.gross) | money }}</td><td class="p-2 text-end">{{ m(-a.commission) | money }}</td><td class="p-2 text-end">{{ m(a.net) | money }}</td></tr>
               }
               @if (p.lines.length === 0 && p.adjustments.length === 0) {
                 <tr><td colspan="5" class="p-3 text-text-muted">Nothing to pay out in this period.</td></tr>
               }
             </tbody>
-            <tfoot class="bg-surface-alt font-semibold"><tr><th scope="row" colspan="2" class="p-2 text-left">Total</th><td class="p-2 text-right">{{ m(p.gross) | money }}</td><td class="p-2 text-right">−{{ m(p.commission) | money }}</td><td class="p-2 text-right">{{ m(p.net) | money }}</td></tr></tfoot>
+            <tfoot class="bg-surface-alt font-semibold"><tr><th scope="row" colspan="2" class="p-2 text-start">Total</th><td class="p-2 text-end">{{ m(p.gross) | money }}</td><td class="p-2 text-end">−{{ m(p.commission) | money }}</td><td class="p-2 text-end">{{ m(p.net) | money }}</td></tr></tfoot>
           </table>
         </div>
         <button uiButton class="mt-3" type="button" [loading]="busy()" [disabled]="p.lines.length === 0 && p.adjustments.length === 0" (click)="issue(p)">Issue statement</button>
@@ -66,16 +65,16 @@ const money = (amount: number) => ({ amount, currency: 'INR' as const });
         <ui-empty-state title="No statements yet" />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[44rem] text-left text-sm">
+          <table class="w-full min-w-[44rem] text-start text-sm">
             <caption class="sr-only">Issued payout statements</caption>
-            <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Statement</th><th scope="col" class="p-2">Seller</th><th scope="col" class="p-2">Period</th><th scope="col" class="p-2 text-right">Net</th><th scope="col" class="p-2">Status</th><th scope="col" class="p-2"><span class="sr-only">Action</span></th></tr></thead>
+            <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Statement</th><th scope="col" class="p-2">Seller</th><th scope="col" class="p-2">Period</th><th scope="col" class="p-2 text-end">Net</th><th scope="col" class="p-2">Status</th><th scope="col" class="p-2"><span class="sr-only">Action</span></th></tr></thead>
             <tbody class="divide-y divide-border">
               @for (st of statements.value(); track st.id) {
                 <tr>
                   <th scope="row" class="p-2 font-mono text-xs font-normal">{{ st.id }}</th>
                   <td class="p-2">{{ st.sellerName }}</td>
                   <td class="whitespace-nowrap p-2 text-text-muted">{{ st.from }} to {{ st.to }}</td>
-                  <td class="p-2 text-right">{{ m(st.net) | money }}</td>
+                  <td class="p-2 text-end">{{ m(st.net) | money }}</td>
                   <td class="p-2"><ui-badge [tone]="st.status === 'paid' ? 'success' : 'warning'">{{ st.status === 'paid' ? 'Paid' : 'Issued' }}</ui-badge>@if (st.reference) { <span class="block text-xs text-text-muted">{{ st.reference }}</span> }</td>
                   <td class="p-2">
                     @if (st.status === 'issued') {

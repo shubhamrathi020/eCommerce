@@ -1,9 +1,9 @@
-import { DatePipe, NgOptimizedImage } from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { ReturnApi } from '@ecom/shared/data-access';
 import { type AttachmentMeta, ApiException, RETURN_REASONS, type ReturnItemSelection } from '@ecom/shared/models';
 import { MoneyPipe } from '@ecom/shared/util';
@@ -15,7 +15,7 @@ const MAX_COMMENTS = 500;
 /** Return request for one delivered order: choose items, a reason, see the refund before sending (RF-01, RF-03, RF-08). */
 @Component({
   selector: 'app-return-request-page',
-  imports: [DatePipe, NgOptimizedImage, RouterLink, MoneyPipe, ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent, AttachmentPickerComponent],
+  imports: [LocaleDatePipe, NgOptimizedImage, RouterLink, MoneyPipe, ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent, AttachmentPickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-1 text-2xl font-bold md:text-3xl">Return items</h1>
@@ -101,7 +101,7 @@ const MAX_COMMENTS = 500;
                 }
                 <div class="flex justify-between border-t border-border pt-2 text-base font-semibold"><dt>Refund</dt><dd>{{ q.total | money }}</dd></div>
               </dl>
-              <ul class="mt-2 list-disc pl-5 text-sm text-text-muted">
+              <ul class="mt-2 list-disc ps-5 text-sm text-text-muted">
                 @for (n of q.notes; track n) {
                   <li>{{ n }}</li>
                 }

@@ -1,14 +1,13 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SeoService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { MockMailbox, type MockMail } from '@ecom/shared/data-access';
 import { ButtonComponent, EmptyStateComponent } from '@ecom/shared/ui';
 
 /** Development-only inbox for the emails the mock backend would send (verification, reset, order confirmations). */
 @Component({
   selector: 'app-mailbox-page',
-  imports: [DatePipe, RouterLink, ButtonComponent, EmptyStateComponent],
+  imports: [LocaleDatePipe, RouterLink, ButtonComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-1 text-2xl font-bold md:text-3xl">Demo mailbox</h1>

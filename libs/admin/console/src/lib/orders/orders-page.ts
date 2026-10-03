@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { SeoService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { AdminOrderApi } from '@ecom/shared/data-access';
 import type { AdminOrderQuery, OrderStatus, PaymentMethod } from '@ecom/shared/models';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent } from '@ecom/shared/ui';
@@ -16,7 +15,7 @@ export const statusTone = (s: OrderStatus): 'neutral' | 'primary' | 'success' | 
 
 @Component({
   selector: 'adm-orders',
-  imports: [DatePipe, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-4 text-2xl font-bold">Orders</h1>
@@ -60,10 +59,10 @@ export const statusTone = (s: OrderStatus): 'neutral' | 'primary' | 'success' | 
         <ui-empty-state title="No orders found" description="Try different filters." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[44rem] text-left text-sm">
+          <table class="w-full min-w-[44rem] text-start text-sm">
             <caption class="sr-only">Orders</caption>
             <thead class="bg-surface-alt">
-              <tr><th scope="col" class="p-2">Order</th><th scope="col" class="p-2">Date</th><th scope="col" class="p-2">Customer</th><th scope="col" class="p-2">Status</th><th scope="col" class="p-2">Payment</th><th scope="col" class="p-2 text-right">Items</th><th scope="col" class="p-2 text-right">Total</th></tr>
+              <tr><th scope="col" class="p-2">Order</th><th scope="col" class="p-2">Date</th><th scope="col" class="p-2">Customer</th><th scope="col" class="p-2">Status</th><th scope="col" class="p-2">Payment</th><th scope="col" class="p-2 text-end">Items</th><th scope="col" class="p-2 text-end">Total</th></tr>
             </thead>
             <tbody class="divide-y divide-border">
               @for (o of page.items; track o.id) {
@@ -73,8 +72,8 @@ export const statusTone = (s: OrderStatus): 'neutral' | 'primary' | 'success' | 
                   <td class="p-2">{{ o.customerName }}</td>
                   <td class="p-2"><ui-badge [tone]="tone(o.status)">{{ label(o.status) }}</ui-badge></td>
                   <td class="p-2">{{ o.paymentMethod === 'cod' ? 'Cash on delivery' : 'Online' }} · {{ o.paymentStatus.replace('_', ' ') }}</td>
-                  <td class="p-2 text-right">{{ o.itemCount }}</td>
-                  <td class="p-2 text-right">{{ o.total | money }}</td>
+                  <td class="p-2 text-end">{{ o.itemCount }}</td>
+                  <td class="p-2 text-end">{{ o.total | money }}</td>
                 </tr>
               }
             </tbody>

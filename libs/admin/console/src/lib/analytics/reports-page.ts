@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminAnalyticsApi } from '@ecom/shared/data-access';
 import { ApiException, REPORT_DAYS, REPORT_LABEL, type ReportKey, type ReportSchedule } from '@ecom/shared/models';
 import { AuthStore } from '@ecom/shared/state';
@@ -13,7 +12,7 @@ const REPORTS = Object.keys(REPORT_LABEL) as ReportKey[];
 /** Scheduled reports (AN-06). In this demo they are delivered to the mock mailbox; the real backend sends them by email from a scheduled job. */
 @Component({
   selector: 'adm-report-schedules',
-  imports: [DatePipe, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
+  imports: [LocaleDatePipe, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="mb-6 grid max-w-3xl gap-3 sm:grid-cols-5 sm:items-start" (submit)="create($event)" novalidate aria-label="Schedule a report">
@@ -51,7 +50,7 @@ const REPORTS = Object.keys(REPORT_LABEL) as ReportKey[];
         <ui-empty-state title="No scheduled reports" description="Schedule one above and it will arrive in the mock mailbox." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[44rem] text-left text-sm">
+          <table class="w-full min-w-[44rem] text-start text-sm">
             <caption class="sr-only">Scheduled reports</caption>
             <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Report</th><th scope="col" class="p-2">Sent</th><th scope="col" class="p-2">To</th><th scope="col" class="p-2">Last sent</th><th scope="col" class="p-2">Next</th><th scope="col" class="p-2"><span class="sr-only">Actions</span></th></tr></thead>
             <tbody class="divide-y divide-border">
@@ -62,7 +61,7 @@ const REPORTS = Object.keys(REPORT_LABEL) as ReportKey[];
                   <td class="p-2">{{ s.recipient }}</td>
                   <td class="whitespace-nowrap p-2 text-text-muted">{{ s.lastRunAt ? (s.lastRunAt | date: 'd MMM, h:mm a') : 'Never' }}</td>
                   <td class="whitespace-nowrap p-2 text-text-muted">{{ s.nextRunAt | date: 'd MMM, h:mm a' }}</td>
-                  <td class="whitespace-nowrap p-2 text-right">
+                  <td class="whitespace-nowrap p-2 text-end">
                     <button uiButton size="sm" variant="secondary" type="button" (click)="sendNow(s)">Send now<span class="sr-only"> {{ labels[s.report] }}</span></button>
                     <button uiButton size="sm" variant="ghost" type="button" (click)="remove(s)">Remove<span class="sr-only"> {{ labels[s.report] }}</span></button>
                   </td>

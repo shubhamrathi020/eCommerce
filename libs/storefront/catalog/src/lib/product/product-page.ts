@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, linkedSignal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { RESPONSE_INIT } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AnalyticsService, BottomBarService, CART_FACADE, CompareStore, ConsentService, RecentlyViewedStore, SeoService, ToastService, WishlistStore } from '@ecom/shared/core';
+import { AnalyticsService, BottomBarService, CART_FACADE, CompareStore, ConsentService, LocaleDatePipe, RecentlyViewedStore, SeoService, ToastService, WishlistStore } from '@ecom/shared/core';
 import { AlertApi, CatalogApi, CategoryApi, LOW_STOCK_THRESHOLD } from '@ecom/shared/data-access';
 import type { AlertKind, AttributeDef, CategoryNode, Product, Variant } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -31,7 +30,7 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
 @Component({
   selector: 'app-product-page',
   imports: [
-    DatePipe,
+    LocaleDatePipe,
     BadgeComponent,
     BreadcrumbComponent,
     ButtonComponent,
@@ -77,7 +76,7 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
             <p aria-live="polite">
               @if (v.stock === 0 && v.backorder) {
                 <ui-badge tone="warning">Backorder</ui-badge>
-                <span class="ml-2 text-sm">{{ v.backorder.expectedDate ? 'Ships around ' + (v.backorder.expectedDate | date: 'd MMM y') : 'Ships when it is back in stock' }}</span>
+                <span class="ms-2 text-sm">{{ v.backorder.expectedDate ? 'Ships around ' + (v.backorder.expectedDate | date: 'd MMM y') : 'Ships when it is back in stock' }}</span>
               } @else if (v.stock === 0) {
                 <ui-badge tone="danger">Out of stock</ui-badge>
               } @else if (v.stock <= lowStock) {
@@ -85,7 +84,7 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
               } @else {
                 <ui-badge tone="success">In stock</ui-badge>
               }
-              <span class="ml-2 text-sm text-text-muted">SKU {{ v.sku }}</span>
+              <span class="ms-2 text-sm text-text-muted">SKU {{ v.sku }}</span>
             </p>
           }
 
@@ -137,7 +136,7 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
 
           <section aria-label="Offers" class="rounded-lg border border-border p-3 text-sm">
             <h2 class="mb-1 font-semibold">Offers</h2>
-            <ul class="list-disc space-y-1 pl-5 text-text-muted">
+            <ul class="list-disc space-y-1 ps-5 text-text-muted">
               <li>Extra 5% off with UPI payments</li>
               <li>Free delivery on orders above ₹499</li>
               <li>Easy 7-day returns on eligible items</li>
@@ -147,7 +146,7 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
           @if (p.highlights.length) {
             <section aria-label="Highlights">
               <h2 class="mb-1 font-semibold">Highlights</h2>
-              <ul class="list-disc space-y-1 pl-5 text-text-muted">
+              <ul class="list-disc space-y-1 ps-5 text-text-muted">
                 @for (h of p.highlights; track h) {
                   <li>{{ h }}</li>
                 }
@@ -162,12 +161,12 @@ function flatten(nodes: CategoryNode[]): CategoryNode[] {
           <div class="max-w-3xl space-y-3 text-text" [innerHTML]="p.description"></div>
         </ng-template>
         <ng-template uiTab="Specifications">
-          <table class="w-full max-w-3xl text-left text-sm">
+          <table class="w-full max-w-3xl text-start text-sm">
             <caption class="sr-only">Specifications</caption>
             <tbody class="divide-y divide-border">
               @for (row of specs(); track row.label) {
                 <tr>
-                  <th scope="row" class="w-1/3 py-2 pr-4 font-medium text-text-muted">{{ row.label }}</th>
+                  <th scope="row" class="w-1/3 py-2 pe-4 font-medium text-text-muted">{{ row.label }}</th>
                   <td class="py-2">{{ row.value }}</td>
                 </tr>
               }

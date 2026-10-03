@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
@@ -9,7 +8,6 @@ import { DEMO_ACCOUNTS, MockMailbox, provideAdminDataAccess, provideDataAccess }
 import { AuthStore } from '@ecom/shared/state';
 import { adminRoutes } from '../admin.routes';
 
-vi.setConfig({ testTimeout: 30_000 });
 const config = { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop Admin', siteUrl: 'http://x', storefrontUrl: 'http://shop.test', features: {} };
 
 async function settle(h: RouterTestingHarness, rounds = 12) {

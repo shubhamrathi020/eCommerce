@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminNotificationApi } from '@ecom/shared/data-access';
 import type { DeliveryQuery, DeliveryStatus } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -14,7 +13,7 @@ const PAGE_SIZE = 25;
 /** Every message the platform has sent, with a reason and a retry for failures. */
 @Component({
   selector: 'adm-delivery-log',
-  imports: [DatePipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="mb-4 flex flex-wrap items-end gap-3" role="search" aria-label="Filter the delivery log" (submit)="search($event)">
@@ -39,7 +38,7 @@ const PAGE_SIZE = 25;
         <ui-empty-state title="Nothing sent yet" description="Order, review and alert emails will show up here." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[46rem] text-left text-sm">
+          <table class="w-full min-w-[46rem] text-start text-sm">
             <caption class="sr-only">Delivery log</caption>
             <thead class="bg-surface-alt">
               <tr>
@@ -65,7 +64,7 @@ const PAGE_SIZE = 25;
                     }
                   </td>
                   <td class="p-2"><ui-badge [tone]="e.status === 'sent' ? 'success' : 'danger'">{{ e.status }}</ui-badge></td>
-                  <td class="p-2 text-right">
+                  <td class="p-2 text-end">
                     @if (e.status === 'failed') {
                       <button type="button" class="min-h-11 px-2 font-medium text-primary hover:underline" [disabled]="retrying() === e.id" (click)="retry(e.id)">{{ retrying() === e.id ? 'Retrying…' : 'Retry' }}</button>
                     }

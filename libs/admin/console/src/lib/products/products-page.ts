@@ -1,9 +1,9 @@
-import { DatePipe, NgOptimizedImage } from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminProductApi } from '@ecom/shared/data-access';
 import type { AdminProductQuery, ProductStatus } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -16,7 +16,7 @@ const TONES = { published: 'success', draft: 'warning', archived: 'neutral' } as
 
 @Component({
   selector: 'adm-products',
-  imports: [DatePipe, NgOptimizedImage, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, NgOptimizedImage, RouterLink, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -70,15 +70,15 @@ const TONES = { published: 'success', draft: 'warning', archived: 'neutral' } as
         <ui-empty-state title="No products found" description="Try a different search or filter." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[46rem] text-left text-sm">
+          <table class="w-full min-w-[46rem] text-start text-sm">
             <caption class="sr-only">Products</caption>
             <thead class="bg-surface-alt">
               <tr>
                 <th scope="col" class="w-10 p-2"><input type="checkbox" class="size-5 accent-primary" aria-label="Select all on this page" [checked]="allSelected()" (change)="toggleAll(page.items)" /></th>
                 <th scope="col" class="p-2">Product</th>
                 <th scope="col" class="p-2">Status</th>
-                <th scope="col" class="p-2 text-right">From price</th>
-                <th scope="col" class="p-2 text-right">Stock</th>
+                <th scope="col" class="p-2 text-end">From price</th>
+                <th scope="col" class="p-2 text-end">Stock</th>
                 <th scope="col" class="p-2">Updated</th>
               </tr>
             </thead>
@@ -96,8 +96,8 @@ const TONES = { published: 'success', draft: 'warning', archived: 'neutral' } as
                     </div>
                   </td>
                   <td class="p-2"><ui-badge [tone]="tone(row.status)">{{ row.status }}</ui-badge></td>
-                  <td class="p-2 text-right">{{ row.priceMin | money }}</td>
-                  <td class="p-2 text-right" [class.text-danger]="row.stockTotal === 0">{{ row.stockTotal }}</td>
+                  <td class="p-2 text-end">{{ row.priceMin | money }}</td>
+                  <td class="p-2 text-end" [class.text-danger]="row.stockTotal === 0">{{ row.stockTotal }}</td>
                   <td class="p-2 text-text-muted">{{ row.updatedAt | date: 'd MMM y' }}</td>
                 </tr>
               }

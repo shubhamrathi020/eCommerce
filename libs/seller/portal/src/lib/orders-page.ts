@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { SellerPortalApi } from '@ecom/shared/data-access';
 import { ApiException, SELLER_NEXT, SHIPMENT_LABEL, type SellerShipmentView } from '@ecom/shared/models';
 import { MoneyPipe } from '@ecom/shared/util';
@@ -13,7 +12,7 @@ const NEXT_ACTION: Record<string, string> = { packed: 'Mark as packed', shipped:
 /** The seller's shipments (MP-04): the part of each order they send. Only the ship-to details needed to deliver are shown. */
 @Component({
   selector: 'sel-orders',
-  imports: [DatePipe, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
+  imports: [LocaleDatePipe, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-1 text-2xl font-bold">Orders to ship</h1>

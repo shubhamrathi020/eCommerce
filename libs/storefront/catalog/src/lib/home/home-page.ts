@@ -66,7 +66,7 @@ import { HeroCarouselComponent } from './hero-carousel';
                     <section [attr.aria-label]="section.title" class="rounded-lg bg-surface-alt p-4 md:p-6">
                       <p class="mb-3 text-sm">
                         <span class="text-lg font-semibold md:text-2xl">{{ section.title }}</span>
-                        <span class="ml-3 text-text-muted">Ends in <ui-countdown [endsAt]="data.deals.endsAt" /></span>
+                        <span class="ms-3 text-text-muted">Ends in <ui-countdown [endsAt]="data.deals.endsAt" /></span>
                       </p>
                       <app-product-row title="Deals on top picks" [items]="data.deals.items" />
                     </section>

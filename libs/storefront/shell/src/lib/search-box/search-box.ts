@@ -2,7 +2,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { AnalyticsService, AppReadyService, RecentSearchesStore } from '@ecom/shared/core';
+import { AnalyticsService, AppReadyService, I18nService, RecentSearchesStore, TranslatePipe } from '@ecom/shared/core';
 import { SearchApi } from '@ecom/shared/data-access';
 import { IconComponent } from '@ecom/shared/ui';
 import { MoneyPipe } from '@ecom/shared/util';
@@ -21,17 +21,16 @@ interface SearchOption {
 }
 
 const DEBOUNCE_MS = 150;
-const GROUP_TITLES: Record<OptionKind, string> = { recent: 'Recent searches', query: 'Suggestions', product: 'Products', category: 'Categories', brand: 'Brands' };
 
 /** Search field with autocomplete (ARIA combobox). Arrow keys move, Enter selects, Escape closes. */
 @Component({
   selector: 'app-search-box',
-  imports: [NgOptimizedImage, IconComponent, MoneyPipe],
+  imports: [NgOptimizedImage, IconComponent, MoneyPipe, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'relative block', '(document:click)': 'onDocumentClick($event)' },
   template: `
     <form role="search" class="flex" (submit)="submit($event)">
-      <label [attr.for]="idPrefix() + '-input'" class="sr-only">Search products</label>
+      <label [attr.for]="idPrefix() + '-input'" class="sr-only">{{ 'search.label' | t }}</label>
       <input
         [id]="idPrefix() + '-input'"
         type="search"
@@ -39,8 +38,8 @@ const GROUP_TITLES: Record<OptionKind, string> = { recent: 'Recent searches', qu
         role="combobox"
         autocomplete="off"
         maxlength="100"
-        [placeholder]="placeholder()"
-        class="min-h-11 w-full rounded-l-md border border-r-0 border-border-strong bg-surface px-3 text-base"
+        [placeholder]="placeholder() ?? ('search.placeholder' | t)"
+        class="min-h-11 w-full rounded-s-md border border-e-0 border-border-strong bg-surface px-3 text-base"
         aria-autocomplete="list"
         [attr.aria-expanded]="open() && options().length > 0"
         [attr.aria-controls]="idPrefix() + '-list'"
@@ -50,13 +49,13 @@ const GROUP_TITLES: Record<OptionKind, string> = { recent: 'Recent searches', qu
         (focus)="open.set(true)"
         (keydown)="onKeydown($event)"
       />
-      <button type="submit" [disabled]="!appReady.ready()" class="inline-flex min-h-11 items-center justify-center rounded-r-md bg-primary px-4 text-primary-contrast hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50" aria-label="Search"><ui-icon name="search" /></button>
+      <button type="submit" [disabled]="!appReady.ready()" class="inline-flex min-h-11 items-center justify-center rounded-e-md bg-primary px-4 text-primary-contrast hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50" [attr.aria-label]="'search.button' | t"><ui-icon name="search" /></button>
     </form>
 
-    <p class="sr-only" role="status" aria-live="polite">{{ open() && options().length ? options().length + ' suggestions available' : '' }}</p>
+    <p class="sr-only" role="status" aria-live="polite">{{ open() && options().length ? ('search.available' | t: { count: options().length }) : '' }}</p>
 
     @if (open() && options().length > 0) {
-      <ul [id]="idPrefix() + '-list'" role="listbox" [attr.aria-label]="'Search suggestions'" class="absolute left-0 right-0 top-full z-30 mt-1 max-h-[70vh] overflow-y-auto rounded-md border border-border bg-surface py-1 shadow-popover">
+      <ul [id]="idPrefix() + '-list'" role="listbox" [attr.aria-label]="'search.suggestions' | t" class="absolute start-0 end-0 top-full z-30 mt-1 max-h-[70vh] overflow-y-auto rounded-md border border-border bg-surface py-1 shadow-popover">
         @for (option of options(); track option.id; let i = $index) {
           @if (i === 0 || options()[i - 1].kind !== option.kind) {
             <li role="presentation" class="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-text-muted">{{ groupTitle(option.kind) }}</li>
@@ -94,8 +93,9 @@ const GROUP_TITLES: Record<OptionKind, string> = { recent: 'Recent searches', qu
 export class SearchBoxComponent {
   /** Unique per instance (ids must not clash when the box appears twice). */
   readonly idPrefix = input.required<string>();
-  readonly placeholder = input('Search for products, brands and more');
+  readonly placeholder = input<string | undefined>();
 
+  private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
   private readonly api = inject(SearchApi);
   private readonly recent = inject(RecentSearchesStore);
@@ -121,13 +121,13 @@ export class SearchBoxComponent {
     if (!s || this.debounced().trim() !== q) return out;
     for (const term of s.queries) if (!out.some((o) => o.label.toLowerCase() === term.toLowerCase())) out.push({ id: `q-${term}`, kind: 'query', label: term });
     for (const p of s.products) out.push({ id: `p-${p.id}`, kind: 'product', label: p.title, sub: p.brandName, link: ['/p', p.slug], image: p.image, price: p.priceMin });
-    for (const c of s.categories) out.push({ id: `c-${c.slug}`, kind: 'category', label: c.name, sub: 'Category', link: ['/c', c.slug] });
-    for (const b of s.brands) out.push({ id: `b-${b.slug}`, kind: 'brand', label: b.name, sub: 'Brand', link: ['/b', b.slug] });
+    for (const c of s.categories) out.push({ id: `c-${c.slug}`, kind: 'category', label: c.name, sub: this.i18n.t('search.sub.category'), link: ['/c', c.slug] });
+    for (const b of s.brands) out.push({ id: `b-${b.slug}`, kind: 'brand', label: b.name, sub: this.i18n.t('search.sub.brand'), link: ['/b', b.slug] });
     return out;
   });
 
   protected groupTitle(kind: OptionKind): string {
-    return GROUP_TITLES[kind];
+    return this.i18n.t(`search.group.${kind}`);
   }
 
   protected onInput(value: string): void {

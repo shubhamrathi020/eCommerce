@@ -20,6 +20,8 @@
   --color-danger: #dc2626;
   --color-info: #0369a1;
   --color-sale: #b91c1c;
+  /* Text on a solid status colour (badges, banners). White in light mode; dark in dark mode where the status colours are lighter. */
+  --color-on-status: #ffffff;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -38,8 +40,16 @@
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* Dark theme tokens are ready; the UI switch ships in P3. */
-[data-theme='dark'] {
+/*
+ * Dark theme (BRD 18, LX-04). Applied when the visitor chose dark (data-theme="dark" on <html>), or when they chose nothing
+ * (no data-theme) and their device prefers dark. data-theme="light" always wins. Pairs are checked for WCAG AA in
+ * libs/shared/ui/src/styles/theme.spec.ts, so changing a value here is tested.
+ */
+:root {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
   --color-bg: #0b1020;
   --color-surface: #111827;
   --color-surface-alt: #1f2937;
@@ -47,9 +57,36 @@
   --color-border-strong: #9ca3af;
   --color-text: #f9fafb;
   --color-text-muted: #d1d5db;
-  --color-primary: #818cf8;
-  --color-primary-hover: #a5b4fc;
+  --color-primary: #a5b4fc;
+  --color-primary-hover: #c7d2fe;
   --color-primary-contrast: #0b1020;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-info: #38bdf8;
+  --color-sale: #fb7185;
+  --color-on-status: #0b1020;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --color-bg: #0b1020;
+    --color-surface: #111827;
+    --color-surface-alt: #1f2937;
+    --color-border: #374151;
+    --color-border-strong: #9ca3af;
+    --color-text: #f9fafb;
+    --color-text-muted: #d1d5db;
+    --color-primary: #a5b4fc;
+    --color-primary-hover: #c7d2fe;
+    --color-primary-contrast: #0b1020;
+    --color-success: #4ade80;
+    --color-warning: #fbbf24;
+    --color-danger: #f87171;
+    --color-info: #38bdf8;
+    --color-sale: #fb7185;
+    --color-on-status: #0b1020;
+  }
 }
 
 @layer base {

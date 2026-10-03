@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminPromotionApi } from '@ecom/shared/data-access';
 import { ApiException, PROMOTION_KIND_LABEL, type Promotion, SEGMENT_LABEL } from '@ecom/shared/models';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, SkeletonComponent } from '@ecom/shared/ui';
@@ -11,7 +10,7 @@ import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateCompone
 /** All promotions with their schedule and rules of engagement; pause, edit or delete each one. */
 @Component({
   selector: 'adm-promotions',
-  imports: [DatePipe, RouterLink, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, RouterLink, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -23,7 +22,7 @@ import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateCompone
         <ui-empty-state title="No promotions" description="Create one to apply savings automatically." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[56rem] text-left text-sm">
+          <table class="w-full min-w-[56rem] text-start text-sm">
             <caption class="sr-only">Promotions</caption>
             <thead class="bg-surface-alt">
               <tr>
@@ -45,7 +44,7 @@ import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateCompone
                   <td class="p-2">{{ segments[p.segment] }}</td>
                   <td class="p-2">{{ p.stacking === 'exclusive' ? 'Exclusive' : 'Stackable' }}</td>
                   <td class="p-2"><ui-badge [tone]="p.enabled ? 'success' : 'neutral'">{{ p.enabled ? 'Active' : 'Paused' }}</ui-badge></td>
-                  <td class="whitespace-nowrap p-2 text-right">
+                  <td class="whitespace-nowrap p-2 text-end">
                     <button uiButton size="sm" variant="ghost" type="button" (click)="toggle(p)">{{ p.enabled ? 'Pause' : 'Resume' }}<span class="sr-only"> {{ p.name }}</span></button>
                     @if (confirming() === p.id) {
                       <button uiButton size="sm" variant="danger" type="button" (click)="remove(p)">Confirm delete<span class="sr-only"> {{ p.name }}</span></button>

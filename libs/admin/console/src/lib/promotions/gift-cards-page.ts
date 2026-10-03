@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminGiftCardApi } from '@ecom/shared/data-access';
 import { ApiException, type GiftCard } from '@ecom/shared/models';
 import { MoneyPipe } from '@ecom/shared/util';
@@ -12,7 +11,7 @@ import { rupeesToPaise } from '../list-params';
 /** Issue gift cards and see each balance with its full history (PE-05). Balances never go below zero. */
 @Component({
   selector: 'adm-gift-cards',
-  imports: [DatePipe, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
+  imports: [LocaleDatePipe, MoneyPipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="mb-6 grid max-w-3xl gap-3 sm:grid-cols-5 sm:items-start" (submit)="issue($event)" novalidate aria-label="Issue a gift card">
@@ -31,13 +30,13 @@ import { rupeesToPaise } from '../list-params';
         <ui-empty-state title="No gift cards" description="Issue one above." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[44rem] text-left text-sm">
+          <table class="w-full min-w-[44rem] text-start text-sm">
             <caption class="sr-only">Gift cards</caption>
             <thead class="bg-surface-alt">
               <tr>
                 <th scope="col" class="p-2">Code</th>
-                <th scope="col" class="p-2 text-right">Issued</th>
-                <th scope="col" class="p-2 text-right">Balance</th>
+                <th scope="col" class="p-2 text-end">Issued</th>
+                <th scope="col" class="p-2 text-end">Balance</th>
                 <th scope="col" class="p-2">Expires</th>
                 <th scope="col" class="p-2">Status</th>
                 <th scope="col" class="p-2"><span class="sr-only">Actions</span></th>
@@ -47,11 +46,11 @@ import { rupeesToPaise } from '../list-params';
               @for (g of resource.value(); track g.code) {
                 <tr>
                   <td class="p-2 font-mono">{{ g.code }}@if (g.issuedTo) { <span class="block font-sans text-xs text-text-muted">{{ g.issuedTo }}</span> }</td>
-                  <td class="p-2 text-right">{{ { amount: g.initialAmount, currency: 'INR' } | money }}</td>
-                  <td class="p-2 text-right font-medium">{{ { amount: g.balance, currency: 'INR' } | money }}</td>
+                  <td class="p-2 text-end">{{ { amount: g.initialAmount, currency: 'INR' } | money }}</td>
+                  <td class="p-2 text-end font-medium">{{ { amount: g.balance, currency: 'INR' } | money }}</td>
                   <td class="whitespace-nowrap p-2 text-text-muted">{{ g.expiresAt ? (g.expiresAt | date: 'd MMM y') : 'Never' }}</td>
                   <td class="p-2"><ui-badge [tone]="g.status === 'active' ? 'success' : 'neutral'">{{ g.status === 'active' ? 'Active' : 'Disabled' }}</ui-badge></td>
-                  <td class="whitespace-nowrap p-2 text-right">
+                  <td class="whitespace-nowrap p-2 text-end">
                     <button uiButton size="sm" variant="ghost" type="button" [attr.aria-expanded]="open() === g.code" (click)="open.set(open() === g.code ? '' : g.code)">History<span class="sr-only"> for {{ g.code }}</span></button>
                     <button uiButton size="sm" variant="ghost" type="button" (click)="toggle(g)">{{ g.status === 'active' ? 'Disable' : 'Enable' }}<span class="sr-only"> {{ g.code }}</span></button>
                   </td>

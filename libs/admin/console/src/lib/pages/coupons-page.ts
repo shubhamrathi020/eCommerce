@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom, type Observable } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminCouponApi } from '@ecom/shared/data-access';
 import type { AdminCoupon, CouponKind } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -15,7 +14,7 @@ const KIND_LABEL: Record<CouponKind, string> = { percent: 'Percent off', flat: '
 
 @Component({
   selector: 'adm-coupons',
-  imports: [DatePipe, ReactiveFormsModule, MoneyPipe, BadgeComponent, ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
+  imports: [LocaleDatePipe, ReactiveFormsModule, MoneyPipe, BadgeComponent, ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mb-4 flex items-center justify-between">
@@ -65,19 +64,19 @@ const KIND_LABEL: Record<CouponKind, string> = { percent: 'Percent off', flat: '
 
     @if (coupons().length) {
       <div class="overflow-x-auto rounded-lg border border-border">
-        <table class="w-full min-w-[42rem] text-left text-sm">
+        <table class="w-full min-w-[42rem] text-start text-sm">
           <caption class="sr-only">Coupons</caption>
-          <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Code</th><th scope="col" class="p-2">Offer</th><th scope="col" class="p-2 text-right">Minimum</th><th scope="col" class="p-2">Expires</th><th scope="col" class="p-2 text-right">Used</th><th scope="col" class="p-2">Status</th><th scope="col" class="p-2"><span class="sr-only">Actions</span></th></tr></thead>
+          <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">Code</th><th scope="col" class="p-2">Offer</th><th scope="col" class="p-2 text-end">Minimum</th><th scope="col" class="p-2">Expires</th><th scope="col" class="p-2 text-end">Used</th><th scope="col" class="p-2">Status</th><th scope="col" class="p-2"><span class="sr-only">Actions</span></th></tr></thead>
           <tbody class="divide-y divide-border">
             @for (c of coupons(); track c.code) {
               <tr>
                 <th scope="row" class="p-2 font-mono font-semibold">{{ c.code }}</th>
                 <td class="p-2">{{ describe(c) }}<span class="block text-xs text-text-muted">{{ c.description }}</span></td>
-                <td class="p-2 text-right">{{ { amount: c.minSubtotal, currency: 'INR' } | money }}</td>
+                <td class="p-2 text-end">{{ { amount: c.minSubtotal, currency: 'INR' } | money }}</td>
                 <td class="p-2">{{ c.expiresAt ? (c.expiresAt | date: 'd MMM y') : 'Never' }}</td>
-                <td class="p-2 text-right">{{ c.usageCount }}</td>
+                <td class="p-2 text-end">{{ c.usageCount }}</td>
                 <td class="p-2"><ui-badge [tone]="c.active ? 'success' : 'neutral'">{{ c.active ? 'Active' : 'Inactive' }}</ui-badge></td>
-                <td class="p-2 text-right">
+                <td class="p-2 text-end">
                   <button type="button" class="min-h-11 px-2 font-medium text-primary hover:underline" (click)="edit(c)">Edit<span class="sr-only"> {{ c.code }}</span></button>
                   <button type="button" class="min-h-11 px-2 font-medium text-primary hover:underline" (click)="toggle(c)">{{ c.active ? 'Deactivate' : 'Activate' }}<span class="sr-only"> {{ c.code }}</span></button>
                 </td>

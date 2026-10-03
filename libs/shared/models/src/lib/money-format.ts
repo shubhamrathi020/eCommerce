@@ -3,15 +3,21 @@ import type { Money } from './money';
 /** Formats minor units as currency, e.g. 129900 paise -> "₹1,299". Whole amounts drop decimals.
  * Lives here (not just in `@ecom/shared/util`) so `apps/api` can build the same human-readable
  * notices the mock does, without pulling in an Angular-oriented shared lib. */
+const formatters = new Map<string, Intl.NumberFormat>();
+
+/** Intl formatters are slow to build, so they are built once per locale, currency and decimals. */
+function formatter(locale: string, currency: string, whole: boolean): Intl.NumberFormat {
+  const key = `${locale}|${currency}|${whole}`;
+  let f = formatters.get(key);
+  if (!f) {
+    f = new Intl.NumberFormat(locale, { style: 'currency', currency, minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2 });
+    formatters.set(key, f);
+  }
+  return f;
+}
+
 export function formatMoney(money: Money, locale = 'en-IN'): string {
-  const major = money.amount / 100;
-  const whole = money.amount % 100 === 0;
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: money.currency,
-    minimumFractionDigits: whole ? 0 : 2,
-    maximumFractionDigits: whole ? 0 : 2,
-  }).format(major);
+  return formatter(locale, money.currency, money.amount % 100 === 0).format(money.amount / 100);
 }
 
 /**

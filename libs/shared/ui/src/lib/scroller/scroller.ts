@@ -11,10 +11,10 @@ import { IconComponent } from '../icon/icon';
     <div #track class="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:thin]" role="list" [attr.aria-label]="label()">
       <ng-content />
     </div>
-    <button type="button" class="absolute -left-3 top-1/3 hidden size-11 items-center justify-center rounded-full border border-border bg-surface shadow-card hover:bg-surface-alt md:inline-flex" aria-label="Scroll left" (click)="scroll(-1)">
+    <button type="button" class="absolute -start-3 top-1/3 hidden size-11 items-center justify-center rounded-full border border-border bg-surface shadow-card hover:bg-surface-alt md:inline-flex" aria-label="Scroll left" (click)="scroll(-1)">
       <ui-icon name="chevron-right" class="rotate-180" />
     </button>
-    <button type="button" class="absolute -right-3 top-1/3 hidden size-11 items-center justify-center rounded-full border border-border bg-surface shadow-card hover:bg-surface-alt md:inline-flex" aria-label="Scroll right" (click)="scroll(1)">
+    <button type="button" class="absolute -end-3 top-1/3 hidden size-11 items-center justify-center rounded-full border border-border bg-surface shadow-card hover:bg-surface-alt md:inline-flex" aria-label="Scroll right" (click)="scroll(1)">
       <ui-icon name="chevron-right" />
     </button>
   `,

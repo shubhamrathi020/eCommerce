@@ -1,22 +1,23 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import type { AppliedCoupon, AppliedPromotion, CartTotals } from '@ecom/shared/models';
 import { MoneyPipe } from '@ecom/shared/util';
+import { TranslatePipe } from '@ecom/shared/core';
 
 /** Price breakdown for a cart or an order. All figures come from the server; nothing is computed here. */
 @Component({
   selector: 'ui-order-summary',
-  imports: [MoneyPipe],
+  imports: [MoneyPipe, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <dl class="space-y-2 text-sm">
       <div class="flex justify-between">
-        <dt>Items ({{ totals().itemCount }})</dt>
+        <dt>{{ 'summary.items' | t: { count: totals().itemCount } }}</dt>
         <dd>{{ totals().subtotal | money }}</dd>
       </div>
       @if (totals().mrpSavings.amount > 0) {
         <div class="flex justify-between text-success">
-          <dt>You save on MRP</dt>
+          <dt>{{ 'summary.mrpSavings' | t }}</dt>
           <dd>{{ totals().mrpSavings | money }}</dd>
         </div>
       }
@@ -28,39 +29,39 @@ import { MoneyPipe } from '@ecom/shared/util';
       } @empty {
         @if (totals().promotionDiscount; as offers) {
           <div class="flex justify-between text-success">
-            <dt>Offers</dt>
+            <dt>{{ 'summary.offers' | t }}</dt>
             <dd>−{{ offers | money }}</dd>
           </div>
         }
       }
       @if (coupon(); as c) {
         <div class="flex justify-between text-success">
-          <dt>Coupon {{ c.code }}</dt>
+          <dt>{{ 'summary.coupon' | t: { code: c.code } }}</dt>
           <dd>−{{ totals().couponDiscount | money }}</dd>
         </div>
       }
       <div class="flex justify-between">
-        <dt>Shipping</dt>
-        <dd>{{ totals().shipping.amount === 0 ? 'Free' : (totals().shipping | money) }}</dd>
+        <dt>{{ 'summary.shipping' | t }}</dt>
+        <dd>{{ totals().shipping.amount === 0 ? ('summary.free' | t) : (totals().shipping | money) }}</dd>
       </div>
       @if (totals().giftCardApplied; as gift) {
         <div class="flex justify-between text-success">
-          <dt>Gift card</dt>
+          <dt>{{ 'summary.giftCard' | t }}</dt>
           <dd>−{{ gift | money }}</dd>
         </div>
       }
       @if (totals().creditApplied; as credit) {
         <div class="flex justify-between text-success">
-          <dt>Store credit</dt>
+          <dt>{{ 'summary.credit' | t }}</dt>
           <dd>−{{ credit | money }}</dd>
         </div>
       }
       <div class="flex justify-between border-t border-border pt-2 text-base font-semibold">
-        <dt>{{ totals().giftCardApplied || totals().creditApplied ? 'To pay' : 'Total' }}</dt>
+        <dt>{{ totals().giftCardApplied || totals().creditApplied ? ('summary.toPay' | t) : ('summary.total' | t) }}</dt>
         <dd>{{ totals().total | money }}</dd>
       </div>
       <div class="flex justify-between text-xs text-text-muted">
-        <dt>Includes GST</dt>
+        <dt>{{ 'summary.gst' | t }}</dt>
         <dd>{{ totals().taxIncluded | money }}</dd>
       </div>
     </dl>

@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom, type Observable } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminContentApi } from '@ecom/shared/data-access';
 import type { Redirect } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
@@ -11,7 +10,7 @@ import { ButtonComponent, EmptyStateComponent, FormFieldComponent, InputDirectiv
 
 @Component({
   selector: 'adm-redirects',
-  imports: [DatePipe, ReactiveFormsModule, ButtonComponent, EmptyStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
+  imports: [LocaleDatePipe, ReactiveFormsModule, ButtonComponent, EmptyStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h2 class="mb-1 text-xl font-semibold">Redirects</h2>
@@ -28,7 +27,7 @@ import { ButtonComponent, EmptyStateComponent, FormFieldComponent, InputDirectiv
 
     @if (redirects().length) {
       <div class="overflow-x-auto rounded-lg border border-border">
-        <table class="w-full min-w-[32rem] text-left text-sm">
+        <table class="w-full min-w-[32rem] text-start text-sm">
           <caption class="sr-only">Redirects</caption>
           <thead class="bg-surface-alt"><tr><th scope="col" class="p-2">From</th><th scope="col" class="p-2">To</th><th scope="col" class="p-2">Created</th><th scope="col" class="p-2"><span class="sr-only">Actions</span></th></tr></thead>
           <tbody class="divide-y divide-border">
@@ -37,7 +36,7 @@ import { ButtonComponent, EmptyStateComponent, FormFieldComponent, InputDirectiv
                 <th scope="row" class="p-2 font-mono text-xs">{{ r.from }}</th>
                 <td class="p-2 font-mono text-xs">{{ r.to }}</td>
                 <td class="p-2 text-text-muted">{{ r.createdAt | date: 'd MMM y' }}</td>
-                <td class="p-2 text-right"><button type="button" class="min-h-11 px-2 font-medium text-danger hover:underline" (click)="remove(r)">Remove<span class="sr-only"> redirect from {{ r.from }}</span></button></td>
+                <td class="p-2 text-end"><button type="button" class="min-h-11 px-2 font-medium text-danger hover:underline" (click)="remove(r)">Remove<span class="sr-only"> redirect from {{ r.from }}</span></button></td>
               </tr>
             }
           </tbody>

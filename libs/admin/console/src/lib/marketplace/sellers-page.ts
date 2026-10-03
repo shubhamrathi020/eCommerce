@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminSellerApi, type SellerWithCounts } from '@ecom/shared/data-access';
 import { ApiException, SELLER_STATUS_LABEL, type SellerStatus } from '@ecom/shared/models';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
@@ -11,7 +10,7 @@ import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateCompone
 /** Seller applications (review the KYC details, approve or reject with a reason) and the sellers already trading (commission override, suspend, restore). */
 @Component({
   selector: 'adm-sellers',
-  imports: [DatePipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
+  imports: [LocaleDatePipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p class="mb-4 max-w-2xl text-sm text-text-muted">{{ applications ? 'Check the details against the documents the seller sent, then approve or reject. A rejected applicant sees your reason and can apply again.' : 'Sellers with access to the portal. Suspending a seller takes their listings off sale at once.' }}</p>

@@ -33,6 +33,7 @@ export type IconName =
       stroke-width="2"
       stroke-linecap="round"
       stroke-linejoin="round"
+      [class]="name() === 'chevron-right' ? 'rtl:-scale-x-100' : ''"
       [attr.aria-hidden]="label() ? null : 'true'"
       [attr.role]="label() ? 'img' : null"
       [attr.aria-label]="label() || null"

@@ -21,3 +21,4 @@ export * from './lib/cart-line/cart-line';
 export * from './lib/order-summary/order-summary';
 export * from './lib/stepper/stepper';
 export * from './lib/rating-input/rating-input';
+export * from './lib/preferences/preferences';

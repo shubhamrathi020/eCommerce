@@ -1,7 +1,6 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { SeoService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { AdminInventoryApi } from '@ecom/shared/data-access';
 import type { MovementKind, MovementQuery } from '@ecom/shared/models';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent } from '@ecom/shared/ui';
@@ -13,7 +12,7 @@ const KINDS: MovementKind[] = ['receive', 'sale', 'cancellation', 'return', 'dam
 /** Read-only stock ledger: every movement ever recorded, newest first. Entries can never be edited or removed. */
 @Component({
   selector: 'adm-inventory-ledger',
-  imports: [DatePipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
+  imports: [LocaleDatePipe, BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p class="mb-4 text-sm text-text-muted">Every stock change is appended here with who made it and why. Entries are permanent: a mistake is fixed with a new correcting entry.</p>
@@ -40,7 +39,7 @@ const KINDS: MovementKind[] = ['receive', 'sale', 'cancellation', 'return', 'dam
         <ui-empty-state title="No movements yet" description="Sales, cancellations and adjustments will appear here." />
       } @else {
         <div class="overflow-x-auto rounded-lg border border-border">
-          <table class="w-full min-w-[52rem] text-left text-sm">
+          <table class="w-full min-w-[52rem] text-start text-sm">
             <caption class="sr-only">Stock movements</caption>
             <thead class="bg-surface-alt">
               <tr>
@@ -48,7 +47,7 @@ const KINDS: MovementKind[] = ['receive', 'sale', 'cancellation', 'return', 'dam
                 <th scope="col" class="p-2">Kind</th>
                 <th scope="col" class="p-2">Product</th>
                 <th scope="col" class="p-2">Location</th>
-                <th scope="col" class="p-2 text-right">Units</th>
+                <th scope="col" class="p-2 text-end">Units</th>
                 <th scope="col" class="p-2">Reason</th>
                 <th scope="col" class="p-2">By</th>
               </tr>
@@ -60,7 +59,7 @@ const KINDS: MovementKind[] = ['receive', 'sale', 'cancellation', 'return', 'dam
                   <td class="p-2"><ui-badge [tone]="m.quantity < 0 ? 'warning' : 'success'">{{ m.kind }}</ui-badge></td>
                   <td class="p-2"><span class="block max-w-xs truncate" [attr.title]="m.title">{{ m.title }}</span><span class="text-xs text-text-muted">{{ m.sku }}</span></td>
                   <td class="p-2">{{ locationName(m.locationId) }}</td>
-                  <td class="p-2 text-right font-medium" [class.text-danger]="m.quantity < 0">{{ m.quantity > 0 ? '+' : '' }}{{ m.quantity }}</td>
+                  <td class="p-2 text-end font-medium" [class.text-danger]="m.quantity < 0">{{ m.quantity > 0 ? '+' : '' }}{{ m.quantity }}</td>
                   <td class="p-2">{{ reasonText(m.reason) }}@if (m.orderId) { <span class="block text-xs text-text-muted">Order {{ m.orderId }}</span> }@if (m.note) { <span class="block text-xs text-text-muted">{{ m.note }}</span> }</td>
                   <td class="p-2 text-text-muted">{{ m.actor }}</td>
                 </tr>

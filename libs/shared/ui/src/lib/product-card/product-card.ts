@@ -7,6 +7,7 @@ import { BadgeComponent } from '../badge/badge';
 import { IconComponent } from '../icon/icon';
 import { PriceComponent } from '../price/price';
 import { RatingComponent } from '../rating/rating';
+import { TranslatePipe } from '@ecom/shared/core';
 
 /**
  * Product tile. The whole card is one link target (the title link is stretched over the card);
@@ -14,7 +15,7 @@ import { RatingComponent } from '../rating/rating';
  */
 @Component({
   selector: 'ui-product-card',
-  imports: [NgOptimizedImage, RouterLink, BadgeComponent, IconComponent, PriceComponent, RatingComponent],
+  imports: [NgOptimizedImage, RouterLink, BadgeComponent, IconComponent, PriceComponent, RatingComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -37,23 +38,23 @@ import { RatingComponent } from '../rating/rating';
             class="absolute inset-0 hidden size-full object-cover opacity-0 transition-opacity duration-250 group-hover:opacity-100 md:block"
           />
         }
-        <div class="absolute left-2 top-2 flex flex-col items-start gap-1">
+        <div class="absolute start-2 top-2 flex flex-col items-start gap-1">
           @if (percent() > 0) {
-            <ui-badge tone="sale">{{ percent() }}% off</ui-badge>
+            <ui-badge tone="sale">{{ 'common.percentOff' | t: { percent: percent() } }}</ui-badge>
           }
           @if (product().stockStatus === 'out_of_stock') {
-            <ui-badge tone="danger">Out of stock</ui-badge>
+            <ui-badge tone="danger">{{ 'card.outOfStock' | t }}</ui-badge>
           } @else if (product().stockStatus === 'backorder') {
-            <ui-badge tone="warning">Backorder</ui-badge>
+            <ui-badge tone="warning">{{ 'card.backorder' | t }}</ui-badge>
           } @else if (product().stockStatus === 'low_stock') {
-            <ui-badge tone="warning">Only {{ product().stockLeft }} left</ui-badge>
+            <ui-badge tone="warning">{{ 'card.onlyLeft' | t: { n: product().stockLeft } }}</ui-badge>
           }
         </div>
         <button
           type="button"
-          class="absolute right-2 top-2 z-10 inline-flex size-11 items-center justify-center rounded-full bg-surface/90 shadow-card hover:bg-surface"
+          class="absolute end-2 top-2 z-10 inline-flex size-11 items-center justify-center rounded-full bg-surface/90 shadow-card hover:bg-surface"
           [attr.aria-pressed]="wishlisted()"
-          [attr.aria-label]="(wishlisted() ? 'Remove ' : 'Add ') + product().title + (wishlisted() ? ' from wishlist' : ' to wishlist')"
+          [attr.aria-label]="(wishlisted() ? 'card.removeWishlist' : 'card.addWishlist') | t: { title: product().title }"
           (click)="wishlistToggle.emit()"
         >
           <ui-icon name="heart" [size]="22" [class.text-sale]="wishlisted()" [attr.data-filled]="wishlisted()" />
@@ -70,7 +71,7 @@ import { RatingComponent } from '../rating/rating';
         }
         <div class="mt-auto pt-1">
           @if (product().priceMin.amount !== product().priceMax.amount) {
-            <span class="mr-1 text-xs text-text-muted">From</span>
+            <span class="me-1 text-xs text-text-muted">{{ 'card.from' | t }}</span>
           }
           <ui-price [price]="product().priceMin" [mrp]="product().mrpMin" />
         </div>
@@ -79,10 +80,10 @@ import { RatingComponent } from '../rating/rating';
       <div class="relative z-10 flex items-center justify-between gap-2 border-t border-border px-3 py-2">
         <label class="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm text-text-muted">
           <input type="checkbox" class="size-4 accent-primary" [checked]="comparing()" (change)="compareToggle.emit()" />
-          Compare
+          {{ 'card.compare' | t }}
         </label>
         @if (showQuickAdd() && product().quickAddVariantId) {
-          <button type="button" class="min-h-11 rounded-md px-3 text-sm font-semibold text-primary hover:bg-surface-alt" (click)="quickAdd.emit()">Add to cart</button>
+          <button type="button" class="min-h-11 rounded-md px-3 text-sm font-semibold text-primary hover:bg-surface-alt" (click)="quickAdd.emit()">{{ 'card.addToCart' | t }}</button>
         }
       </div>
     </article>

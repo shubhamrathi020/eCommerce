@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SeoService, ToastService } from '@ecom/shared/core';
+import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminReturnApi, CategoryApi } from '@ecom/shared/data-access';
 import { ApiException } from '@ecom/shared/models';
 import { ButtonComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
@@ -11,7 +10,7 @@ import { paiseToRupees, rupeesToPaise } from '../list-params';
 /** Return policy (RF-07). Each request keeps a copy of the numbers it was made under, so edits only affect new requests. */
 @Component({
   selector: 'adm-return-policy',
-  imports: [DatePipe, ButtonComponent, FormFieldComponent, InputDirective, SkeletonComponent],
+  imports: [LocaleDatePipe, ButtonComponent, FormFieldComponent, InputDirective, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p class="mb-4 max-w-2xl text-sm text-text-muted">Changes apply to return requests made from now on. Requests already open keep the rules they were made under. Defaults: a 7-day window, a ₹49 return shipping fee when the customer changes their mind, free pickup when the problem is ours. Refunds only; exchanges are not supported.</p>
