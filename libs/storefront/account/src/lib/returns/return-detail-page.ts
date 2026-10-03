@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { ReturnApi } from '@ecom/shared/data-access';
-import { ApiException, reasonOf } from '@ecom/shared/models';
+import { ApiException, reasonOf } from '@ecom/contracts';
 import { MoneyPipe } from '@ecom/shared/util';
 import { BadgeComponent, ButtonComponent, ErrorStateComponent, NotFoundComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { RETURN_STATUS_LABEL, returnTone } from './return-labels';

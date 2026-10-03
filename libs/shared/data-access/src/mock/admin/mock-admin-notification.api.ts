@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import type { DeliveryLogEntry, DeliveryQuery, MessageTemplate, Paged } from '@ecom/shared/models';
+import type { DeliveryLogEntry, DeliveryQuery, MessageTemplate, Paged } from '@ecom/contracts';
 import { AdminNotificationApi } from '../../lib/notification.api';
 import { MockNotificationStore } from '../notification-store';
 import { createMockResponder } from '../mock-latency';

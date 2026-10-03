@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { ReturnApi } from '@ecom/shared/data-access';
-import { type AttachmentMeta, ApiException, RETURN_REASONS, type ReturnItemSelection } from '@ecom/shared/models';
+import { type AttachmentMeta, ApiException, RETURN_REASONS, type ReturnItemSelection } from '@ecom/contracts';
 import { MoneyPipe } from '@ecom/shared/util';
 import { ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { AttachmentPickerComponent } from './attachment-picker';

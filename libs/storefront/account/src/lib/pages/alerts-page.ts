@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { AlertApi } from '@ecom/shared/data-access';
-import type { AlertSubscription } from '@ecom/shared/models';
+import type { AlertSubscription } from '@ecom/contracts';
 import { ButtonComponent, EmptyStateComponent, SkeletonComponent } from '@ecom/shared/ui';
 
 const LABEL: Record<AlertSubscription['kind'], string> = { back_in_stock: 'Notify when back in stock', price_drop: 'Alert on price drop' };

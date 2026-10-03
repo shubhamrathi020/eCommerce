@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { I18nService, TranslatePipe } from '@ecom/shared/core';
 import { WalletApi } from '@ecom/shared/data-access';
-import { ApiException } from '@ecom/shared/models';
+import { ApiException } from '@ecom/contracts';
 import { AuthStore, CartStore } from '@ecom/shared/state';
 import { ButtonComponent, FormFieldComponent, InputDirective } from '@ecom/shared/ui';
 import { MoneyPipe } from '@ecom/shared/util';

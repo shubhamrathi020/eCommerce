@@ -1,8 +1,8 @@
 import { PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, defer, delay, from, of, throwError } from 'rxjs';
-import type { ApiError } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { ApiError } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { APP_CONFIG } from '@ecom/shared/core';
 
 /** Wraps a value or an ApiError in an Observable that mimics network latency. */

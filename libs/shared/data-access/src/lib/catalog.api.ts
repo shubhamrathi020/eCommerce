@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import type { HomeData, ListingQuery, ListingResult, Product, ProductSummary, ReviewPage, ReviewQuery, Serviceability } from '@ecom/shared/models';
+import type { HomeData, ListingQuery, ListingResult, Product, ProductSummary, ReviewPage, ReviewQuery, Serviceability } from '@ecom/contracts';
 
 export interface ProductLookup {
   product: Product;

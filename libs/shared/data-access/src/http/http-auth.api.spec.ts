@@ -3,8 +3,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
-import type { Session } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { Session } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { AddressBookApi, AuthApi, provideDataAccess } from '../index';
 import { MockUserStore } from '../mock/mock-user-store';
 

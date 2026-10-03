@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { SellerPortalApi } from '@ecom/shared/data-access';
-import { ApiException, SELLER_PRODUCT_STATUS_LABEL, type SellerProduct } from '@ecom/shared/models';
+import { ApiException, SELLER_PRODUCT_STATUS_LABEL, type SellerProduct } from '@ecom/contracts';
 import { MoneyPipe } from '@ecom/shared/util';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 

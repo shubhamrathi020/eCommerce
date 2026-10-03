@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
-import { ATTACHMENT_LIMITS, type AttachmentMeta, attachmentProblem } from '@ecom/shared/models';
+import { ATTACHMENT_LIMITS, type AttachmentMeta, attachmentProblem } from '@ecom/contracts';
 
 let nextId = 0;
 

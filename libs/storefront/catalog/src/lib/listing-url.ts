@@ -1,4 +1,4 @@
-import type { ListingQuery, SortKey } from '@ecom/shared/models';
+import type { ListingQuery, SortKey } from '@ecom/contracts';
 
 /** Minimal read view of URL search params (Angular's `ParamMap` satisfies it). */
 export interface ParamReader {

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { PaymentOption, ShippingOption } from '@ecom/shared/models';
-import { ApiException, codEligibility, deliverabilityProblem } from '@ecom/shared/models';
+import type { PaymentOption, ShippingOption } from '@ecom/contracts';
+import { ApiException, codEligibility, deliverabilityProblem } from '@ecom/contracts';
 import { CheckoutApi } from '../lib/commerce.api';
 import { computeServiceability } from './catalog-data';
 import { EXPRESS_SHIPPING, shippingFee } from './cart-engine';

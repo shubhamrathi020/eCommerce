@@ -4,8 +4,8 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { firstValueFrom, type Observable } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminCouponApi } from '@ecom/shared/data-access';
-import type { AdminCoupon, CouponKind } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { AdminCoupon, CouponKind } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 import { MoneyPipe } from '@ecom/shared/util';
 import { paiseToRupees, rupeesToPaise } from '../list-params';

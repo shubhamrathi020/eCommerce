@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { CreateReturnInput, CreateTicketInput, Money, Order, OrderRefund, RefundBreakdown, ReplyInput, ReturnEligibility, ReturnItemSelection, ReturnRequest, SupportTicket } from '@ecom/shared/models';
-import { ApiException, TICKET_LIMITS, computeRefund, reasonOf } from '@ecom/shared/models';
+import type { CreateReturnInput, CreateTicketInput, Money, Order, OrderRefund, RefundBreakdown, ReplyInput, ReturnEligibility, ReturnItemSelection, ReturnRequest, SupportTicket } from '@ecom/contracts';
+import { ApiException, TICKET_LIMITS, computeRefund, reasonOf } from '@ecom/contracts';
 import { ReturnApi, SupportApi } from '../lib/returns.api';
 import { loadCatalogData } from './catalog-data';
 import { createMockResponder } from './mock-latency';

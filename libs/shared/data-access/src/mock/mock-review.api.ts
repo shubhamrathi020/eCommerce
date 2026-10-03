@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { Review, ReviewEligibility, ReviewInput } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { Review, ReviewEligibility, ReviewInput } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { ReviewApi } from '../lib/review.api';
 import { createMockResponder } from './mock-latency';
 import { MockOrderStore } from './mock-order-store';

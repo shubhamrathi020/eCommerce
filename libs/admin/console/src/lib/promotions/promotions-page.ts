@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminPromotionApi } from '@ecom/shared/data-access';
-import { ApiException, PROMOTION_KIND_LABEL, type Promotion, SEGMENT_LABEL } from '@ecom/shared/models';
+import { ApiException, PROMOTION_KIND_LABEL, type Promotion, SEGMENT_LABEL } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, SkeletonComponent } from '@ecom/shared/ui';
 
 /** All promotions with their schedule and rules of engagement; pause, edit or delete each one. */

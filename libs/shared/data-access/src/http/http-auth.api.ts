@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { AccountExport, RegisterRequest, SavedAddress, Session, User } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { AccountExport, RegisterRequest, SavedAddress, Session, User } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { type Observable, catchError, firstValueFrom, map, of, tap } from 'rxjs';
 import { type AddressInput, AddressBookApi, AuthApi } from '../lib/account.api';
 import { MockCartState } from '../mock/mock-cart-state';

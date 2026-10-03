@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { ContentBanner, HomeSection, ManagedPage, NavLink, Redirect } from '@ecom/shared/models';
+import type { ContentBanner, HomeSection, ManagedPage, NavLink, Redirect } from '@ecom/contracts';
 import { htmlToSource } from '@ecom/shared/util';
 import pages from './data/cms-pages.json';
 import home from './data/home.json';

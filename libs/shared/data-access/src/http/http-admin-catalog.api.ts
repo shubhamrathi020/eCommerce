@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import type { AdminCategoryOption, AdminProductDetail, AdminProductInput, AdminProductQuery, AdminProductRow, Paged, ProductStatus } from '@ecom/shared/models';
+import type { AdminCategoryOption, AdminProductDetail, AdminProductInput, AdminProductQuery, AdminProductRow, Paged, ProductStatus } from '@ecom/contracts';
 import { type Observable, map } from 'rxjs';
 import { AdminProductApi } from '../lib/admin.api';
 import { ApiClient } from './api-client';

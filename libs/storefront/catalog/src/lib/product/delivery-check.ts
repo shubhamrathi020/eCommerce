@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CatalogApi } from '@ecom/shared/data-access';
-import type { Serviceability } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { Serviceability } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { ButtonComponent, FormFieldComponent, InputDirective } from '@ecom/shared/ui';
 import { LocaleDatePipe } from '@ecom/shared/core';
 

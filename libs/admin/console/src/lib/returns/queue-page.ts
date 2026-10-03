@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { AdminReturnApi } from '@ecom/shared/data-access';
-import type { ReturnQuery, ReturnStatus } from '@ecom/shared/models';
+import type { ReturnQuery, ReturnStatus } from '@ecom/contracts';
 import { MoneyPipe } from '@ecom/shared/util';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { injectListParams } from '../list-params';

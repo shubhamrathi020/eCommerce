@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { PersonalisationService, STORAGE } from '@ecom/shared/core';
-import type { Product, RecConfig, RecItem, RecPreview, RecRow, RecStats } from '@ecom/shared/models';
+import type { Product, RecConfig, RecItem, RecPreview, RecRow, RecStats } from '@ecom/contracts';
 import {
   ApiException,
   DEFAULT_REC_CONFIG,
@@ -16,7 +16,7 @@ import {
   similarity,
   stockStatusOf,
   toSummary,
-} from '@ecom/shared/models';
+} from '@ecom/contracts';
 import { AdminRecommendationApi, RecommendationApi } from '../lib/recommendation.api';
 import { loadCatalogData } from './catalog-data';
 import { MockEventStore } from './event-store';

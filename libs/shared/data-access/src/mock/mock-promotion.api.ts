@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { ApplyWalletInput, DealView, GiftCardCheck, Money, WalletSummary } from '@ecom/shared/models';
-import { ApiException, giftCardProblem } from '@ecom/shared/models';
+import type { ApplyWalletInput, DealView, GiftCardCheck, Money, WalletSummary } from '@ecom/contracts';
+import { ApiException, giftCardProblem } from '@ecom/contracts';
 import { PromotionApi, WalletApi } from '../lib/promotion.api';
 import { loadCatalogData } from './catalog-data';
 import { MockCartState } from './mock-cart-state';

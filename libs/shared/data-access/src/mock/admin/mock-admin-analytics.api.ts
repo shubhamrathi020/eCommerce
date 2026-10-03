@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { CampaignRow, CohortRow, FunnelStep, Paged, ProductPerformance, ReportKey, ReportSchedule, ScheduleInput, SearchReport } from '@ecom/shared/models';
-import { ApiException, FREQUENCY_MS, REPORT_DAYS, REPORT_LABEL, campaignReport, cohortTable, funnel, productPerformance, searchReport, sortPerformance, toCsv } from '@ecom/shared/models';
+import type { CampaignRow, CohortRow, FunnelStep, Paged, ProductPerformance, ReportKey, ReportSchedule, ScheduleInput, SearchReport } from '@ecom/contracts';
+import { ApiException, FREQUENCY_MS, REPORT_DAYS, REPORT_LABEL, campaignReport, cohortTable, funnel, productPerformance, searchReport, sortPerformance, toCsv } from '@ecom/contracts';
 import { AdminAnalyticsApi, type ProductReportQuery } from '../../lib/analytics.api';
 import { loadCatalogData } from '../catalog-data';
 import { MockEventStore } from '../event-store';

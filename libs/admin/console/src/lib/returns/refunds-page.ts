@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminReturnApi } from '@ecom/shared/data-access';
-import { ApiException } from '@ecom/shared/models';
+import { ApiException } from '@ecom/contracts';
 import { MoneyPipe } from '@ecom/shared/util';
 import { ButtonComponent, EmptyStateComponent, ErrorStateComponent, SkeletonComponent } from '@ecom/shared/ui';
 

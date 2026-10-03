@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { Order, OrderStatus, Product, TimelineEntry } from '@ecom/shared/models';
+import type { Order, OrderStatus, Product, TimelineEntry } from '@ecom/contracts';
 import type { MockInventoryStore } from './inventory-store';
 
 const ORDERS_KEY = 'ecom.mock.orders.v1';

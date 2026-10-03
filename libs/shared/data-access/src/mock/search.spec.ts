@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
-import type { ListingQuery } from '@ecom/shared/models';
+import type { ListingQuery } from '@ecom/contracts';
 import { CatalogApi, SearchApi, provideDataAccess } from '../index';
 import { editDistance, stem, tokenize } from './search-engine';
 

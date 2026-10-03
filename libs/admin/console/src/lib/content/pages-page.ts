@@ -4,8 +4,8 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { firstValueFrom, type Observable } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminContentApi } from '@ecom/shared/data-access';
-import type { ManagedPage, PageStatus } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { ManagedPage, PageStatus } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 import { renderContent } from '@ecom/shared/util';
 

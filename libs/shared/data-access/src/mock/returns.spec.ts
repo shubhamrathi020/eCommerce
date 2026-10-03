@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
-import type { Order, Product } from '@ecom/shared/models';
-import { ATTACHMENT_LIMITS, computeRefund } from '@ecom/shared/models';
+import type { Order, Product } from '@ecom/contracts';
+import { ATTACHMENT_LIMITS, computeRefund } from '@ecom/contracts';
 import { AdminReturnApi, AdminSupportApi, AuditApi, AuthApi, DEMO_ACCOUNTS, MockInventoryStore, MockNotificationStore, ReturnApi, SupportApi, provideAdminDataAccess, provideDataAccess } from '../index';
 import { loadCatalogData } from './catalog-data';
 import { MockOrderStore } from './mock-order-store';

@@ -15,8 +15,8 @@ import type {
   StockMovement,
   StockTransferInput,
   VariantPolicy,
-} from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+} from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { AdminInventoryApi } from '../../lib/inventory.api';
 import { LOCATIONS } from '../inventory-store';
 import { createMockResponder } from '../mock-latency';

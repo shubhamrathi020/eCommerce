@@ -2,6 +2,11 @@
 
 Full-stack eCommerce app (Angular, Node.js, PostgreSQL/MongoDB, Redis, RabbitMQ, Meilisearch, Docker, K8s). Solo project, built in vertical slices, frontend first on mock data.
 
+## Three repositories (sibling folders)
+- `eCommerce` (this one): the Angular apps (storefront, admin, seller), the requirements (`brds/`), project log and steering docs for the whole project.
+- `eCommerce-api`: the NestJS backend, Prisma schema, Docker/Kubernetes/Terraform/monitoring (BRDs 19 to 25).
+- `eCommerce-contracts`: the shared package `@ecom/contracts` (types, error codes, pure pricing/promotions/returns rules). It replaced the old `libs/shared/models` library. A shape or rule both sides use is changed there first, tagged, then taken up here and in the API. See README.md.
+
 ## Before every task
 1. Read `steering/rules.md` (always) and `steering/memory.md` (decisions and learned patterns).
 2. Read the steering doc(s) relevant to the task: `steering/architecture.md`, `steering/design.md`, `steering/security.md`.

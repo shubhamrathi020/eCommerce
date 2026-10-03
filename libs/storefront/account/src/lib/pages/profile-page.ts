@@ -3,7 +3,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { AuthApi } from '@ecom/shared/data-access';
-import { ApiException } from '@ecom/shared/models';
+import { ApiException } from '@ecom/contracts';
 import { AuthStore } from '@ecom/shared/state';
 import { ButtonComponent, FormFieldComponent, InputDirective } from '@ecom/shared/ui';
 import { PASSWORD_HINT, controlError } from '../form-utils';

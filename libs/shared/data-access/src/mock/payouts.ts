@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { PayoutPreview, StatementAdjustment, StatementLine } from '@ecom/shared/models';
-import { ApiException, commissionPercent, splitCommission, statementTotals } from '@ecom/shared/models';
+import type { PayoutPreview, StatementAdjustment, StatementLine } from '@ecom/contracts';
+import { ApiException, commissionPercent, splitCommission, statementTotals } from '@ecom/contracts';
 import { loadCatalogData } from './catalog-data';
 import { MockOrderStore } from './mock-order-store';
 import { MockReturnStore } from './return-store';

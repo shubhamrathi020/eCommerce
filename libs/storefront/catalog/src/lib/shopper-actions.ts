@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { CART_FACADE, CompareStore, ToastService, WishlistStore } from '@ecom/shared/core';
-import type { ProductSummary } from '@ecom/shared/models';
+import type { ProductSummary } from '@ecom/contracts';
 
 /** Card-level actions (wishlist, compare, quick add) shared by every product list. */
 @Injectable({ providedIn: 'root' })

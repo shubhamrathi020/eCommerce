@@ -4,7 +4,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { CompareStore, SeoService } from '@ecom/shared/core';
 import { CatalogApi, CategoryApi } from '@ecom/shared/data-access';
-import type { CategoryNode, Product } from '@ecom/shared/models';
+import type { CategoryNode, Product } from '@ecom/contracts';
 import { ButtonComponent, EmptyStateComponent, PriceComponent, RatingComponent, SkeletonComponent } from '@ecom/shared/ui';
 
 interface Row {

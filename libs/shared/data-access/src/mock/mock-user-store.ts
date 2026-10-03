@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { Role, Session, User } from '@ecom/shared/models';
+import type { Role, Session, User } from '@ecom/contracts';
 import { DEMO_ACCOUNTS, permissionsFor } from './demo-accounts';
 
 /** Server-side record. The password hash and tokens never leave the mock "server". */

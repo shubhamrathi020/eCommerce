@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import type { CmsPage, HomeConfig } from '@ecom/shared/models';
+import type { CmsPage, HomeConfig } from '@ecom/contracts';
 import { CmsApi } from '../lib/cms.api';
 import { ContentApi } from '../lib/content.api';
 import { MockContentStore } from './content-store';

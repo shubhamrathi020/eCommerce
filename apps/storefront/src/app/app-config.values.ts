@@ -1,4 +1,4 @@
-import type { AppConfig } from '@ecom/shared/models';
+import type { AppConfig } from '@ecom/contracts';
 
 /** Storefront runtime config. Public values only; no secrets in the frontend. */
 export const APP_CONFIG_VALUES: AppConfig = {

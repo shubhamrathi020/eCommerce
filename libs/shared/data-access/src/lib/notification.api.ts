@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import type { AlertKind, AlertSubscription, AppNotification, DeliveryLogEntry, DeliveryQuery, MessageTemplate, NotificationPreferences, Paged } from '@ecom/shared/models';
+import type { AlertKind, AlertSubscription, AppNotification, DeliveryLogEntry, DeliveryQuery, MessageTemplate, NotificationPreferences, Paged } from '@ecom/contracts';
 
 export type UnsubscribeChannel = 'marketing' | 'back_in_stock' | 'price_drop';
 

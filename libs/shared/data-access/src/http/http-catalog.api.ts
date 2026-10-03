@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import type { CategoryNode, HomeData, ListingQuery, ListingResult, Product, ProductSummary, ReviewPage, ReviewQuery, SearchSuggestions, Serviceability } from '@ecom/shared/models';
+import type { CategoryNode, HomeData, ListingQuery, ListingResult, Product, ProductSummary, ReviewPage, ReviewQuery, SearchSuggestions, Serviceability } from '@ecom/contracts';
 import type { Observable } from 'rxjs';
 import { CatalogApi, type ProductLookup } from '../lib/catalog.api';
 import { CategoryApi } from '../lib/category.api';

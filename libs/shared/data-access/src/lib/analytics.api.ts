@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import type { CampaignRow, CohortRow, FunnelStep, Paged, ProductPerformance, ProductSort, ReportKey, ReportSchedule, ScheduleInput, SearchReport } from '@ecom/shared/models';
+import type { CampaignRow, CohortRow, FunnelStep, Paged, ProductPerformance, ProductSort, ReportKey, ReportSchedule, ScheduleInput, SearchReport } from '@ecom/contracts';
 
 export interface ProductReportQuery {
   days: number;

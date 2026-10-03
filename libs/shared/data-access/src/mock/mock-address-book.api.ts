@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { SavedAddress } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { SavedAddress } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { type AddressInput, AddressBookApi } from '../lib/account.api';
 import { createMockResponder } from './mock-latency';
 import { MockUserStore } from './mock-user-store';

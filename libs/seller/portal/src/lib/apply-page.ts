@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { SellerPortalApi } from '@ecom/shared/data-access';
-import { ApiException, type SellerApplicationInput } from '@ecom/shared/models';
+import { ApiException, type SellerApplicationInput } from '@ecom/contracts';
 import { ButtonComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 
 type Field = 'displayName' | 'legalName' | 'phone' | 'gstin' | 'pan' | 'address.line1' | 'address.city' | 'address.state' | 'address.pincode' | 'bankHolder' | 'bankAccountNumber' | 'bankIfsc' | 'policies.returns' | 'policies.shipping';

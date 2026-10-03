@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminSellerApi } from '@ecom/shared/data-access';
-import { ApiException, type PayoutPreview, type PayoutStatement } from '@ecom/shared/models';
+import { ApiException, type PayoutPreview, type PayoutStatement } from '@ecom/contracts';
 import { MoneyPipe } from '@ecom/shared/util';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 

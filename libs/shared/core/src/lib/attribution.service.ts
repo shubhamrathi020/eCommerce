@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { type Touch, cleanTag } from '@ecom/shared/models';
+import { type Touch, cleanTag } from '@ecom/contracts';
 import { ConsentService } from './consent.service';
 import { PersonalisationService } from './personalisation.service';
 import { STORAGE } from './tokens';

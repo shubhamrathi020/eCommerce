@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { AlertKind, AlertSubscription, AppNotification, NotificationPreferences } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { AlertKind, AlertSubscription, AppNotification, NotificationPreferences } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { AlertApi, NotificationApi, PreferenceApi, type UnsubscribeChannel } from '../lib/notification.api';
 import { loadCatalogData } from './catalog-data';
 import { MockInventoryStore } from './inventory-store';

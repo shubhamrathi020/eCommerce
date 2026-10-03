@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import type { ContentBanner, HomeConfig, HomeSection, ManagedPage, NavLink, PageStatus, Redirect } from '@ecom/shared/models';
+import type { ContentBanner, HomeConfig, HomeSection, ManagedPage, NavLink, PageStatus, Redirect } from '@ecom/contracts';
 
 /** What shoppers read. Only published, in-date content is ever returned. */
 export abstract class ContentApi {

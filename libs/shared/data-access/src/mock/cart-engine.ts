@@ -1,4 +1,4 @@
-// The pricing rules now live in @ecom/shared/models (cart-derive.ts) so apps/api can use them too — the
+// The pricing rules now live in @ecom/contracts (cart-derive.ts) so apps/api can use them too — the
 // same pattern as catalog-engine.ts's relocation in BRD 20. Re-exported here so existing imports keep working.
 export {
   COD_MAX_TOTAL,
@@ -17,4 +17,4 @@ export {
   type PricedCart,
   type PricingExtras,
   type StoredCart,
-} from '@ecom/shared/models';
+} from '@ecom/contracts';

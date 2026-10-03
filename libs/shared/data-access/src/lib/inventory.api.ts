@@ -12,7 +12,7 @@ import type {
   StockMovement,
   StockTransferInput,
   VariantPolicy,
-} from '@ecom/shared/models';
+} from '@ecom/contracts';
 
 /**
  * Staff-facing stock management. Reads need `product:read`; every change needs `inventory:write`,

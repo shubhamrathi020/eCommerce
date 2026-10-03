@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { AdminCoupon, AuditEntry, OrderNote, OrderStatus, Product, ProductStatus, Role, TimelineEntry } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { AdminCoupon, AuditEntry, OrderNote, OrderStatus, Product, ProductStatus, Role, TimelineEntry } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { MockInventoryStore } from '../inventory-store';
 import { MockUserStore } from '../mock-user-store';
 

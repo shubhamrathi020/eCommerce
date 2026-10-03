@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { APP_CONFIG, I18nService, ToastService, TranslatePipe } from '@ecom/shared/core';
 import { ContentApi, NewsletterApi } from '@ecom/shared/data-access';
 import { rxResource } from '@angular/core/rxjs-interop';
-import type { LinkGroup, NavLink } from '@ecom/shared/models';
+import type { LinkGroup, NavLink } from '@ecom/contracts';
 import { ButtonComponent, FormFieldComponent, InputDirective, LanguagePickerComponent, ThemeToggleComponent } from '@ecom/shared/ui';
 
 @Component({

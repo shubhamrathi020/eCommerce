@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import type { PaymentResult, PaymentSession } from '@ecom/shared/models';
+import type { PaymentResult, PaymentSession } from '@ecom/contracts';
 import { mockSignature } from '@ecom/shared/data-access';
 
 export type PaymentOutcome = { status: 'success'; result: PaymentResult } | { status: 'failed'; reason: string } | { status: 'dismissed' };

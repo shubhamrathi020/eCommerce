@@ -1,5 +1,5 @@
 import type { BadgeTone } from '@ecom/shared/ui';
-import type { ReturnStatus } from '@ecom/shared/models';
+import type { ReturnStatus } from '@ecom/contracts';
 
 export const RETURN_STATUS_LABEL: Record<ReturnStatus, string> = {
   requested: 'Requested',

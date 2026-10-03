@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
-import type { AdminProductInput } from '@ecom/shared/models';
+import type { AdminProductInput } from '@ecom/contracts';
 import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, AdminReviewApi, AdminUserApi, AuditApi, AuthApi, DEMO_ACCOUNTS, ORDER_TRANSITIONS, provideAdminDataAccess, provideDataAccess } from '../../index';
 
 const admin = DEMO_ACCOUNTS[1];

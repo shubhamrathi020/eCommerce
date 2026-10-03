@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { AdminPromotionApi, CategoryApi } from '@ecom/shared/data-access';
-import { ApiException, PROMOTION_KIND_LABEL, type Promotion, type PromotionInput, SEGMENT_LABEL, type Segment, type StackingMode } from '@ecom/shared/models';
+import { ApiException, PROMOTION_KIND_LABEL, type Promotion, type PromotionInput, SEGMENT_LABEL, type Segment, type StackingMode } from '@ecom/contracts';
 import { ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { paiseToRupees, rupeesToPaise } from '../list-params';
 

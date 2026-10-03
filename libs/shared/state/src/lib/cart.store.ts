@@ -3,8 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { firstValueFrom, type Observable } from 'rxjs';
 import { AnalyticsService, type AddToCartRequest, type CartFacade, ToastService } from '@ecom/shared/core';
 import { CartApi } from '@ecom/shared/data-access';
-import type { Cart, ShippingMethodId } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { Cart, ShippingMethodId } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 
 export interface CartResult {
   ok: boolean;

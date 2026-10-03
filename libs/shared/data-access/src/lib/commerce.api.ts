@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import type { Cart, Order, PaymentOption, PaymentResult, PaymentSession, PlaceOrderRequest, ShippingMethodId, ShippingOption } from '@ecom/shared/models';
+import type { Cart, Order, PaymentOption, PaymentResult, PaymentSession, PlaceOrderRequest, ShippingMethodId, ShippingOption } from '@ecom/contracts';
 
 /**
  * Server-side cart. Every method returns the freshly priced cart; the client never computes money.

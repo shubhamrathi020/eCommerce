@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import type { SearchSuggestions } from '@ecom/shared/models';
+import type { SearchSuggestions } from '@ecom/contracts';
 
 /**
  * Search helpers beyond the results list. Results themselves come from `CatalogApi.listing({ q })`,

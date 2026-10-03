@@ -1,6 +1,6 @@
 import type { Observable } from 'rxjs';
-import type { AccountExport, RegisterRequest, SavedAddress, Session, User } from '@ecom/shared/models';
-import type { Address } from '@ecom/shared/models';
+import type { AccountExport, RegisterRequest, SavedAddress, Session, User } from '@ecom/contracts';
+import type { Address } from '@ecom/contracts';
 
 /**
  * Identity contract. The real backend keeps the session in an HttpOnly cookie; the client only ever

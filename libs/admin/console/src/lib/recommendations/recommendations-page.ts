@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { AdminRecommendationApi } from '@ecom/shared/data-access';
-import { ApiException, REC_STRATEGY_LABEL, type RecConfig, type RecPreview, type RecStrategy } from '@ecom/shared/models';
+import { ApiException, REC_STRATEGY_LABEL, type RecConfig, type RecPreview, type RecStrategy } from '@ecom/contracts';
 import { ButtonComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 
 const STRATEGIES = Object.keys(REC_STRATEGY_LABEL) as RecStrategy[];

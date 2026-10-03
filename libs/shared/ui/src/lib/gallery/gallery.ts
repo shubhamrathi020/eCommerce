@@ -1,7 +1,7 @@
 import { A11yModule } from '@angular/cdk/a11y';
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, input, model, signal } from '@angular/core';
-import type { ImageRef } from '@ecom/shared/models';
+import type { ImageRef } from '@ecom/contracts';
 import { IconComponent } from '../icon/icon';
 
 /** Product gallery: thumbnails, hover zoom on desktop, and a keyboard-friendly lightbox. */

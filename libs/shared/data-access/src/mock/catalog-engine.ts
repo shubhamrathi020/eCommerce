@@ -7,12 +7,12 @@ import type {
   ListingQuery,
   ListingResult,
   Product,
-} from '@ecom/shared/models';
-import { ApiException, LOW_STOCK_THRESHOLD, bestDiscount, cheapestVariant, sortProducts, stockStatusOf, toSummary } from '@ecom/shared/models';
+} from '@ecom/contracts';
+import { ApiException, LOW_STOCK_THRESHOLD, bestDiscount, cheapestVariant, sortProducts, stockStatusOf, toSummary } from '@ecom/contracts';
 import { buildIndex, searchProducts } from './search-engine';
 
 // Re-exported so existing imports of this module keep working; the rules themselves now live in
-// @ecom/shared/models (catalog-derive.ts) so apps/api can reuse them too (steering/memory.md).
+// @ecom/contracts (catalog-derive.ts) so apps/api can reuse them too (steering/memory.md).
 export { LOW_STOCK_THRESHOLD, bestDiscount, sortProducts, stockStatusOf, toSummary };
 
 export interface CatalogData {

@@ -1,4 +1,4 @@
-import type { Brand, Category, Product } from '@ecom/shared/models';
+import type { Brand, Category, Product } from '@ecom/contracts';
 
 /** In-memory search that mimics Meilisearch behaviour: prefix on the last word, typos, synonyms, ranking. */
 

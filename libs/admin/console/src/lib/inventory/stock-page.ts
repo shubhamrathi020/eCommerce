@@ -4,8 +4,8 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminInventoryApi } from '@ecom/shared/data-access';
-import type { AdjustKind, InventoryFilter, InventoryQuery, InventoryRow } from '@ecom/shared/models';
-import { ApiException, STOCK_REASONS } from '@ecom/shared/models';
+import type { AdjustKind, InventoryFilter, InventoryQuery, InventoryRow } from '@ecom/contracts';
+import { ApiException, STOCK_REASONS } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, PaginationComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { injectListParams } from '../list-params';
 

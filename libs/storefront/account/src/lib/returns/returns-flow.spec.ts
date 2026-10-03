@@ -5,7 +5,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import axe from 'axe-core';
 import { APP_CONFIG } from '@ecom/shared/core';
 import { DEMO_ACCOUNTS, MockOrderStore, loadCatalogData, provideDataAccess } from '@ecom/shared/data-access';
-import type { Order } from '@ecom/shared/models';
+import type { Order } from '@ecom/contracts';
 import { AuthStore } from '@ecom/shared/state';
 import { accountRoutes } from '../account.routes';
 

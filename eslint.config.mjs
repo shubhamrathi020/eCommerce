@@ -23,7 +23,6 @@ export default [
                 'type:ui',
                 'type:data-access',
                 'type:util',
-                'type:models',
               ],
             },
             {
@@ -32,28 +31,22 @@ export default [
                 'type:ui',
                 'type:data-access',
                 'type:util',
-                'type:models',
               ],
             },
             {
               sourceTag: 'type:ui',
-              onlyDependOnLibsWithTags: ['type:ui', 'type:util', 'type:models'],
+              onlyDependOnLibsWithTags: ['type:ui', 'type:util'],
             },
             {
               sourceTag: 'type:data-access',
               onlyDependOnLibsWithTags: [
                 'type:data-access',
                 'type:util',
-                'type:models',
               ],
             },
             {
               sourceTag: 'type:util',
-              onlyDependOnLibsWithTags: ['type:util', 'type:models'],
-            },
-            {
-              sourceTag: 'type:models',
-              onlyDependOnLibsWithTags: ['type:models'],
+              onlyDependOnLibsWithTags: ['type:util'],
             },
             {
               sourceTag: 'scope:storefront',
@@ -70,12 +63,6 @@ export default [
             {
               sourceTag: 'scope:shared',
               onlyDependOnLibsWithTags: ['scope:shared'],
-            },
-            {
-              // The backend is Node, not Angular: it may only reach the plain-TypeScript contract
-              // types (`type:models`), never the Angular-specific shared libs (ui, core, state, data-access).
-              sourceTag: 'scope:api',
-              onlyDependOnLibsWithTags: ['scope:api', 'type:models'],
             },
           ],
         },

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { InventoryAlert, InventoryRow, InventorySettings, MovementKind, Product, StockAdjustInput, StockLocation, StockMovement, StockTransferInput, Variant, VariantPolicy } from '@ecom/shared/models';
-import { ApiException, STOCK_REASONS } from '@ecom/shared/models';
+import type { InventoryAlert, InventoryRow, InventorySettings, MovementKind, Product, StockAdjustInput, StockLocation, StockMovement, StockTransferInput, Variant, VariantPolicy } from '@ecom/contracts';
+import { ApiException, STOCK_REASONS } from '@ecom/contracts';
 
 const KEY = 'ecom.mock.inventory.v1';
 const MINUTE = 60_000;

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import type { AdminOrderDetail, AdminOrderQuery, AdminOrderRow, OrderStatus, Paged } from '@ecom/shared/models';
+import type { AdminOrderDetail, AdminOrderQuery, AdminOrderRow, OrderStatus, Paged } from '@ecom/contracts';
 import type { Observable } from 'rxjs';
 import { AdminOrderApi } from '../lib/admin.api';
 import { ApiClient } from './api-client';

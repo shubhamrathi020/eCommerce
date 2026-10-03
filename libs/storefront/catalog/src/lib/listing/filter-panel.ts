@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, linkedSignal, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { Facet } from '@ecom/shared/models';
+import type { Facet } from '@ecom/contracts';
 import { ButtonComponent, CheckboxComponent, InputDirective } from '@ecom/shared/ui';
 
 export interface PriceRange {

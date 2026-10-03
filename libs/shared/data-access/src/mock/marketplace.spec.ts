@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
-import type { Order, Product, SellerApplicationInput } from '@ecom/shared/models';
-import { commissionPercent, orderStatusFromShipments, sellerApplicationProblems, sellerProductProblems, sellerRating, splitCommission, statementTotals } from '@ecom/shared/models';
+import type { Order, Product, SellerApplicationInput } from '@ecom/contracts';
+import { commissionPercent, orderStatusFromShipments, sellerApplicationProblems, sellerProductProblems, sellerRating, splitCommission, statementTotals } from '@ecom/contracts';
 import {
   AdminReturnApi,
   AdminSellerApi,

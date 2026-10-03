@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { AccountExport, RegisterRequest, Session, User } from '@ecom/shared/models';
-import { ApiException, passwordProblem } from '@ecom/shared/models';
+import type { AccountExport, RegisterRequest, Session, User } from '@ecom/contracts';
+import { ApiException, passwordProblem } from '@ecom/contracts';
 import { AuthApi } from '../lib/account.api';
 import { MockAddressStore } from './mock-address-book.api';
 import { MockCartState } from './mock-cart-state';
@@ -14,7 +14,7 @@ const PHONE = /^[6-9][0-9]{9}$/;
 const RESET_MINUTES = 30;
 const MINUTE = 60_000;
 
-/** The policy lives in `@ecom/shared/models` so the real API enforces exactly the same rule. */
+/** The policy lives in `@ecom/contracts` so the real API enforces exactly the same rule. */
 export { passwordProblem };
 
 @Injectable()

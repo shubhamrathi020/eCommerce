@@ -6,7 +6,7 @@ import axe from 'axe-core';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
 import { AuthApi, DEMO_ACCOUNTS, MockInventoryStore, MockOrderStore, ReturnApi, SupportApi, loadCatalogData, provideAdminDataAccess, provideDataAccess } from '@ecom/shared/data-access';
-import type { Order } from '@ecom/shared/models';
+import type { Order } from '@ecom/contracts';
 import { AuthStore } from '@ecom/shared/state';
 import { adminRoutes } from '../admin.routes';
 

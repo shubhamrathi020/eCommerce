@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG, AnalyticsService, ConsentService, PersonalisationService } from '@ecom/shared/core';
-import type { Product, TrackedEvent } from '@ecom/shared/models';
-import { DEFAULT_REC_CONFIG, MIN_ROW_ITEMS, activityByProduct, applyRules, coPurchases, interestProfile, similarity } from '@ecom/shared/models';
+import type { Product, TrackedEvent } from '@ecom/contracts';
+import { DEFAULT_REC_CONFIG, MIN_ROW_ITEMS, activityByProduct, applyRules, coPurchases, interestProfile, similarity } from '@ecom/contracts';
 import { AdminRecommendationApi, AuditApi, AuthApi, DEMO_ACCOUNTS, MockEventStore, RecommendationApi, loadCatalogData, provideAdminDataAccess, provideDataAccess, seedEvents } from '../index';
 
 const DAY = 86_400_000;

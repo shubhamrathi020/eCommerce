@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import type { Review, ReviewEligibility, ReviewInput } from '@ecom/shared/models';
+import type { Review, ReviewEligibility, ReviewInput } from '@ecom/contracts';
 
 /**
  * Writing side of reviews (reading is `CatalogApi.reviews`). Errors are `ApiException`s:

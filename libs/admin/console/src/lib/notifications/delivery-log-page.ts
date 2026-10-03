@@ -3,8 +3,8 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminNotificationApi } from '@ecom/shared/data-access';
-import type { DeliveryQuery, DeliveryStatus } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { DeliveryQuery, DeliveryStatus } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { injectListParams } from '../list-params';
 

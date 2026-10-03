@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import type { ProductSummary } from '@ecom/shared/models';
+import type { ProductSummary } from '@ecom/contracts';
 import { pageItems } from './pagination/pagination';
 import { ProductCardComponent } from './product-card/product-card';
 

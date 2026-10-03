@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, u
 import { rxResource } from '@angular/core/rxjs-interop';
 import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { AdminInventoryApi } from '@ecom/shared/data-access';
-import type { MovementKind, MovementQuery } from '@ecom/shared/models';
+import type { MovementKind, MovementQuery } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { injectListParams } from '../list-params';
 

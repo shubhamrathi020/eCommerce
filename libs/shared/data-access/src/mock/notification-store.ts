@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { AlertKind, AlertSubscription, AppNotification, DeliveryLogEntry, MessageTemplate, MessageTemplateVersion, NotificationKind, NotificationPreferences, Product, Variant } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { AlertKind, AlertSubscription, AppNotification, DeliveryLogEntry, MessageTemplate, MessageTemplateVersion, NotificationKind, NotificationPreferences, Product, Variant } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { formatMoney } from '@ecom/shared/util';
 import { MockMailbox } from './mock-mailbox';
 import { MockUserStore } from './mock-user-store';

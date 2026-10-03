@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import type { SearchSuggestions } from '@ecom/shared/models';
+import type { SearchSuggestions } from '@ecom/contracts';
 import { SearchApi } from '../lib/search.api';
 import { loadCatalogData } from './catalog-data';
 import { sortProducts, toSummary } from './catalog-engine';

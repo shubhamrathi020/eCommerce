@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { OrderApi } from '@ecom/shared/data-access';
-import type { Order } from '@ecom/shared/models';
+import type { Order } from '@ecom/contracts';
 import { ButtonComponent, NotFoundComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { MoneyPipe } from '@ecom/shared/util';
 

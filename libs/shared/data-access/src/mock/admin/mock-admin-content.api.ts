@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { ContentBanner, HomeSection, HomeSectionKey, ManagedPage, NavLink, Redirect } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { ContentBanner, HomeSection, HomeSectionKey, ManagedPage, NavLink, Redirect } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { renderContent } from '@ecom/shared/util';
 import { AdminContentApi, type BannerInput, type PageInput } from '../../lib/content.api';
 import { MockContentStore } from '../content-store';

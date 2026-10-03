@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { AdminInventoryApi } from '@ecom/shared/data-access';
-import type { InventoryImportReport } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { InventoryImportReport } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { ButtonComponent, InputDirective } from '@ecom/shared/ui';
 
 /** Saves text as a file in the browser (no server round trip). */

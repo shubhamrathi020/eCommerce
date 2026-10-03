@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { Category, CategoryRef, CommissionRule, Order, OrderStatus, PayoutStatement, Product, Seller, SellerProduct, Shipment, ShipmentStatus } from '@ecom/shared/models';
-import { SHIPMENT_FLOW, orderStatusFromShipments } from '@ecom/shared/models';
+import type { Category, CategoryRef, CommissionRule, Order, OrderStatus, PayoutStatement, Product, Seller, SellerProduct, Shipment, ShipmentStatus } from '@ecom/contracts';
+import { SHIPMENT_FLOW, orderStatusFromShipments } from '@ecom/contracts';
 import { registerCatalogExtension } from './catalog-data';
 
 const KEY = 'ecom.mock.sellers.v1';

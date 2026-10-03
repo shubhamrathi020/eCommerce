@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminReturnApi, CategoryApi } from '@ecom/shared/data-access';
-import { ApiException } from '@ecom/shared/models';
+import { ApiException } from '@ecom/contracts';
 import { ButtonComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 import { paiseToRupees, rupeesToPaise } from '../list-params';
 

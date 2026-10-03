@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { AdminSellerApi, CategoryApi } from '@ecom/shared/data-access';
-import { ApiException, type CommissionRule } from '@ecom/shared/models';
+import { ApiException, type CommissionRule } from '@ecom/contracts';
 import { ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 
 /** Commission rules (MP-03). The most specific one wins: a seller's own override, a rule for the seller, the category (leaf first), then the default. */

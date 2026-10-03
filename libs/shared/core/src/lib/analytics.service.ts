@@ -1,5 +1,5 @@
 import { Injectable, InjectionToken, inject } from '@angular/core';
-import { touchKey } from '@ecom/shared/models';
+import { touchKey } from '@ecom/contracts';
 import { AttributionService } from './attribution.service';
 import { ConsentService } from './consent.service';
 import { PersonalisationService } from './personalisation.service';

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
-import type { PlaceOrderRequest, Product } from '@ecom/shared/models';
+import type { PlaceOrderRequest, Product } from '@ecom/contracts';
 import { AdminInventoryApi, AdminOrderApi, AdminProductApi, AuditApi, AuthApi, CartApi, CatalogApi, DEMO_ACCOUNTS, OrderApi, PaymentApi, mockSignature, provideAdminDataAccess, provideDataAccess } from '../index';
 import { MockInventoryStore } from './inventory-store';
 import { csvCell, parseCsv } from './admin/mock-admin-inventory.api';

@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform, inject } from '@angular/core';
 import { I18nService } from '@ecom/shared/core';
-import type { Money } from '@ecom/shared/models';
+import type { Money } from '@ecom/contracts';
 import { formatMoney } from './money';
 
 /**

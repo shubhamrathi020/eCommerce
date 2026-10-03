@@ -4,7 +4,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { SeoService } from '@ecom/shared/core';
 import { CatalogApi, ContentApi } from '@ecom/shared/data-access';
-import type { ProductRow, ProductSummary } from '@ecom/shared/models';
+import type { ProductRow, ProductSummary } from '@ecom/contracts';
 import { CountdownComponent, ErrorStateComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { ProductRowComponent } from '../product-row/product-row';
 import { RecentlyViewedComponent } from '../recently-viewed/recently-viewed';

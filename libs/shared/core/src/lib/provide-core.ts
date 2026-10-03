@@ -1,5 +1,5 @@
 import { EnvironmentProviders, ErrorHandler, makeEnvironmentProviders } from '@angular/core';
-import type { AppConfig } from '@ecom/shared/models';
+import type { AppConfig } from '@ecom/contracts';
 import { GlobalErrorHandler } from './global-error-handler';
 import { APP_CONFIG } from './tokens';
 

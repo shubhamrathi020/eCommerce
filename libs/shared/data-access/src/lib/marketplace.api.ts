@@ -11,7 +11,7 @@ import type {
   SellerProductInput,
   SellerShipmentView,
   SellerStatus,
-} from '@ecom/shared/models';
+} from '@ecom/contracts';
 
 /** What shoppers may see of a seller (MP-05): name, rating from reviews of their products, and their policies. */
 export abstract class SellerPublicApi {

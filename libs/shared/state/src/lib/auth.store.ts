@@ -2,8 +2,8 @@ import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core
 import { isPlatformBrowser } from '@angular/common';
 import { firstValueFrom, type Observable } from 'rxjs';
 import { AuthApi } from '@ecom/shared/data-access';
-import type { RegisterRequest, Session } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { RegisterRequest, Session } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { CartStore } from './cart.store';
 import { NotificationStore } from './notification.store';
 

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
-import type { Product, PlaceOrderRequest } from '@ecom/shared/models';
+import type { Product, PlaceOrderRequest } from '@ecom/contracts';
 import { CartApi, CatalogApi, CheckoutApi, OrderApi, PaymentApi, mockSignature, provideDataAccess } from '../index';
 import { EMPTY_STORED_CART, evaluateCoupon, priceCart, shippingFee } from './cart-engine';
 

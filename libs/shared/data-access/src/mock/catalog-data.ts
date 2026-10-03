@@ -1,5 +1,5 @@
-import type { Banner, Brand, Category, Collection, HomeData, Product } from '@ecom/shared/models';
-import { computeServiceability } from '@ecom/shared/models';
+import type { Banner, Brand, Category, Collection, HomeData, Product } from '@ecom/contracts';
+import { computeServiceability } from '@ecom/contracts';
 import type { CatalogData } from './catalog-engine';
 
 export { computeServiceability };

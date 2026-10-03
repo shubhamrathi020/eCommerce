@@ -17,7 +17,7 @@ import type {
   Paged,
   ProductStatus,
   Role,
-} from '@ecom/shared/models';
+} from '@ecom/contracts';
 
 /**
  * Back-office contracts. Every method requires the matching permission on the server

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { rxResource } from '@angular/core/rxjs-interop';
 import { APP_CONFIG, LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { AdminAnalyticsApi } from '@ecom/shared/data-access';
-import type { ProductSort } from '@ecom/shared/models';
+import type { ProductSort } from '@ecom/contracts';
 import { MoneyPipe } from '@ecom/shared/util';
 import { EmptyStateComponent, ErrorStateComponent, PaginationComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { injectListParams } from '../list-params';

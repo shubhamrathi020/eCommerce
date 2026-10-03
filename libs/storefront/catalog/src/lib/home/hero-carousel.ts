@@ -1,7 +1,7 @@
 import { NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { ChangeDetectionStrategy, Component, PLATFORM_ID, effect, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { Banner } from '@ecom/shared/models';
+import type { Banner } from '@ecom/contracts';
 import { IconComponent } from '@ecom/shared/ui';
 
 /** Autoplaying banner carousel. Pauses on hover/focus and never autoplays with reduced motion. */

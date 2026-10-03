@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { SellerPortalApi } from '@ecom/shared/data-access';
-import { ApiException, SELLER_NEXT, SHIPMENT_LABEL, type SellerShipmentView } from '@ecom/shared/models';
+import { ApiException, SELLER_NEXT, SHIPMENT_LABEL, type SellerShipmentView } from '@ecom/contracts';
 import { MoneyPipe } from '@ecom/shared/util';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 

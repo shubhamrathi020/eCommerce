@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import { giftCardProblem } from '@ecom/shared/models';
+import { giftCardProblem } from '@ecom/contracts';
 import { loadCatalogData } from './catalog-data';
 import { MockInventoryStore } from './inventory-store';
 import { MockOrderStore } from './mock-order-store';

@@ -1,8 +1,8 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { APP_CONFIG } from '@ecom/shared/core';
-import type { ApiError, ApiErrorCode } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { ApiError, ApiErrorCode } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { type Observable, catchError, defer, finalize, from, shareReplay, switchMap, throwError } from 'rxjs';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';

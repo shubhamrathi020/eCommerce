@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
 import type { SinkEvent } from '@ecom/shared/core';
-import type { Product, TrackedEvent } from '@ecom/shared/models';
+import type { Product, TrackedEvent } from '@ecom/contracts';
 
 const KEY = 'ecom.mock.events.v1';
 const MAX_EVENTS = 5000;

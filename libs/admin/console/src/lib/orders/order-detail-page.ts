@@ -5,8 +5,8 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom, type Observable } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminOrderApi } from '@ecom/shared/data-access';
-import type { AdminOrderDetail, OrderStatus } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { AdminOrderDetail, OrderStatus } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, CartLineComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, OrderSummaryComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { statusTone } from './orders-page';
 

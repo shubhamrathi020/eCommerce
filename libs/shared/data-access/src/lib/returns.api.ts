@@ -18,7 +18,7 @@ import type {
   SupportTicket,
   TicketQuery,
   TicketStatus,
-} from '@ecom/shared/models';
+} from '@ecom/contracts';
 
 /**
  * Customer side of returns (BRD 13). Every call needs a signed-in customer and only ever sees that customer's own

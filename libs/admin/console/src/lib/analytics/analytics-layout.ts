@@ -3,7 +3,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ToastService } from '@ecom/shared/core';
 import { AdminAnalyticsApi } from '@ecom/shared/data-access';
-import { ApiException, REPORT_DAYS, REPORT_LABEL, type ReportKey } from '@ecom/shared/models';
+import { ApiException, REPORT_DAYS, REPORT_LABEL, type ReportKey } from '@ecom/contracts';
 import { ButtonComponent, InputDirective } from '@ecom/shared/ui';
 import { injectListParams } from '../list-params';
 

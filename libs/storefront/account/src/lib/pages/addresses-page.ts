@@ -4,8 +4,8 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { firstValueFrom, type Observable } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { AddressBookApi, type AddressInput } from '@ecom/shared/data-access';
-import type { SavedAddress } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { SavedAddress } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 import { controlError } from '../form-utils';
 

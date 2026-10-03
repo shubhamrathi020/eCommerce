@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, effect, inject, input, output, sign
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { ReviewApi, REVIEW_LIMITS } from '@ecom/shared/data-access';
-import type { Review } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { Review } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { ButtonComponent, FormFieldComponent, InputDirective, RatingInputComponent } from '@ecom/shared/ui';
 
 /** Write a new review or edit your own. Server rules (length, checks) are applied by the API; this only guides. */

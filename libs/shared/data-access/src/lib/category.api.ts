@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import type { CategoryNode } from '@ecom/shared/models';
+import type { CategoryNode } from '@ecom/contracts';
 
 /** Contract for category data. Implemented by the mock adapter now, HTTP later. */
 export abstract class CategoryApi {

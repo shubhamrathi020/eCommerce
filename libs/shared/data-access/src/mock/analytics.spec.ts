@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG, AnalyticsService, AttributionService, ConsentService, PersonalisationService } from '@ecom/shared/core';
-import type { Product, TrackedEvent } from '@ecom/shared/models';
-import { campaignReport, cleanTag, cohortTable, funnel, parseTouch, productPerformance, searchReport, sortPerformance, toCsv, touchKey, touchLabel } from '@ecom/shared/models';
+import type { Product, TrackedEvent } from '@ecom/contracts';
+import { campaignReport, cleanTag, cohortTable, funnel, parseTouch, productPerformance, searchReport, sortPerformance, toCsv, touchKey, touchLabel } from '@ecom/contracts';
 import {
   AdminAnalyticsApi,
   AuditApi,

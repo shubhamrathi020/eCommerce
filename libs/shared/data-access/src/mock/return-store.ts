@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { AttachmentMeta, Order, OrderRefund, Product, ReturnEligibility, ReturnLineEligibility, ReturnPolicy, ReturnRequest, SupportTicket } from '@ecom/shared/models';
-import { ApiException, DEFAULT_RETURN_POLICY, OPEN_RETURN_STATUSES, attachmentProblem } from '@ecom/shared/models';
+import type { AttachmentMeta, Order, OrderRefund, Product, ReturnEligibility, ReturnLineEligibility, ReturnPolicy, ReturnRequest, SupportTicket } from '@ecom/contracts';
+import { ApiException, DEFAULT_RETURN_POLICY, OPEN_RETURN_STATUSES, attachmentProblem } from '@ecom/contracts';
 
 const KEY = 'ecom.mock.returns.v1';
 const DAY = 86_400_000;

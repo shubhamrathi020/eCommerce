@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminSellerApi, type SellerWithCounts } from '@ecom/shared/data-access';
-import { ApiException, SELLER_STATUS_LABEL, type SellerStatus } from '@ecom/shared/models';
+import { ApiException, SELLER_STATUS_LABEL, type SellerStatus } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 
 /** Seller applications (review the KYC details, approve or reject with a reason) and the sellers already trading (commission override, suspend, restore). */

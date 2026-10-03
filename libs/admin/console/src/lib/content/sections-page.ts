@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { AdminContentApi } from '@ecom/shared/data-access';
-import type { HomeSection } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { HomeSection } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { ButtonComponent, SkeletonComponent } from '@ecom/shared/ui';
 
 const DESCRIPTION: Record<string, string> = {

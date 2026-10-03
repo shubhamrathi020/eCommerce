@@ -2,7 +2,7 @@ import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core
 import { isPlatformBrowser } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { NotificationApi } from '@ecom/shared/data-access';
-import type { AppNotification } from '@ecom/shared/models';
+import type { AppNotification } from '@ecom/contracts';
 
 /**
  * The notification-centre bell: unread count and list for the signed-in shopper. Guests see nothing.

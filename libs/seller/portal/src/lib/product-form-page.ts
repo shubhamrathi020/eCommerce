@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { CategoryApi, SellerPortalApi } from '@ecom/shared/data-access';
-import { ApiException, type CategoryNode } from '@ecom/shared/models';
+import { ApiException, type CategoryNode } from '@ecom/contracts';
 import { ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent } from '@ecom/shared/ui';
 
 const rupeesToPaise = (text: string): number => {

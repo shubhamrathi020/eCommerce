@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, RESPONSE_INIT, effect, inject, inpu
 import { rxResource } from '@angular/core/rxjs-interop';
 import { SeoService } from '@ecom/shared/core';
 import { CmsApi } from '@ecom/shared/data-access';
-import { ApiException } from '@ecom/shared/models';
+import { ApiException } from '@ecom/contracts';
 import { ErrorStateComponent, NotFoundComponent, SkeletonComponent } from '@ecom/shared/ui';
 
 /** Renders a CMS page by slug. HTML is bound with [innerHTML], so Angular sanitises it. */

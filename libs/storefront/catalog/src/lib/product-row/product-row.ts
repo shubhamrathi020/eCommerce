@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { ProductSummary } from '@ecom/shared/models';
+import type { ProductSummary } from '@ecom/contracts';
 import { ProductCardComponent, ScrollerComponent } from '@ecom/shared/ui';
 import { ShopperActions } from '../shopper-actions';
 

@@ -407,3 +407,11 @@ Rules to remember: add strings to `messages.en.ts` first (the Hindi file is type
 Try it: in the footer pick Hindi, then Light/Dark; after `pnpm exec nx build storefront` with the server started on port 4000 (`node dist/apps/storefront/server/server.mjs`) run `node scripts/pwa-check.mjs`. In development the service worker is off.
 
 Limitations: see the BRD change log (translated surfaces only, unreviewed Hindi, English flash before Hindi, mock push).
+
+### Repository split (frontend / backend / contracts)
+
+Three sibling folders under `claude/`: `eCommerce` (frontend, keeps the full history), `eCommerce-api` (NestJS API, Prisma, `deploy/`, `scripts/backup|restore-drill|seed-flash-sale`, `docs/RUNBOOK.md`, `CANARY-RELEASE.md`, `CAPACITY-PLAN.md`, its own CI and deploy workflow; fresh git history) and `eCommerce-contracts` (`@ecom/contracts`: everything that used to be `libs/shared/models`, built to ES modules and CommonJS).
+
+Dependency: both repositories use `"@ecom/contracts": "link:../eCommerce-contracts"`. Consequences: build the contracts package first (`pnpm install && pnpm build` there); Docker builds receive it as a named build context `contracts_src` (compose does this); CI cannot install a `link:` path, so before pushing for CI, publish the contracts repository and run `pnpm add github:<account>/eCommerce-contracts#v0.1.0` in both repositories, then delete the `contracts` stage in the Dockerfiles. The CI files were rewritten for that final state and have not been run.
+
+Where things are now: requirements (`brds/`, `BR-eCommerce-Platform.md`), `PROJECT-LOG.md`, `steering/` and these session notes stay in the frontend repository for the whole project. The mock data generator (`tools/generate-mock-data`) stays in the frontend; the API has its own copy of the resulting JSON in `apps/api/seed-data`. Any old reference below to `apps/api`, `deploy/` or `libs/shared/models` means the corresponding place in the other repositories.

@@ -1,4 +1,4 @@
-import type { Order, OrderStatus, PaymentStatus, Product, TimelineEntry } from '@ecom/shared/models';
+import type { Order, OrderStatus, PaymentStatus, Product, TimelineEntry } from '@ecom/contracts';
 import { priceCart } from '../cart-engine';
 
 export const SEED_CUSTOMERS = [

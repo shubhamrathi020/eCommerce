@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { CART_FACADE, SeoService, ToastService, WishlistStore } from '@ecom/shared/core';
 import { CatalogApi } from '@ecom/shared/data-access';
-import type { ProductSummary } from '@ecom/shared/models';
+import type { ProductSummary } from '@ecom/contracts';
 import { ButtonComponent, EmptyStateComponent, ProductCardComponent, SkeletonComponent } from '@ecom/shared/ui';
 
 /** Saved products (kept on this device until wishlists move to the server). */

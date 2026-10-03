@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { defer, from, mergeMap } from 'rxjs';
-import type { Category, CategoryNode } from '@ecom/shared/models';
+import type { Category, CategoryNode } from '@ecom/contracts';
 import { CategoryApi } from '../lib/category.api';
 import { createMockResponder } from './mock-latency';
 

@@ -5,7 +5,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
 import { AdminReturnApi, AuthApi, CartApi, DEMO_ACCOUNTS, MockOrderStore, OrderApi, SellerPortalApi, loadCatalogData, provideAdminDataAccess, provideDataAccess } from '@ecom/shared/data-access';
-import type { Order } from '@ecom/shared/models';
+import type { Order } from '@ecom/contracts';
 import { AuthStore } from '@ecom/shared/state';
 import { checkoutRoutes } from '../checkout.routes';
 

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { ApproveReturnInput, Disposition, OrderRefund, Paged, PendingOrderRefund, QualityCheckInput, ReplyInput, ReturnPolicy, ReturnQuery, ReturnRequest, ReturnStatus, SupportTicket, TicketQuery, TicketStatus } from '@ecom/shared/models';
-import { ApiException, TICKET_LIMITS } from '@ecom/shared/models';
+import type { ApproveReturnInput, Disposition, OrderRefund, Paged, PendingOrderRefund, QualityCheckInput, ReplyInput, ReturnPolicy, ReturnQuery, ReturnRequest, ReturnStatus, SupportTicket, TicketQuery, TicketStatus } from '@ecom/contracts';
+import { ApiException, TICKET_LIMITS } from '@ecom/contracts';
 import { formatMoney } from '@ecom/shared/util';
 import { AdminReturnApi, AdminSupportApi } from '../../lib/returns.api';
 import { MAIN_LOCATION } from '../inventory-store';

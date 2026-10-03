@@ -5,7 +5,7 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { APP_CONFIG, AnalyticsService, ConsentService } from '@ecom/shared/core';
 import { MockEventStore, loadCatalogData, provideDataAccess, seedEvents } from '@ecom/shared/data-access';
-import { coPurchases } from '@ecom/shared/models';
+import { coPurchases } from '@ecom/contracts';
 import { catalogRoutes, homeRoute } from './catalog.routes';
 
 const config = { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop', siteUrl: 'http://x', features: {} };

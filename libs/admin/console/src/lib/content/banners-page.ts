@@ -5,8 +5,8 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { firstValueFrom, type Observable } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminContentApi } from '@ecom/shared/data-access';
-import type { ContentBanner } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { ContentBanner } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 
 type Field = 'title' | 'subtitle' | 'cta' | 'link' | 'imageUrl' | 'imageAlt' | 'endsAt';

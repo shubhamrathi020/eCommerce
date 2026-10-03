@@ -18,7 +18,6 @@
     "paths": {
       "@ecom/shared/ui": ["./libs/shared/ui/src/index.ts"],
       "@ecom/shared/util": ["./libs/shared/util/src/index.ts"],
-      "@ecom/shared/models": ["./libs/shared/models/src/index.ts"],
       "@ecom/shared/data-access": ["./libs/shared/data-access/src/index.ts"],
       "@ecom/shared/core": ["./libs/shared/core/src/index.ts"],
       "@ecom/storefront/shell": ["./libs/storefront/shell/src/index.ts"],

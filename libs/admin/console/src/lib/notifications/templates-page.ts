@@ -4,8 +4,8 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminNotificationApi } from '@ecom/shared/data-access';
-import type { MessageTemplate } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { MessageTemplate } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 
 /** Fills `{{variables}}` with sample text, the same as the admin "send test" preview. */

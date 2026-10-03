@@ -20,8 +20,8 @@ import type {
   ProductStatus,
   Role,
   Variant,
-} from '@ecom/shared/models';
-import { ApiException, ORDER_TRANSITIONS } from '@ecom/shared/models';
+} from '@ecom/contracts';
+import { ApiException, ORDER_TRANSITIONS } from '@ecom/contracts';
 
 export { ORDER_TRANSITIONS };
 import { AdminCouponApi, AdminDashboardApi, AdminOrderApi, AdminProductApi, AdminReviewApi, AdminUserApi, AuditApi } from '../../lib/admin.api';
@@ -41,7 +41,7 @@ const nowIso = () => new Date().toISOString();
 const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const inr = (amount: number) => ({ amount: Math.round(amount), currency: 'INR' as const });
 
-// ORDER_TRANSITIONS now lives in @ecom/shared/models (order-derive.ts) so apps/api can use it too — the
+// ORDER_TRANSITIONS now lives in @ecom/contracts (order-derive.ts) so apps/api can use it too — the
 // same pattern as catalog-engine.ts/cart-engine.ts's relocation. Re-exported below for existing imports.
 
 const STATUS_LABEL: Record<string, string> = { packed: 'Packed', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Order cancelled' };

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import type { Money } from '@ecom/shared/models';
+import type { Money } from '@ecom/contracts';
 import { MoneyPipe, discountPercent } from '@ecom/shared/util';
 import { TranslatePipe } from '@ecom/shared/core';
 

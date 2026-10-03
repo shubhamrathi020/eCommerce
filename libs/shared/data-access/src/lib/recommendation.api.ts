@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import type { RecConfig, RecPreview, RecRow, RecStats } from '@ecom/shared/models';
+import type { RecConfig, RecPreview, RecRow, RecStats } from '@ecom/contracts';
 
 /**
  * Recommendation rows (BRD 15). Rows are explainable: each item carries the reason it is shown. A row that would be thin

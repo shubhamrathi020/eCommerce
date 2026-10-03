@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { Order, PlaceOrderRequest } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { Order, PlaceOrderRequest } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { formatMoney } from '@ecom/shared/util';
 import { OrderApi } from '../lib/commerce.api';
 import { EMPTY_STORED_CART } from './cart-engine';

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
-import type { AppNotification } from '@ecom/shared/models';
+import type { AppNotification } from '@ecom/contracts';
 import { NotificationStore } from '@ecom/shared/state';
 import { ButtonComponent, EmptyStateComponent } from '@ecom/shared/ui';
 

@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminSupportApi } from '@ecom/shared/data-access';
-import { ApiException, TICKET_STATUS_LABEL, type TicketQuery, type TicketStatus } from '@ecom/shared/models';
+import { ApiException, TICKET_STATUS_LABEL, type TicketQuery, type TicketStatus } from '@ecom/contracts';
 import { AuthStore } from '@ecom/shared/state';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, PaginationComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { injectListParams } from '../list-params';

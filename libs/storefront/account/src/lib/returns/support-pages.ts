@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { OrderApi, SupportApi } from '@ecom/shared/data-access';
-import { type AttachmentMeta, ApiException, TICKET_LIMITS, TICKET_STATUS_LABEL, type TicketStatus } from '@ecom/shared/models';
+import { type AttachmentMeta, ApiException, TICKET_LIMITS, TICKET_STATUS_LABEL, type TicketStatus } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { AttachmentPickerComponent } from './attachment-picker';
 

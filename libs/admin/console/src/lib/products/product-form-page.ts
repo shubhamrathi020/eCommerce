@@ -5,8 +5,8 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
 import { AdminProductApi } from '@ecom/shared/data-access';
-import type { AdminProductInput, AdminVariantInput, ProductStatus } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { AdminProductInput, AdminVariantInput, ProductStatus } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { ButtonComponent, ErrorStateComponent, FormFieldComponent, InputDirective, NotFoundComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { paiseToRupees, rupeesToPaise } from '../list-params';
 

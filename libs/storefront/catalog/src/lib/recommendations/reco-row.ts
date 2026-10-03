@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { RecommendationApi } from '@ecom/shared/data-access';
-import type { RecRow } from '@ecom/shared/models';
+import type { RecRow } from '@ecom/contracts';
 import { ProductCardComponent, ScrollerComponent } from '@ecom/shared/ui';
 import { ShopperActions } from '../shopper-actions';
 

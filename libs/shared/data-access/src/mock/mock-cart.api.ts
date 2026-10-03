@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { ShippingMethodId } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { ShippingMethodId } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { CartApi } from '../lib/commerce.api';
 import { MAX_LINE_QUANTITY, evaluateCoupon } from './cart-engine';
 import { MockCartState } from './mock-cart-state';

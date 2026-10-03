@@ -1,7 +1,7 @@
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { CartLine } from '@ecom/shared/models';
+import type { CartLine } from '@ecom/contracts';
 import { MoneyPipe } from '@ecom/shared/util';
 import { PriceComponent } from '../price/price';
 import { QuantityStepperComponent } from '../quantity-stepper/quantity-stepper';

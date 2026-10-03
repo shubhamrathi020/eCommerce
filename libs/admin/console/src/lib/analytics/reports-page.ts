@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { LocaleDatePipe, SeoService, ToastService } from '@ecom/shared/core';
 import { AdminAnalyticsApi } from '@ecom/shared/data-access';
-import { ApiException, REPORT_DAYS, REPORT_LABEL, type ReportKey, type ReportSchedule } from '@ecom/shared/models';
+import { ApiException, REPORT_DAYS, REPORT_LABEL, type ReportKey, type ReportSchedule } from '@ecom/contracts';
 import { AuthStore } from '@ecom/shared/state';
 import { ButtonComponent, EmptyStateComponent, ErrorStateComponent, FormFieldComponent, InputDirective, SkeletonComponent } from '@ecom/shared/ui';
 

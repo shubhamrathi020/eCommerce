@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { LocaleDatePipe, SeoService } from '@ecom/shared/core';
 import { AdminOrderApi } from '@ecom/shared/data-access';
-import type { AdminOrderQuery, OrderStatus, PaymentMethod } from '@ecom/shared/models';
+import type { AdminOrderQuery, OrderStatus, PaymentMethod } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, PaginationComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { MoneyPipe } from '@ecom/shared/util';
 import { injectListParams } from '../list-params';

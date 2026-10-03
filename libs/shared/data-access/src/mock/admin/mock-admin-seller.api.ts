@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { CommissionRule, PayoutPreview, PayoutStatement, Seller, SellerProduct, SellerStatus } from '@ecom/shared/models';
-import { ApiException } from '@ecom/shared/models';
+import type { CommissionRule, PayoutPreview, PayoutStatement, Seller, SellerProduct, SellerStatus } from '@ecom/contracts';
+import { ApiException } from '@ecom/contracts';
 import { formatMoney } from '@ecom/shared/util';
 import { AdminSellerApi, type AdminSellerProduct, type CommissionRuleInput, type SellerWithCounts } from '../../lib/marketplace.api';
 import { loadCatalogData } from '../catalog-data';

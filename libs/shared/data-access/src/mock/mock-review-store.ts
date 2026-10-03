@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { Product, RatingSummary, Review } from '@ecom/shared/models';
+import type { Product, RatingSummary, Review } from '@ecom/contracts';
 import { MockUserStore } from './mock-user-store';
 
 /** A review written in this browser; `userId` stays server-side and is never returned to clients. */

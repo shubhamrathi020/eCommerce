@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import type { Cart, Order, PaymentOption, PaymentResult, PaymentSession, PlaceOrderRequest, ShippingMethodId, ShippingOption } from '@ecom/shared/models';
+import type { Cart, Order, PaymentOption, PaymentResult, PaymentSession, PlaceOrderRequest, ShippingMethodId, ShippingOption } from '@ecom/contracts';
 import type { Observable } from 'rxjs';
 import { CartApi, CheckoutApi, OrderApi, PaymentApi } from '../lib/commerce.api';
 import { ApiClient } from './api-client';

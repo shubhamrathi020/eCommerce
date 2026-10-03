@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { SeoService } from '@ecom/shared/core';
 import { SellerPortalApi } from '@ecom/shared/data-access';
 import { MoneyPipe } from '@ecom/shared/util';
-import { SELLER_STATUS_LABEL } from '@ecom/shared/models';
+import { SELLER_STATUS_LABEL } from '@ecom/contracts';
 import { BadgeComponent, ButtonComponent, ErrorStateComponent, SkeletonComponent } from '@ecom/shared/ui';
 import { AuthStore } from '@ecom/shared/state';
 

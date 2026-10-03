@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { I18nService, PushOptInService, SeoService, ToastService, TranslatePipe } from '@ecom/shared/core';
 import { PreferenceApi } from '@ecom/shared/data-access';
-import { ApiException, type NotificationPreferences } from '@ecom/shared/models';
+import { ApiException, type NotificationPreferences } from '@ecom/contracts';
 import { ButtonComponent, SkeletonComponent } from '@ecom/shared/ui';
 
 /** Order, security and payment messages are always on and are not shown as a toggle here. */

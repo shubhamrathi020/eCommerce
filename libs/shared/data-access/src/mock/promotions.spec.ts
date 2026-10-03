@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
-import type { Order, Promotion, PromotionContext, PromoLine, StoredCart } from '@ecom/shared/models';
-import { discountPercent, evaluatePromotions, isCredibleReference } from '@ecom/shared/models';
+import type { Order, Promotion, PromotionContext, PromoLine, StoredCart } from '@ecom/contracts';
+import { discountPercent, evaluatePromotions, isCredibleReference } from '@ecom/contracts';
 import {
   AdminGiftCardApi,
   AdminPromotionApi,

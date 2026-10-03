@@ -3,7 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { SeoService } from '@ecom/shared/core';
 import { PreferenceApi } from '@ecom/shared/data-access';
-import { ApiException } from '@ecom/shared/models';
+import { ApiException } from '@ecom/contracts';
 import { ButtonComponent } from '@ecom/shared/ui';
 
 /** Reached from an email link; works without signing in. Turns off one preference channel. */

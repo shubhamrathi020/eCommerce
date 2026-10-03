@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { Order, PublicSeller, Seller, SellerApplicationInput, SellerProduct, SellerProductInput, SellerShipmentView, Shipment } from '@ecom/shared/models';
-import { ApiException, SELLER_NEXT, sellerApplicationProblems, sellerProductProblems, sellerRating } from '@ecom/shared/models';
+import type { Order, PublicSeller, Seller, SellerApplicationInput, SellerProduct, SellerProductInput, SellerShipmentView, Shipment } from '@ecom/contracts';
+import { ApiException, SELLER_NEXT, sellerApplicationProblems, sellerProductProblems, sellerRating } from '@ecom/contracts';
 import { type AssignedItem, SellerPortalApi, type SellerPayouts, SellerPublicApi } from '../lib/marketplace.api';
 import { loadCatalogData } from './catalog-data';
 import { MockInventoryStore } from './inventory-store';

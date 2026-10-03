@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import type { ApplyWalletInput, DealView, GiftCard, GiftCardCheck, IssueGiftCardInput, PriceHealthIssue, Promotion, PromotionInput, SimulationInput, SimulationResult, WalletSummary } from '@ecom/shared/models';
+import type { ApplyWalletInput, DealView, GiftCard, GiftCardCheck, IssueGiftCardInput, PriceHealthIssue, Promotion, PromotionInput, SimulationInput, SimulationResult, WalletSummary } from '@ecom/contracts';
 
 /**
  * Shop side of promotions (BRD 14). Automatic offers are applied by the cart itself; this only exposes what the

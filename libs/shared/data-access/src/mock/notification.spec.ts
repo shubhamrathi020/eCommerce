@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '@ecom/shared/core';
-import type { PlaceOrderRequest } from '@ecom/shared/models';
+import type { PlaceOrderRequest } from '@ecom/contracts';
 import {
   AdminInventoryApi,
   AdminNotificationApi,

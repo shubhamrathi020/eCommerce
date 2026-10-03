@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import type { AppliedCoupon, AppliedPromotion, CartTotals } from '@ecom/shared/models';
+import type { AppliedCoupon, AppliedPromotion, CartTotals } from '@ecom/contracts';
 import { MoneyPipe } from '@ecom/shared/util';
 import { TranslatePipe } from '@ecom/shared/core';
 

@@ -1,6 +1,6 @@
 import { InjectionToken, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import type { AppConfig } from '@ecom/shared/models';
+import type { AppConfig } from '@ecom/contracts';
 
 export const APP_CONFIG = new InjectionToken<AppConfig>('APP_CONFIG');
 

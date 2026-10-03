@@ -3,7 +3,7 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideCore } from '@ecom/shared/core';
 import { provideDataAccess } from '@ecom/shared/data-access';
-import type { AppConfig } from '@ecom/shared/models';
+import type { AppConfig } from '@ecom/contracts';
 import { provideCartFacade } from '@ecom/shared/state';
 import { appRoutes } from './app.routes';
 

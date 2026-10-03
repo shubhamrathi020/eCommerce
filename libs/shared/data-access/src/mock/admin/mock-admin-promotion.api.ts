@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import type { GiftCard, IssueGiftCardInput, PriceHealthIssue, Promotion, PromotionInput, SimulationInput, SimulationResult } from '@ecom/shared/models';
-import { ApiException, MAX_CREDIBLE_DISCOUNT_PERCENT, isCredibleReference } from '@ecom/shared/models';
+import type { GiftCard, IssueGiftCardInput, PriceHealthIssue, Promotion, PromotionInput, SimulationInput, SimulationResult } from '@ecom/contracts';
+import { ApiException, MAX_CREDIBLE_DISCOUNT_PERCENT, isCredibleReference } from '@ecom/contracts';
 import { formatMoney } from '@ecom/shared/util';
 import { AdminGiftCardApi, AdminPromotionApi } from '../../lib/promotion.api';
 import { loadCatalogData } from '../catalog-data';

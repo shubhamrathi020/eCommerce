@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { STORAGE } from '@ecom/shared/core';
-import type { GiftCard, GiftCardEntry, Order, Promotion } from '@ecom/shared/models';
-import { giftCardProblem } from '@ecom/shared/models';
+import type { GiftCard, GiftCardEntry, Order, Promotion } from '@ecom/contracts';
+import { giftCardProblem } from '@ecom/contracts';
 import { MockReturnStore } from './return-store';
 
 const KEY = 'ecom.mock.promotions.v1';
