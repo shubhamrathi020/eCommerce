@@ -2,8 +2,8 @@ import type { Address } from './order';
 
 export type Role = 'customer' | 'admin';
 
-const CUSTOMER_PERMISSIONS = ['profile:write:own', 'address:write:own', 'order:read:own', 'order:cancel:own'];
-const ADMIN_PERMISSIONS = ['product:read', 'product:write', 'order:read:any', 'order:refund', 'user:read', 'coupon:write', 'review:moderate', 'content:write', 'inventory:write', 'notification:manage', 'system:read', 'system:write'];
+const CUSTOMER_PERMISSIONS = ['profile:write:own', 'address:write:own', 'order:read:own', 'order:cancel:own', 'return:write:own', 'support:write:own'];
+const ADMIN_PERMISSIONS = ['product:read', 'product:write', 'order:read:any', 'order:refund', 'user:read', 'coupon:write', 'review:moderate', 'content:write', 'inventory:write', 'notification:manage', 'return:manage', 'support:manage', 'system:read', 'system:write'];
 
 /**
  * The single source of truth for what each role grants. Both the mock frontend adapters and the real

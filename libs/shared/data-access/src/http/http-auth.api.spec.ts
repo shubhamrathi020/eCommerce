@@ -9,7 +9,7 @@ import { AddressBookApi, AuthApi, provideDataAccess } from '../index';
 import { MockUserStore } from '../mock/mock-user-store';
 
 const BASE = 'http://api.test';
-const session: Session = { user: { id: 'u1', name: 'Asha', email: 'asha@example.com', roles: ['customer'], permissions: ['address:write:own'], emailVerified: true, createdAt: '2026-09-01T00:00:00.000Z' }, expiresAt: '2026-10-01T00:00:00.000Z' };
+const session: Session = { user: { id: 'u1', name: 'Asha', email: 'asha@example.com', roles: ['customer'], permissions: ['address:write:own'], emailVerified: true, createdAt: '2026-09-01T00:00:00.000Z' }, expiresAt: new Date(Date.now() + 24 * 3_600_000).toISOString() };
 
 describe('HTTP adapters for the real API (realAuth)', () => {
   let http: HttpTestingController;

@@ -15,3 +15,4 @@ export * from './lib/admin';
 export * from './lib/content';
 export * from './lib/inventory';
 export * from './lib/notification';
+export * from './lib/returns';

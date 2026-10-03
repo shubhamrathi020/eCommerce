@@ -43,6 +43,11 @@ const SEED_TEMPLATES: MessageTemplate[] = [
   seedTemplate('review_status', 'Review status', 'Sent after a shopper submits or edits a review.', 'review', ['name', 'title', 'status'], 'About your review "{{title}}"', 'Hi {{name}}, your review "{{title}}" {{status}}.'),
   seedTemplate('back_in_stock', 'Back in stock', 'Sent once when a subscribed item is available again.', 'back_in_stock', ['name', 'product', 'link'], '{{product}} is back in stock', "Hi {{name}}, good news: {{product}} is back in stock. Grab it before it's gone: {{link}}"),
   seedTemplate('price_drop', 'Price drop', 'Sent when a subscribed item drops below the watched price.', 'price_drop', ['name', 'product', 'price', 'link'], '{{product}} just dropped to {{price}}', 'Hi {{name}}, the price of {{product}} dropped to {{price}}. See it here: {{link}}'),
+  seedTemplate('return_requested', 'Return requested', 'Sent when a customer asks to return items.', 'order', ['name', 'returnId', 'orderId'], 'Return {{returnId}} received', 'Hi {{name}}, we have your return request {{returnId}} for order {{orderId}}. We will review it shortly.'),
+  seedTemplate('return_approved', 'Return approved', 'Sent when staff approve a return and schedule the pickup.', 'order', ['name', 'returnId', 'pickupDate'], 'Return {{returnId}} approved', 'Hi {{name}}, your return {{returnId}} is approved. A courier will collect the items on {{pickupDate}}.'),
+  seedTemplate('return_rejected', 'Return not accepted', 'Sent when a return is rejected, at review or at the quality check.', 'order', ['name', 'returnId', 'reason'], 'Return {{returnId}} was not accepted', 'Hi {{name}}, we could not accept return {{returnId}}. Reason: {{reason}}'),
+  seedTemplate('refund_issued', 'Refund issued', 'Sent when a refund is paid out.', 'order', ['name', 'returnId', 'amount', 'method'], 'Refund of {{amount}} issued', 'Hi {{name}}, we have refunded {{amount}} for {{returnId}} ({{method}}).'),
+  seedTemplate('support_reply', 'Support reply', 'Sent when staff reply to a support ticket.', 'support', ['name', 'ticketId', 'subject'], 'New reply on {{ticketId}}', 'Hi {{name}}, our team replied to your question "{{subject}}". Open the ticket to read it.'),
 ];
 
 /** A couple of seeded delivery-log rows (one failed) so the admin screen has something to demo immediately. */
@@ -94,7 +99,11 @@ export class MockNotificationStore {
   private read(): NotificationState {
     try {
       const raw = this.storage.getItem(KEY);
-      return raw ? { ...emptyState(), ...(JSON.parse(raw) as Partial<NotificationState>) } : emptyState();
+      if (!raw) return emptyState();
+      const saved = { ...emptyState(), ...(JSON.parse(raw) as Partial<NotificationState>) };
+      // Templates added by later features appear for people whose browser already holds an older saved set.
+      for (const t of SEED_TEMPLATES) saved.templates[t.key] ??= t;
+      return saved;
     } catch {
       return emptyState();
     }
@@ -341,7 +350,7 @@ export class MockNotificationStore {
 
   /** Sample values for every template variable, for the admin "send test" action. */
   private sampleVars(template: MessageTemplate): Record<string, string> {
-    const samples: Record<string, string> = { name: 'Test User', orderId: 'ORD-TEST123', total: formatMoney({ amount: 249900, currency: 'INR' }), title: 'A sample review', status: 'is now live on the product page', product: 'Sample Product', price: formatMoney({ amount: 149900, currency: 'INR' }), link: '/p/sample-product' };
+    const samples: Record<string, string> = { name: 'Test User', orderId: 'ORD-TEST123', total: formatMoney({ amount: 249900, currency: 'INR' }), title: 'A sample review', status: 'is now live on the product page', product: 'Sample Product', price: formatMoney({ amount: 149900, currency: 'INR' }), link: '/p/sample-product', returnId: 'RET-TEST123', pickupDate: '12 Oct 2026', reason: 'The item was used', amount: formatMoney({ amount: 129900, currency: 'INR' }), method: 'original payment method', ticketId: 'TKT-TEST123', subject: 'A sample question' };
     return Object.fromEntries(template.variables.map((v) => [v, samples[v] ?? `{{${v}}}`]));
   }
 

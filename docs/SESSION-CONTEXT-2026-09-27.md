@@ -355,3 +355,13 @@ Bugs only the Kubernetes run could find: an es2021 build target that broke every
 Written but never run: `deploy/terraform/aws`, `.github/workflows/deploy.yml` (no cloud account; `terraform` not installed). The CI image job now also builds and Trivy-scans the API image. The 10,000-user / 1,000-orders-per-minute targets were not tested. Details and honest caveats: `docs/CAPACITY-PLAN.md`.
 
 Status: **BRDs 19-25 are built**; the backend track is complete apart from what needs a cloud account. Remaining overall: frontend phases 2-3 (BRDs 13-18, still drafts), your phase 1 sign-off, the deferred items listed in the BRD 22-24 change logs, and real credentials (email provider, Razorpay, alert channel, cloud). Nothing is pushed - the user pushes.
+
+### After BRD 13: returns, refunds and support (frontend, mock-backed)
+
+Trigger: "start with Frontend BRDs 13-18 and complete those". BRD 13 is the first of six.
+
+Built: models (`libs/shared/models/src/lib/returns.ts`, including the pure `computeRefund` and `attachmentProblem` the real backend can reuse), abstract `ReturnApi`/`SupportApi`/`AdminReturnApi`/`AdminSupportApi` (`libs/shared/data-access/src/lib/returns.api.ts`), a device-local `MockReturnStore` (key `ecom.mock.returns.v1`), mocks for all four, five new notification templates, new permissions (`return:write:own`, `support:write:own`, `return:manage`, `support:manage`). Storefront: `/account/returns`, `/account/returns/new?order=`, `/account/returns/:id`, `/account/support`, `/account/support/new`, `/account/support/:id`, plus "Return items", "Get help" and refund status on the order page. Admin: `/returns/queue`, `/returns/queue/:id`, `/returns/refunds`, `/returns/policy`, `/support`, `/support/:id`.
+
+How to try it by hand: sign in as the demo customer, place a cash-on-delivery order, wait about 6 minutes for the mock to mark it delivered, then open it and choose "Return items". Sign in to the admin as the demo admin to work the queue.
+
+Decisions taken by default (see the BRD's section 8): refunds only, 7-day window, ₹49 fee when the customer changes their mind, store credit for COD. Limitations: store credit cannot be spent yet; attachments are metadata only (no bytes are stored); returns read orders from the device-local order store, so with `realCommerce` on they cannot see backend orders; staff-set permissions are in the browser session, so a session saved before this change must sign out and in to pick up the new permission names.

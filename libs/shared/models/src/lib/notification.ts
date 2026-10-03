@@ -8,7 +8,7 @@ export interface NotificationPreferences {
   backInStockAlerts: boolean;
 }
 
-export type NotificationKind = 'order' | 'review' | 'price_drop' | 'back_in_stock' | 'account';
+export type NotificationKind = 'order' | 'review' | 'price_drop' | 'back_in_stock' | 'account' | 'support';
 
 /** One notification-centre (bell) entry. */
 export interface AppNotification {

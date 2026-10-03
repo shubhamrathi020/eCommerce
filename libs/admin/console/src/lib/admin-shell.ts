@@ -15,6 +15,8 @@ const NAV: NavItem[] = [
   { label: 'Products', link: '/products', permission: 'product:read' },
   { label: 'Orders', link: '/orders', permission: 'order:read:any' },
   { label: 'Inventory', link: '/inventory', permission: 'inventory:write' },
+  { label: 'Returns', link: '/returns', permission: 'return:manage' },
+  { label: 'Support', link: '/support', permission: 'support:manage' },
   { label: 'Content', link: '/content', permission: 'content:write' },
   { label: 'Notifications', link: '/notifications', permission: 'notification:manage' },
   { label: 'Reviews', link: '/reviews', permission: 'review:moderate' },

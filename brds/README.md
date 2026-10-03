@@ -25,7 +25,7 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | 10 | [Notifications and preferences](10-notifications-preferences.md) | 1 | Built (mock) | 04, 05, 06 |
 | 11 | [Inventory operations](11-inventory-operations.md) | 1 | Built (mock) | 02, 04, 06 |
 | 12 | [Frontend hardening and polish](12-frontend-hardening.md) | 1 | Built (FH-03, 04, 10 consciously deferred) | 01 to 11 |
-| 13 | [Returns, refunds and support](13-returns-refunds-support.md) | 2 | Draft | 04, 05, 06, 10, 11 |
+| 13 | [Returns, refunds and support](13-returns-refunds-support.md) | 2 | Built (mock) | 04, 05, 06, 10, 11 |
 | 14 | [Promotions engine and deals](14-promotions-deals.md) | 2 | Draft | 04, 06 |
 | 15 | [Recommendations and personalisation](15-recommendations.md) | 2 | Draft | 02, 03, 05, 10 |
 | 16 | [Analytics and reporting](16-analytics-reporting.md) | 2 | Draft | 06, 15 |

@@ -41,6 +41,8 @@ export class AccountHomeComponent {
   protected readonly dev = isDevMode();
   protected readonly tiles = [
     { title: 'Orders', text: 'Track, cancel and view invoices', link: '/orders' },
+    { title: 'Returns and refunds', text: 'Request a return and follow your refund', link: '/account/returns' },
+    { title: 'Help and support', text: 'Ask us about an order', link: '/account/support' },
     { title: 'Wishlist', text: 'Products you saved', link: '/wishlist' },
     { title: 'Addresses', text: 'Manage delivery addresses', link: '/account/addresses' },
     { title: 'Notifications', text: 'Order, review and price alerts', link: '/notifications' },

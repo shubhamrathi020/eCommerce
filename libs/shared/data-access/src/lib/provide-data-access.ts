@@ -9,6 +9,8 @@ import { ReviewApi } from './review.api';
 import { SearchApi } from './search.api';
 import { NewsletterApi } from './newsletter.api';
 import { AlertApi, NotificationApi, PreferenceApi } from './notification.api';
+import { ReturnApi, SupportApi } from './returns.api';
+import { MockReturnApi, MockSupportApi } from '../mock/mock-return.api';
 import { MockAddressBookApi } from '../mock/mock-address-book.api';
 import { MockAuthApi } from '../mock/mock-auth.api';
 import { MockCartApi } from '../mock/mock-cart.api';
@@ -59,5 +61,9 @@ export function provideDataAccess(options: { useMocks: boolean; realAuth?: boole
     { provide: PreferenceApi, useClass: MockPreferenceApi },
     { provide: AlertApi, useClass: MockAlertApi },
     { provide: NotificationApi, useClass: MockNotificationApi },
+    // Returns, refunds and support (BRD 13): mock only. They read orders from the device-local order store, so with
+    // realCommerce on they cannot see backend orders yet (recorded in the BRD 13 change log).
+    { provide: ReturnApi, useClass: MockReturnApi },
+    { provide: SupportApi, useClass: MockSupportApi },
   ]);
 }

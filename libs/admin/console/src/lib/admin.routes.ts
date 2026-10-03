@@ -48,6 +48,20 @@ export const adminRoutes: Route[] = [
         ],
       },
       {
+        path: 'returns',
+        canActivate: [permissionGuard('return:manage')],
+        loadComponent: () => import('./returns/returns-layout').then((m) => m.ReturnsLayoutComponent),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'queue' },
+          { path: 'queue', loadComponent: () => import('./returns/queue-page').then((m) => m.ReturnsQueuePageComponent) },
+          { path: 'queue/:id', loadComponent: () => import('./returns/return-detail-page').then((m) => m.ReturnDetailPageComponent) },
+          { path: 'refunds', canActivate: [permissionGuard('order:refund')], loadComponent: () => import('./returns/refunds-page').then((m) => m.RefundsPageComponent) },
+          { path: 'policy', loadComponent: () => import('./returns/policy-page').then((m) => m.PolicyPageComponent) },
+        ],
+      },
+      { path: 'support', canActivate: [permissionGuard('support:manage')], loadComponent: () => import('./support/support-pages').then((m) => m.SupportQueuePageComponent) },
+      { path: 'support/:id', canActivate: [permissionGuard('support:manage')], loadComponent: () => import('./support/support-pages').then((m) => m.SupportDetailPageComponent) },
+      {
         path: 'notifications',
         canActivate: [permissionGuard('notification:manage')],
         loadComponent: () => import('./notifications/notifications-layout').then((m) => m.NotificationsLayoutComponent),

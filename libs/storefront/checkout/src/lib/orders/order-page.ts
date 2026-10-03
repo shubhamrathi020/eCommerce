@@ -3,11 +3,12 @@ import { ChangeDetectionStrategy, Component, PLATFORM_ID, RESPONSE_INIT, compute
 import { isPlatformBrowser } from '@angular/common';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, of } from 'rxjs';
 import { SeoService, ToastService } from '@ecom/shared/core';
-import { OrderApi } from '@ecom/shared/data-access';
+import { OrderApi, ReturnApi } from '@ecom/shared/data-access';
 import type { Order } from '@ecom/shared/models';
 import { ApiException } from '@ecom/shared/models';
+import { AuthStore } from '@ecom/shared/state';
 import { BadgeComponent, ButtonComponent, CartLineComponent, ErrorStateComponent, NotFoundComponent, OrderSummaryComponent, SkeletonComponent } from '@ecom/shared/ui';
 
 const PAYMENT_TEXT: Record<Order['paymentStatus'], string> = {
@@ -68,7 +69,11 @@ const PAYMENT_TEXT: Record<Order['paymentStatus'], string> = {
             <ui-order-summary [totals]="o.totals" [coupon]="undefined" />
             <p class="mt-3 text-sm text-text-muted">{{ paymentText(o) }}</p>
             @if (o.paymentStatus === 'refund_pending') {
-              <p class="mt-1 text-sm text-text-muted">Your refund will be returned to the original payment method.</p>
+              @if (refund.hasValue() && refund.value()?.refundedAt; as paidOn) {
+                <p class="mt-1 text-sm text-success" role="status">Refunded to your original payment method on {{ paidOn | date: 'd MMM y' }}.</p>
+              } @else {
+                <p class="mt-1 text-sm text-text-muted">Your refund will be returned to the original payment method.</p>
+              }
             }
           </section>
           <section class="rounded-lg border border-border p-4 text-sm" aria-labelledby="addr">
@@ -78,6 +83,12 @@ const PAYMENT_TEXT: Record<Order['paymentStatus'], string> = {
           </section>
           <div class="flex flex-wrap gap-2 print:hidden">
             <a uiButton variant="secondary" [routerLink]="['/orders', o.id, 'invoice']">View invoice</a>
+            @if (isOwner(o)) {
+              @if (o.status === 'delivered') {
+                <a uiButton variant="secondary" routerLink="/account/returns/new" [queryParams]="{ order: o.id }">Return items</a>
+              }
+              <a uiButton variant="ghost" routerLink="/account/support/new" [queryParams]="{ order: o.id }">Get help</a>
+            }
             @if (canCancel(o)) {
               @if (confirmingCancel()) {
                 <button uiButton variant="danger" type="button" [loading]="cancelling()" (click)="cancel(o)">Yes, cancel order</button>
@@ -112,6 +123,16 @@ export class OrderPageComponent {
     const e = this.resource.error();
     return this.resource.status() === 'error' && e instanceof ApiException && e.code === 'not_found';
   });
+  private readonly auth = inject(AuthStore);
+  private readonly returns = inject(ReturnApi);
+  /** Where the money of a cancelled, prepaid order is (RF-04). Not needed for guests or other orders. */
+  protected readonly refund = rxResource({
+    params: () => {
+      const o = this.order();
+      return o?.paymentStatus === 'refund_pending' && this.isOwner(o) ? o.id : undefined;
+    },
+    stream: ({ params }) => this.returns.orderRefund(params).pipe(catchError(() => of(null))),
+  });
   protected readonly confirmingCancel = signal(false);
   protected readonly cancelling = signal(false);
 
@@ -127,6 +148,12 @@ export class OrderPageComponent {
       const timer = setInterval(() => this.resource.reload(), 15000);
       onCleanup(() => clearInterval(timer));
     });
+  }
+
+  /** Returns and support are for the signed-in customer who placed the order. */
+  protected isOwner(o: Order): boolean {
+    const user = this.auth.user();
+    return !!user && !!o.userId && o.userId === user.id;
   }
 
   protected statusLabel(o: Order): string {
