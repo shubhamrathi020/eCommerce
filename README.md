@@ -35,7 +35,7 @@ Everyday commands, containers and troubleshooting: [docs/RUNBOOK.md](docs/RUNBOO
 That works on this machine only. Before CI or a container build can run anywhere else, publish `eCommerce-contracts` (for example to GitHub) and switch both this repository and the backend to a tagged git dependency:
 
 ```bash
-pnpm add github:<your-account>/eCommerce-contracts#v0.1.0
+pnpm add -w github:<your-account>/eCommerce-contracts#v0.1.0
 ```
 
 Then delete the `contracts` stage and the two `COPY --from=contracts` lines in `apps/storefront/Dockerfile`, `apps/admin/Dockerfile` and `apps/seller/Dockerfile` (they exist only to supply the sibling folder to a Docker build). Always depend on a tag, never a branch.
