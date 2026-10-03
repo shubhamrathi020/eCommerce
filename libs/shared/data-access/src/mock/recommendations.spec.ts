@@ -79,7 +79,7 @@ describe('recommendation rules (pure)', () => {
     expect(seedEvents(products, NOW)).toBe(first);
     expect(first.every((e) => e.seed)).toBe(true);
     const keys = new Set(first.flatMap((e) => Object.keys(e.props ?? {})));
-    expect([...keys].every((k) => ['productId', 'categoryId', 'quantity', 'orderId', 'term', 'results', 'utm_source'].includes(k))).toBe(true);
+    expect([...keys].every((k) => ['productId', 'categoryId', 'quantity', 'orderId', 'term', 'results', 'unitPrice', 'first_touch', 'last_touch'].includes(k))).toBe(true);
     expect(JSON.stringify(first)).not.toContain('@');
   });
 });

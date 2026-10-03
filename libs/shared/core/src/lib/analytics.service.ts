@@ -1,4 +1,6 @@
 import { Injectable, InjectionToken, inject } from '@angular/core';
+import { touchKey } from '@ecom/shared/models';
+import { AttributionService } from './attribution.service';
 import { ConsentService } from './consent.service';
 import { PersonalisationService } from './personalisation.service';
 
@@ -13,6 +15,8 @@ export interface SinkEvent extends AnalyticsEvent {
   at: string;
 }
 
+const ATTRIBUTED = new Set(['checkout_start', 'payment_start', 'purchase']);
+
 /** Where tracked events go. The mock data-access layer provides one that stores them on the device; none means a no-op. */
 export const EVENT_SINK = new InjectionToken<(event: SinkEvent) => void>('EVENT_SINK');
 
@@ -24,10 +28,14 @@ export const EVENT_SINK = new InjectionToken<(event: SinkEvent) => void>('EVENT_
 export class AnalyticsService {
   private readonly consent = inject(ConsentService);
   private readonly personalisation = inject(PersonalisationService);
+  private readonly attribution = inject(AttributionService);
   private readonly sink = inject(EVENT_SINK, { optional: true });
 
   track(event: AnalyticsEvent): void {
     if (!this.consent.analyticsAllowed() || this.personalisation.optedOut()) return;
-    this.sink?.({ ...event, vid: this.personalisation.visitorId(), at: new Date().toISOString() });
+    // Funnel events carry the campaign that brought the shopper (BRD 16): a short tag, never a URL or a person.
+    const touches = ATTRIBUTED.has(event.name) ? this.attribution.touches() : {};
+    const props = { ...event.props, ...(touches.first && event.name === 'purchase' ? { first_touch: touchKey(touches.first) } : {}), ...(touches.last ? { last_touch: touchKey(touches.last) } : {}) };
+    this.sink?.({ ...event, ...(Object.keys(props).length ? { props } : {}), vid: this.personalisation.visitorId(), at: new Date().toISOString() });
   }
 }

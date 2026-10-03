@@ -30,6 +30,7 @@ export * from './lib/notification.api';
 export * from './lib/returns.api';
 export * from './lib/promotion.api';
 export * from './lib/recommendation.api';
+export * from './lib/analytics.api';
 export { MockEventStore, seedEvents } from './mock/event-store';
 export { MockPromotionStore } from './mock/promotion-store';
 export { RETURN_LIMITS } from './mock/return-store';

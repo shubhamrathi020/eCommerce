@@ -19,6 +19,7 @@ const NAV: NavItem[] = [
   { label: 'Support', link: '/support', permission: 'support:manage' },
   { label: 'Promotions', link: '/promotions', permission: 'promotion:manage' },
   { label: 'Recommendations', link: '/recommendations', permission: 'recommendation:manage' },
+  { label: 'Analytics', link: '/analytics', permission: 'analytics:read' },
   { label: 'Content', link: '/content', permission: 'content:write' },
   { label: 'Notifications', link: '/notifications', permission: 'notification:manage' },
   { label: 'Reviews', link: '/reviews', permission: 'review:moderate' },

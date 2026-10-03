@@ -8,6 +8,7 @@ import { loadCatalogData } from './catalog-data';
 import { MockInventoryStore } from './inventory-store';
 import { MockNotificationStore } from './notification-store';
 import { MockPromotionStore } from './promotion-store';
+import { AttributionService } from '@ecom/shared/core';
 import { codEligibility, validateDeliverable } from './mock-checkout.api';
 import { MockCartState } from './mock-cart-state';
 import { createMockResponder } from './mock-latency';
@@ -30,6 +31,7 @@ export class MockOrderApi extends OrderApi {
   private readonly inventory = inject(MockInventoryStore);
   private readonly notifications = inject(MockNotificationStore);
   private readonly wallet = inject(MockPromotionStore);
+  private readonly attribution = inject(AttributionService);
 
   /** Frees the stock of unpaid orders whose reservation expired; returns the seeded catalog for stock work. */
   private async sweep() {
@@ -84,6 +86,7 @@ export class MockOrderApi extends OrderApi {
         ...(cart.coupon ? { couponCode: cart.coupon.code } : {}),
         ...(cart.promotions?.length ? { promotions: cart.promotions } : {}),
         ...(tender ? { tender } : {}),
+        ...(Object.keys(this.attribution.touches()).length ? { attribution: this.attribution.touches() } : {}),
         shippingMethod: cart.shippingMethod,
         contact: request.contact,
         address: request.address,

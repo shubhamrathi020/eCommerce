@@ -21,7 +21,8 @@ function mulberry32(seed: number) {
 /** Searches shoppers make that find nothing (BRD 16 reads these too). */
 export const SEED_ZERO_RESULT_TERMS = ['wireles earbuds', 'iphone 17 case', 'kurta set', 'yoga mat blue', 'air fryer 10 litre', 'gaming chair', 'ayurvedic shampoo'];
 const SEED_TERMS = ['shirt', 'running shoes', 'headphones', 'laptop', 'dumbbell', 'cookware', 'moisturizer', 'books', 'watch', 'backpack'];
-const SEED_SOURCES = ['google', 'instagram', 'newsletter', 'direct', 'facebook'];
+/** source | medium | campaign, as written by the attribution service. */
+const SEED_TOUCHES = ['google|cpc|festive-sale', 'instagram|social|reels', 'newsletter|email|weekly', 'direct|none|none', 'facebook|social|retarget'];
 
 const cache = new Map<string, TrackedEvent[]>();
 
@@ -69,18 +70,19 @@ export function seedEvents(products: Product[], now: number): TrackedEvent[] {
     for (const i of viewed) {
       push((t += int(1, 4) * 60_000), vid, 'product_view', ref(products[i]));
     }
-    const source = SEED_SOURCES[int(0, SEED_SOURCES.length - 1)];
+    const firstTouch = SEED_TOUCHES[int(0, SEED_TOUCHES.length - 1)];
+    const lastTouch = rnd() < 0.6 ? firstTouch : SEED_TOUCHES[int(0, SEED_TOUCHES.length - 1)];
     if (rnd() < 0.3) {
       const i = viewed[0];
       push((t += 60_000), vid, 'add_to_cart', { ...ref(products[i]), quantity: 1 });
       if (rnd() < 0.6) {
-        push((t += 90_000), vid, 'checkout_start', { utm_source: source });
+        push((t += 90_000), vid, 'checkout_start', { last_touch: lastTouch });
         if (rnd() < 0.85) {
-          push((t += 60_000), vid, 'payment_start', { utm_source: source });
+          push((t += 60_000), vid, 'payment_start', { last_touch: lastTouch });
           if (rnd() < 0.8) {
             const orderId = `SEEDORD-${s}`;
             const basket = [i, ...(rnd() < 0.55 ? companions(i) : [])];
-            for (const idx of basket) push((t += 5_000), vid, 'purchase', { ...ref(products[idx]), quantity: int(1, 2), orderId, utm_source: source });
+            for (const idx of basket) push((t += 5_000), vid, 'purchase', { ...ref(products[idx]), quantity: int(1, 2), orderId, unitPrice: Math.min(...products[idx].variants.map((v) => v.price.amount)), first_touch: firstTouch, last_touch: lastTouch });
           }
         }
       }

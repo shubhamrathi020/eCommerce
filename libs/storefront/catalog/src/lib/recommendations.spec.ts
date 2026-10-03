@@ -82,4 +82,15 @@ describe('recommendations in the shop (BRD 15)', () => {
     await open(`/p/${p.slug}`, () => TestBed.inject(ConsentService).set('all'));
     expect(TestBed.inject(MockEventStore).recorded().map((e) => e.name)).toEqual(['product_view']);
   });
+
+  it('counts a click on a search result toward that search term, and ignores other links', async () => {
+    const page = await open('/search?q=shirt', () => TestBed.inject(ConsentService).set('all'));
+    const names = () => TestBed.inject(MockEventStore).recorded().map((e) => e.name);
+    expect(names()).toContain('search');
+    page.querySelector<HTMLAnchorElement>('a[href^="/c/"]')?.click(); // a breadcrumb or category link, not a result
+    expect(names()).not.toContain('search_result_click');
+    page.querySelector<HTMLAnchorElement>('[data-results] a[href^="/p/"]')?.click();
+    const click = TestBed.inject(MockEventStore).recorded().find((e) => e.name === 'search_result_click');
+    expect(click?.props).toEqual({ term: 'shirt' });
+  });
 });

@@ -1,7 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, PLATFORM_ID, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, PLATFORM_ID, effect, inject, viewChild } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { AttributionService, ConsentService } from '@ecom/shared/core';
 import { ToastContainerComponent } from '@ecom/shared/ui';
 import { CookieBannerComponent } from './cookie-banner/cookie-banner';
 import { FooterComponent } from './footer/footer';
@@ -34,9 +35,20 @@ export class ShellLayoutComponent {
     if (!isPlatformBrowser(inject(PLATFORM_ID))) return;
     // Screen-reader and keyboard users land on the new page's heading after every route change,
     // the same way a full page load would put focus at the top; a link click keeps its own focus.
-    inject(Router)
-      .events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-      .subscribe(() => queueMicrotask(() => this.focusHeading()));
+    const router = inject(Router);
+    const attribution = inject(AttributionService);
+    const consent = inject(ConsentService);
+    let params: Record<string, string | string[] | undefined> = {};
+    router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
+      queueMicrotask(() => this.focusHeading());
+      // Campaign tags from the landing URL (utm_*) are remembered once the shopper has accepted analytics.
+      params = router.parseUrl(e.urlAfterRedirects).queryParams;
+      attribution.capture(params);
+    });
+    // Accepting analytics on the landing page still counts the campaign that brought the shopper there.
+    effect(() => {
+      if (consent.analyticsAllowed()) attribution.capture(params);
+    });
   }
 
   private focusHeading(): void {

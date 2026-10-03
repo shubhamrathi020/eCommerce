@@ -34,6 +34,8 @@ export interface Order {
   totals: CartTotals;
   couponCode?: string;
   promotions?: AppliedPromotion[];
+  /** The first and last marketing touch before the order, when the shopper accepted analytics (BRD 16, AN-05). */
+  attribution?: { first?: { source: string; medium?: string; campaign?: string }; last?: { source: string; medium?: string; campaign?: string } };
   /** What a gift card and store credit paid; refunds of such orders go back as store credit. */
   tender?: { giftCard?: { code: string; amount: number }; storeCredit?: number; refundedAt?: string };
   shippingMethod: ShippingMethodId;

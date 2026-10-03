@@ -21,6 +21,7 @@ const CONFIG: AppConfig = {
   apiBaseUrl: 'http://localhost:3333',
   siteName: 'Shop Admin',
   siteUrl: 'http://localhost:4201',
+  storefrontUrl: 'http://localhost:4200',
   features: {},
 };
 

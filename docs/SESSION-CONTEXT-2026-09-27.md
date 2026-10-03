@@ -381,3 +381,11 @@ Built: `libs/shared/models/src/lib/recommendations.ts` (pure rules: `activityByP
 Try it: accept analytics in the cookie banner, browse a few products in one category, and reload the home page to see "Recommended for you" replace "Popular right now"; open `/personalisation` to opt out or clear your history; in the admin pin a product and press Preview.
 
 Limitations: the visitor id is per browser, so there is no cross-device personalisation; the real backend has no event store yet.
+
+### After BRD 16: analytics and reporting (frontend, mock-backed)
+
+Built: `libs/shared/models/src/lib/analytics.ts` (pure: `funnel`, `productPerformance`, `searchReport`, `campaignReport`, `cohortTable`, `toCsv`), `AttributionService` in core (reads `utm_*` on navigation, first/last touch, 30-day window, consent- and opt-out-gated; the shell captures it and `AnalyticsService` stamps `first_touch`/`last_touch` on `checkout_start`, `payment_start` and `purchase` events), `AdminAnalyticsApi` and `MockAdminAnalyticsApi` (reports cached per period and data version; schedules in `ecom.mock.report-schedules.v1`; `runDue()` delivers due reports to `MockMailbox`). The listing page now records `search_result_click`. Admin: `/analytics/{funnel,products,search,campaigns,cohorts,reports}` with a shared period selector (`?days=7|30|90`), permission `analytics:read`. Purchase events now carry `unitPrice` for revenue.
+
+Try it: open Admin > Analytics; change the period; sort the product table; export CSV; open Search and follow a zero-result link; under Scheduled reports add one for yourself, press Send now, then open the demo mailbox (`/dev/mailbox` in the shop). To see your own numbers appear, accept analytics in the shop, visit `/?utm_source=google&utm_medium=cpc&utm_campaign=test`, buy something, and look at Campaigns.
+
+Limitations: events live in this browser plus deterministic demo data, so the numbers are demo-grade, not a store's real figures; revenue is item revenue before discounts.

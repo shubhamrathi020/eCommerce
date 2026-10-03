@@ -26,5 +26,7 @@ export interface AppConfig {
   razorpayKeyId?: string;
   siteName: string;
   siteUrl: string;
+  /** Where the customer storefront lives; the admin links to it (for example to a search page). */
+  storefrontUrl?: string;
   features: Record<string, boolean>;
 }

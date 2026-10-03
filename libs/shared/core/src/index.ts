@@ -13,3 +13,4 @@ export * from './lib/bottom-bar.service';
 export * from './lib/network-status.service';
 export * from './lib/app-ready.service';
 export * from './lib/personalisation.service';
+export * from './lib/attribution.service';

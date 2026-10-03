@@ -20,6 +20,7 @@ export type ListingKind = 'category' | 'brand' | 'collection' | 'search';
   selector: 'app-listing-page',
   imports: [RouterLink, BreadcrumbComponent, ButtonComponent, ChipComponent, DrawerComponent, EmptyStateComponent, ErrorStateComponent, InputDirective, NotFoundComponent, PaginationComponent, ProductCardComponent, SkeletonComponent, FilterPanelComponent, NotFoundComponent, RecentlyViewedComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(click)': 'resultClicked($event)' },
   template: `
     @if (notFound()) {
       <ui-not-found />
@@ -63,7 +64,7 @@ export type ListingKind = 'category' | 'brand' | 'collection' | 'search';
 
           <section aria-label="Products" [attr.aria-busy]="result.isLoading()">
             @if (r.items.length) {
-              <ul class="grid grid-cols-2 gap-3 transition-opacity md:grid-cols-3 md:gap-4 xl:grid-cols-4" [class.opacity-50]="result.isLoading()">
+              <ul class="grid grid-cols-2 gap-3 transition-opacity md:grid-cols-3 md:gap-4 xl:grid-cols-4" [class.opacity-50]="result.isLoading()" data-results>
                 @for (product of listItems(); track product.id) {
                   <li>
                     <ui-product-card
@@ -273,6 +274,15 @@ export class ListingPageComponent {
       if (this.kind() !== 'search' || !r || !term) return;
       untracked(() => this.analytics.track({ name: r.total === 0 ? 'search_zero_results' : 'search', props: { term: term.slice(0, 50), results: r.total } }));
     });
+  }
+
+  /** A click on a product link in search results counts toward the term's click-through rate (BRD 16). */
+  protected resultClicked(event: Event): void {
+    const term = this.state().q;
+    if (this.kind() !== 'search' || !term) return;
+    // Only links inside the results grid count, not header or filter links.
+    const link = (event.target as HTMLElement | null)?.closest('[data-results] a[href^="/p/"]');
+    if (link) this.analytics.track({ name: 'search_result_click', props: { term: term.slice(0, 50) } });
   }
 
   private basePath(): string {
