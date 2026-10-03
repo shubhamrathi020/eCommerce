@@ -13,8 +13,6 @@ The project is split into three repositories that sit side by side:
 ## Start
 
 ```bash
-cd ../eCommerce-contracts && pnpm install && pnpm build    # once, and after contract changes
-cd ../eCommerce
 pnpm install
 pnpm start:storefront     # http://localhost:4200
 pnpm start:admin          # http://localhost:4201
@@ -26,18 +24,12 @@ Everyday commands, containers and troubleshooting: [docs/RUNBOOK.md](docs/RUNBOO
 
 ## Working with the contracts package
 
-`package.json` depends on the contracts package by path:
+`package.json` installs the contracts package from its tagged GitHub release:
 
 ```json
-"@ecom/contracts": "link:../eCommerce-contracts"
+"@ecom/contracts": "github:shubhamrathi020/eCommerce-contracts#v0.1.0"
 ```
 
-That works on this machine only. Before CI or a container build can run anywhere else, publish `eCommerce-contracts` (for example to GitHub) and switch both this repository and the backend to a tagged git dependency:
+pnpm downloads that tag and builds it on install, so nothing needs to sit next to this repository. Always depend on a tag, never a branch.
 
-```bash
-pnpm add -w github:<your-account>/eCommerce-contracts#v0.1.0
-```
-
-Then delete the `contracts` stage and the two `COPY --from=contracts` lines in `apps/storefront/Dockerfile`, `apps/admin/Dockerfile` and `apps/seller/Dockerfile` (they exist only to supply the sibling folder to a Docker build). Always depend on a tag, never a branch.
-
-A change to the contract is made in `eCommerce-contracts`, tagged, and then taken up here and in the backend; a breaking change needs both sides updated before either is deployed.
+To change the contract: edit and tag it in `eCommerce-contracts`, push the tag, then in this repository and in `eCommerce-api` run `pnpm add -w github:shubhamrathi020/eCommerce-contracts#<new-tag>`. A breaking change needs both sides updated before either is deployed. To try an unreleased change locally, temporarily point the dependency at the folder (`pnpm add -w link:../eCommerce-contracts`, after `pnpm build` there) and put the tag back before committing.

@@ -5,21 +5,13 @@ Everyday commands for building, running, testing and deploying the shop. Command
 
 ## 1. First time
 
-This repository is the **frontend** (storefront, admin console, seller portal). It depends on the sibling repository `eCommerce-contracts` (shared types and pricing rules), which must be checked out next to this one:
-
-```
-claude/
-  eCommerce/             <- this repository
-  eCommerce-contracts/   <- shared contract package (build it once: pnpm install && pnpm build)
-  eCommerce-api/         <- the backend
-```
+This repository is the **frontend** (storefront, admin console, seller portal). The shared contract package `@ecom/contracts` is downloaded from its tagged GitHub release on install (see README.md); the backend is the separate `eCommerce-api` repository.
 
 ```bash
-cd ../eCommerce-contracts && pnpm install && pnpm build   # first time, and after any change there
-cd ../eCommerce && pnpm install
+pnpm install
 ```
 
-Needs Node 22 and pnpm (`corepack enable` picks the pinned version). The backend, its databases and its deployment are in `eCommerce-api` (see its `docs/RUNBOOK.md`); the frontend works on built-in mock data without it.
+Needs Node 22 and pnpm (`corepack enable` picks the pinned version). Docker Desktop is only needed for the container images. The frontend works on built-in mock data without the backend (its commands are in `eCommerce-api/docs/RUNBOOK.md`).
 
 ## 2. Run for development
 
@@ -55,7 +47,6 @@ pnpm docker:down    # stops and removes them
 | Storefront (Node, server-side rendering) | http://localhost:4000 | node (uid 1000), read-only filesystem | `/healthz`, `/readyz` |
 | Admin console (nginx, static) | http://localhost:4001 | nginx (uid 101) | `/healthz` |
 
-The images need the shared contract package: `docker compose` passes `../eCommerce-contracts` as a named build context (`contracts_src`). For a plain `docker build` add `--build-context contracts_src=../eCommerce-contracts`. The API, databases and monitoring run from the `eCommerce-api` repository.
 
 Notes
 - The storefront only answers to hosts listed in `ALLOWED_HOSTS` (comma separated, wildcards like `*.example.com` allowed). Set it for real domains.

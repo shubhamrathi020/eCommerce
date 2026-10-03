@@ -9,8 +9,6 @@ services:
     build:
       context: .
       dockerfile: apps/storefront/Dockerfile
-      additional_contexts:
-        contracts_src: ../eCommerce-contracts
     image: shop-storefront:local
     ports:
       - "4000:4000"
@@ -37,8 +35,6 @@ services:
     build:
       context: .
       dockerfile: apps/admin/Dockerfile
-      additional_contexts:
-        contracts_src: ../eCommerce-contracts
     image: shop-admin:local
     ports:
       - "4001:8080"
