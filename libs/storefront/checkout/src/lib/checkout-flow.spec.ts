@@ -12,11 +12,18 @@ import { MockPaymentLauncher } from './payment/payment-launcher';
 
 const config = { useMocks: true, mockLatencyMs: 0, apiBaseUrl: '', siteName: 'Shop', siteUrl: 'http://x', features: {} };
 
+// Waits at least `rounds` rounds, then until the page has stopped changing. A fixed number of rounds is enough on a fast
+// machine but not on a busy CI runner.
 async function settle(harness: RouterTestingHarness, rounds = 12) {
-  for (let i = 0; i < rounds; i++) {
+  let last = '';
+  let steady = 0;
+  for (let i = 0; i < rounds || (steady < 3 && i < 150); i++) {
     await harness.fixture.whenStable();
     await new Promise((r) => setTimeout(r, 20));
     harness.detectChanges();
+    const now = (harness.routeNativeElement as HTMLElement | null)?.textContent ?? '';
+    steady = now === last ? steady + 1 : 0;
+    last = now;
   }
 }
 

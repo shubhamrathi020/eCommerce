@@ -78,7 +78,7 @@ describe('catalog pages', () => {
     }
     const afterFilter = el.querySelectorAll('ui-product-card').length;
     expect(afterFilter).toBeLessThan(37);
-  }, 30000);
+  });
 
   it('unknown category shows the not-found page', async () => {
     const { el } = await open('/c/does-not-exist');
@@ -124,7 +124,7 @@ describe('catalog pages', () => {
     expect(el.textContent).not.toContain('Out of stock');
     const add = Array.from(el.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Add to cart') as HTMLButtonElement;
     expect(add.disabled).toBe(false);
-  }, 30000);
+  });
 
   it('signed-in shoppers can subscribe to a price-drop alert from the product page', async () => {
     const list = await open('/c/laptops');
@@ -139,7 +139,7 @@ describe('catalog pages', () => {
     alertButton.click();
     for (let i = 0; i < 10; i++) await new Promise((r) => setTimeout(r, 20));
     expect(await firstValueFrom(TestBed.inject(AlertApi).list())).toHaveLength(1);
-  }, 30000);
+  });
 
   it('unknown product shows the not-found page', async () => {
     const { el } = await open('/p/nope');
@@ -154,7 +154,7 @@ describe('catalog pages', () => {
     const href = listing.el.querySelector('ui-product-card h3 a')?.getAttribute('href') ?? '';
     TestBed.resetTestingModule();
     expect(await seriousViolations((await open(href)).el)).toEqual([]);
-  }, 30000);
+  });
 
   it('search page: relevance sort by default, typo tolerance, corrected-query notice and zero-result help', async () => {
     const found = await open('/search?q=sneekers');
@@ -176,7 +176,7 @@ describe('catalog pages', () => {
     expect(none.el.textContent).toContain('Popular searches');
     expect(none.el.querySelectorAll('a[href^="/search?q="]').length).toBeGreaterThan(3);
     expect(await seriousViolations(none.el)).toEqual([]);
-  }, 30000);
+  });
 
   it('category pages do not offer the relevance sort', async () => {
     const { el } = await open('/c/laptops');
@@ -205,5 +205,5 @@ describe('catalog pages', () => {
     const headings = Array.from(el.querySelectorAll('h2')).map((h) => h.textContent?.trim());
     expect(headings).toContain('Fresh in store');
     expect(headings.indexOf('Fresh in store')).toBeLessThan(headings.indexOf('Shop by category'));
-  }, 30000);
+  });
 });

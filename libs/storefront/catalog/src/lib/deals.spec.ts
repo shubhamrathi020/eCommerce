@@ -48,7 +48,7 @@ describe('flash deals in the shop (PE-02)', () => {
 
     const other = products.find((p) => p.id === 'p-0002') as (typeof products)[number];
     expect((await open(`/p/${other.slug}`)).querySelector('section[aria-label="Flash deal"]')).toBeNull();
-  }, 30_000);
+  });
 
   it('shows who sells a marketplace product, with their rating and policies, and nothing for the store own products', async () => {
     const { products } = await loadCatalogData();
@@ -66,5 +66,5 @@ describe('flash deals in the shop (PE-02)', () => {
 
     const own = products.find((p) => p.id === 'p-0002') as (typeof products)[number];
     expect((await open(`/p/${own.slug}`)).querySelector('section[aria-label="Seller"]')).toBeNull();
-  }, 30_000);
+  });
 });

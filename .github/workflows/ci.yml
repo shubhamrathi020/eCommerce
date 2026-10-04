@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch: # the "Run workflow" button on the Actions tab
 
 # Least privilege: the pipeline only reads the repository.
 permissions:
