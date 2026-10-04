@@ -431,3 +431,15 @@ Errors met: a `require()` of the service worker failed because the React package
 Not done / next: run the same live check against the Nest API; real Razorpay test payment; run both new CI workflows on GitHub (nothing in the three new/changed repositories is pushed, and `eCommerce-go` / `eCommerce-react` have no remote yet); no server-side rendering for the React storefront; the Angular `__ui` showcase route was not ported.
 
 Commands: `cd ../eCommerce-react && pnpm install && pnpm verify`; `VITE_BACKEND=go pnpm start:storefront|admin|seller`; Go API: `cd ../eCommerce-go && go build -o bin/api.exe ./cmd/api`, run with the Nest `.env` values, `PORT=3334` and the React ports in `CORS_ORIGINS`.
+
+### BRD 27: Node and .NET backends (2026-10-05)
+
+Two more sibling repositories: `eCommerce-node` (Express, plain libraries, Prisma client generated from a verbatim copy of the schema, port 3335) and `eCommerce-dotnet` (ASP.NET Core controllers, EF Core over the Prisma tables, a C# port of the shared rules, port 3336). Both serve the same API as Nest on the same databases; Nest still owns the schema. Details in `brds/27-node-and-dotnet-backends.md` and the two READMEs and `CLAUDE.md` files.
+
+How it is proven: `eCommerce-api/apps/api/test/test-app.ts` now takes `API_BIN` (and `API_ARGS`; `GO_API_BIN` still works) and runs the 8 integration spec files against that server instead of the in-process Nest app. Both new servers pass 64 of 65 tests (the 65th needs a Nest internal; each repository has its own test of the abandoned-cart job). `test/parity-probe.spec.ts` (skipped unless `PROBE_OUT` is set) records odd-request answers for a structural diff. The .NET rules are held to `eCommerce-go/testdata/golden.json`. Go, Node and .NET were run together on the test stores: registration, sign-in, access tokens, refresh-cookie rotation with reuse detection, and a shared cart all work across servers. `eCommerce-react` chooses the server with `VITE_BACKEND=nest|go|node|dotnet` (one `resolveBackend()` in data-access).
+
+Environment: the .NET 10 SDK is in `%USERPROFILE%\.dotnet` (installed with Microsoft's dotnet-install script, not on PATH): `export PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet"`. Run the shared specs against .NET with `DOTNET_ROOT=... TEST_MONGODB_URL='mongodb://[::1]:27017' API_BIN=<repo>/src/EcomApi/bin/Release/net10.0/EcomApi.exe pnpm exec vitest run test/` from `eCommerce-api/apps/api` (the `[::1]` is needed because a native MongoDB shadows Docker's on 127.0.0.1); against Node: `API_BIN=node API_ARGS="<repo>/dist/main.js"`.
+
+Errors met: .NET read an empty catalog from the native MongoDB (see `steering/memory.md`); EF Core made a new service provider per request; Mongo `Id` mapped to `_id`; raw SQL timestamps had the wrong kind; heredocs with apostrophes break the shell tool (use the editor tools).
+
+Not done / next: run the three new/changed CI workflows on GitHub (nothing is pushed; the new repositories have no remote); click through the React apps against Node and .NET; OpenAPI pages for the new servers; real Razorpay payment.

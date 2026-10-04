@@ -2,7 +2,7 @@
 
 Angular apps for the shop: the **storefront** (server-side rendered, installable), the **admin console** and the **seller portal**, built as an Nx workspace with pnpm. They run entirely on built-in mock data unless pointed at the real backend.
 
-The project is split into five repositories that sit side by side (the last two are a second implementation of the same product, see `brds/26-react-and-go-stack.md`):
+The project is split into seven repositories that sit side by side (the last four are further implementations of the same product, see `brds/26-react-and-go-stack.md` and `brds/27-node-and-dotnet-backends.md`):
 
 | Repository | What it holds |
 |---|---|
@@ -10,7 +10,9 @@ The project is split into five repositories that sit side by side (the last two 
 | `eCommerce-api` | The NestJS backend, database schema, Docker, Kubernetes, Terraform and monitoring |
 | `eCommerce-contracts` | The shared package `@ecom/contracts`: API types, error codes and the pure pricing, promotion and returns rules that the browser and the server must agree on |
 | `eCommerce-go` | A Go backend serving the same API as the Nest one, on the same databases (port 3334) |
-| `eCommerce-react` | The storefront, admin console and seller portal in React; each works with mock data, the Nest API or the Go API |
+| `eCommerce-node` | A plain Node.js (Express) backend serving the same API as the Nest one, on the same databases (port 3335) |
+| `eCommerce-dotnet` | An ASP.NET Core backend serving the same API as the Nest one, on the same databases (port 3336) |
+| `eCommerce-react` | The storefront, admin console and seller portal in React; each works with mock data or any of the four backends (`VITE_BACKEND=nest\|go\|node\|dotnet`) |
 
 ## Start
 

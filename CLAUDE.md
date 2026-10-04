@@ -2,10 +2,10 @@
 
 Full-stack eCommerce app (Angular, Node.js, PostgreSQL/MongoDB, Redis, RabbitMQ, Meilisearch, Docker, K8s). Solo project, built in vertical slices, frontend first on mock data.
 
-## Five repositories (sibling folders)
+## Seven repositories (sibling folders)
 - `eCommerce` (this one): the Angular apps (storefront, admin, seller), the requirements (`brds/`), project log and steering docs for the whole project.
 - `eCommerce-api`: the NestJS backend, Prisma schema, Docker/Kubernetes/Terraform/monitoring (BRDs 19 to 25).
-- `eCommerce-go` and `eCommerce-react`: a second implementation (Go API on the same databases; React versions of the three apps). The Angular/Nest stack is their specification (BRD 26). Behaviour changes here must be made there too.
+- `eCommerce-go`, `eCommerce-node`, `eCommerce-dotnet` and `eCommerce-react`: further implementations (Go, Node and .NET APIs on the same databases; React versions of the three apps). The Angular/Nest stack is their specification (BRDs 26 and 27). Behaviour changes here must be made there too; the Nest integration specs run against each backend (`API_BIN=... pnpm exec vitest run test/` in `eCommerce-api/apps/api`).
 - `eCommerce-contracts`: the shared package `@ecom/contracts` (types, error codes, pure pricing/promotions/returns rules). It replaced the old `libs/shared/models` library. A shape or rule both sides use is changed there first, tagged, then taken up here and in the API. See README.md.
 
 ## Before every task
