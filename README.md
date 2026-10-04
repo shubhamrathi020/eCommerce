@@ -2,13 +2,15 @@
 
 Angular apps for the shop: the **storefront** (server-side rendered, installable), the **admin console** and the **seller portal**, built as an Nx workspace with pnpm. They run entirely on built-in mock data unless pointed at the real backend.
 
-The project is split into three repositories that sit side by side:
+The project is split into five repositories that sit side by side (the last two are a second implementation of the same product, see `brds/26-react-and-go-stack.md`):
 
 | Repository | What it holds |
 |---|---|
 | `eCommerce` | **This repository**: the frontend apps, and the requirements (`brds/`), project log and steering docs for the whole project |
 | `eCommerce-api` | The NestJS backend, database schema, Docker, Kubernetes, Terraform and monitoring |
 | `eCommerce-contracts` | The shared package `@ecom/contracts`: API types, error codes and the pure pricing, promotion and returns rules that the browser and the server must agree on |
+| `eCommerce-go` | A Go backend serving the same API as the Nest one, on the same databases (port 3334) |
+| `eCommerce-react` | The storefront, admin console and seller portal in React; each works with mock data, the Nest API or the Go API |
 
 ## Start
 

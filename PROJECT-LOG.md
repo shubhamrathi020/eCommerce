@@ -27,6 +27,8 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-09-27 | Search results still come from the catalog listing call (with a query); the real search server will replace only the data source | Pages stay the same when Meilisearch arrives |
 | 2026-09-27 | Payment window is behind an interface; mock now, real Razorpay later | Checkout page stays unchanged when the real one is added |
 | 2026-10-03 | **Split into three repositories** (you asked for separate frontend and backend repositories): `eCommerce` (frontend; keeps the history, requirements, steering and project log), `eCommerce-api` (backend plus Docker/Kubernetes/Terraform/monitoring, a new history) and `eCommerce-contracts` (the package `@ecom/contracts`). The old `libs/shared/models` library, the only thing the two halves shared in code, became the contracts package so the browser and the server still use one copy of the pricing and returns rules. Until the contracts repository is pushed, both repositories depend on it by path (`link:../eCommerce-contracts`), which works only with the three folders side by side; CI and Docker need the switch to a git dependency described in each README | Separate repositories give each half its own history, CI and deploy cycle; the shared package keeps the one real coupling honest instead of copying it |
+| 2026-10-04 | **Second implementation: React frontend and Go backend** (two new sibling repositories `eCommerce-react` and `eCommerce-go`, same databases) | You asked for a copy of the whole product in another stack. Nest keeps owning the database schema; Go uses the same tables. The existing apps are the specification: the Nest tests are run against Go, and the Angular flow tests were ported to React |
+| 2026-10-05 | React apps are single-page apps (no server-side rendering) and the backend is chosen at build time (`VITE_BACKEND=mock|nest|go`) | Keeps the port simple and the images tiny (nginx). If search-engine visibility matters, add prerendering later |
 
 ## 2. Work briefs (what was done)
 
@@ -156,6 +158,13 @@ A plain-English diary of what is being built, why, and which commands were used.
 - A real bug was found and fixed while testing this, not left in: the very first version of the "take stock atomically" logic used an invalid database query that matched nothing, so every single order would have failed. Caught immediately by actually placing a test order, not just by reading the code.
 - Try it: `pnpm start:api`, then flip `realCatalog: true` and `realCommerce: true` in `apps/storefront/src/app/app-config.values.ts` and `pnpm start:storefront`. Add something to your cart and check out with cash on delivery.
 - Not built yet: invoices as a real PDF, and a job that automatically double-checks every payment against Razorpay's own records (both are on the list for later, once messaging and scheduling exist).
+### Step 26: Parallel React frontend and Go backend, BRD 26 (2026-10-04 to 2026-10-05)
+- There is now a second, complete copy of the shop: a Go server (`eCommerce-go`, port 3334) that answers the same requests as the Nest server on the same databases, and React versions of the shop, the admin console and the seller portal (`eCommerce-react`). Each React app works with the built-in mock data, the Nest API or the Go API; you choose when you start it.
+- What was proven: the Nest server's own integration tests pass against the Go server; the pricing and coupon rules give identical answers to the TypeScript originals over 400 generated carts; passwords and login tokens made by one server are accepted by the other. For React, the Angular flow tests were carried over (storefront 101, admin 37, seller 5, plus the shared packages' 346) and run clean with lint, type checks and accessibility scans.
+- Tried for real in a browser against the Go server and the real databases: browsed laptops, added to the cart, checked out as a guest with cash on delivery (the order is in PostgreSQL), signed in to the React admin with the seeded staff account, saw that order and moved it to packed (confirmed in PostgreSQL). Online payment answered, correctly, that Razorpay test keys are missing.
+- Packaging: one Docker image per app (nginx, read-only, non-root), a compose file (storefront 4100, admin 4101, seller 4102), a CI workflow, a README and a `CLAUDE.md` in the new repository.
+- Not done: the same live run against the Nest server, a real Razorpay payment, running the new workflows on GitHub, and server-side rendering for the React storefront.
+- Try it: `cd ../eCommerce-react && pnpm install && VITE_BACKEND=go pnpm start:storefront` (start the Go API first, see `eCommerce-go/README.md`).
 
 ## 3. Useful commands (with meaning)
 
@@ -178,6 +187,10 @@ A plain-English diary of what is being built, why, and which commands were used.
 | `pnpm exec nx test admin-console` | Runs the admin page tests |
 | `pnpm exec nx test storefront-account` | Runs the sign-in, account and address-book page tests |
 | `pnpm exec nx test shared-data-access` | Runs data-layer tests including cart pricing and search |
+| `cd ../eCommerce-react && pnpm verify` | Lint, type-check, test and build all three React apps (what its CI runs) |
+| `cd ../eCommerce-react && VITE_BACKEND=go pnpm start:storefront` | Run the React shop against the Go API (`nest` for the Nest API, default is mock data) |
+| `cd ../eCommerce-go && go build -o bin/api.exe ./cmd/api` | Build the Go server; run it with the Nest API's `.env` values and `PORT=3334` |
+| `cd ../eCommerce-react && docker compose up --build -d` | The three React apps as production images on 4100 to 4102 |
 
 ## 4. Problems met and how they were solved
 
@@ -196,6 +209,10 @@ A plain-English diary of what is being built, why, and which commands were used.
 | Browser blocked inline scripts under the strict CSP | Added a per-request nonce, and turned off critical-CSS inlining (adds inline handlers) |
 | Checkout redirect for an empty cart crashed | A route guard used `inject()` after an `await`; injection must happen before the first await (found by a test) |
 | Bundle grew past the 500 kB warning | Mock adapters ship in the bundle for now; warning limit raised to 600 kB and noted to revisit |
+| React tests: `require('sw.js')` returned nothing | The React package is an ES module, so Node treated the plain-script service worker as one; the test now runs it as a CommonJS script |
+| React checkout bounced the shopper to the cart after paying | The empty-cart check re-ran when the order emptied the cart; like an Angular route guard it now decides once on entry |
+| Production image would not start with a read-only filesystem | nginx writes its generated config at start-up; gave `/etc/nginx/conf.d` and `/var/cache/nginx` small writable temp mounts |
+| Dev servers kept running after their background task was "killed" | The tool stops tracking the task, not the process; stopped the specific process by its command line (never all `node`) |
 
 ## 5. Change history
 
@@ -232,3 +249,4 @@ A plain-English diary of what is being built, why, and which commands were used.
 | 2026-10-03 | BRD 18 (localisation, dark mode, installable app) built as a frontend slice: English and draft Hindi with a footer language menu, locale-aware dates/numbers/money, right-to-left readiness with a dev-only test language, dark mode (device default plus manual toggle, AA tested), a service worker with an offline page and saved catalog pages that never touches cart, checkout or prices, install manifest and icons, and a mock web-push opt-in. Only the listed surfaces are translated; Hindi is unreviewed. Checked in a real browser (13 checks) as well as by unit tests, lint and build; the API's own tests were not run (no Docker) |
 | 2026-10-03 | Repository split. Created `eCommerce-contracts` (builds ES-module and CommonJS output, 3 package tests) and `eCommerce-api` (84 API tests pass there against real Postgres, Mongo, Redis, RabbitMQ and Meilisearch; the production image builds and starts healthy). In the frontend, imports changed from `@ecom/shared/models` to `@ecom/contracts` (208 files), `apps/api`, `deploy/`, the backup scripts and the backend docs moved out, and Docker/CI/runbook were trimmed. The catalog seed's JSON fixtures were copied into the API (`apps/api/seed-data`) because the seed script had read them straight out of the frontend's mock data. Frontend lint, build and tests pass with the contracts package linked |
 | 2026-10-04 | Switched both repositories to install `@ecom/contracts` from its tagged GitHub release; removed the sibling-folder `contracts` build stage and `contracts_src` build contexts from the Dockerfiles and compose files; upgraded ESLint to 10 and the Analog plugins to 2.8, dropped `@nx/angular` (which removes the deprecated `build-angular`). Storefront, admin, seller and API images all build without extra build contexts; the API image starts healthy |
+| 2026-10-05 | BRD 26 built: Go backend (`eCommerce-go`) at parity with the Nest API, and React storefront, admin console and seller portal (`eCommerce-react`) with the Angular flow tests ported (storefront 101, admin 37, seller 5, packages 346). Live-tested against the Go API and the real databases; images, compose, CI and docs added. Not yet run against Nest or on GitHub Actions. |

@@ -38,6 +38,7 @@ Detailed business requirements per major functionality. The master `../BR-eComme
 | 23 | [Messaging, jobs and notifications backend](23-messaging-notifications-backend.md) | Backend | Built (Kafka analytics streaming, SMS/WhatsApp and the CAPTCHA hook out of scope, as planned) | 19 to 21, 10 |
 | 24 | [Observability and reliability](24-observability-reliability.md) | Backend | Built (distributed tracing and frontend error reporting deferred) | 19 to 23 |
 | 25 | [Kubernetes, cloud and load testing](25-kubernetes-cloud-load-testing.md) | Backend | Built locally (K8-04 pipeline and K8-05 Terraform written but never run — no cloud account) | 08, 19 to 24 |
+| 26 | [Parallel React frontend and Go backend](26-react-and-go-stack.md) | Platform | Built locally (React storefront, admin and seller in `eCommerce-react`; Go API in `eCommerce-go`; live-tested against Go, not yet against Nest) | 01 to 25 |
 
 ## Recommended order from here
 1. ~~Finish phase 1 of the frontend: 09, 11, 10, 12~~ — done. Phase 1 (BRDs 01 to 12) is complete.

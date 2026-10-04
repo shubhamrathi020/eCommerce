@@ -417,3 +417,17 @@ Dependency: both repositories use `"@ecom/contracts": "link:../eCommerce-contrac
 Where things are now: requirements (`brds/`, `BR-eCommerce-Platform.md`), `PROJECT-LOG.md`, `steering/` and these session notes stay in the frontend repository for the whole project. The mock data generator (`tools/generate-mock-data`) stays in the frontend; the API has its own copy of the resulting JSON in `apps/api/seed-data`. Any old reference below to `apps/api`, `deploy/` or `libs/shared/models` means the corresponding place in the other repositories.
 
 Update (2026-10-04): the contracts package is now installed from `github:shubhamrathi020/eCommerce-contracts#v0.1.0` in both repositories, so the sibling-folder `link:` setup described above, the `contracts` stage in the Dockerfiles and the `contracts_src` build context were removed. ESLint was upgraded to 10 and `@nx/angular` (and with it the deprecated `@angular-devkit/build-angular`) was dropped.
+
+### BRD 26: React frontend and Go backend (2026-10-04 to 2026-10-05)
+
+Two new sibling repositories next to the other three: `eCommerce-go` (Go API, port 3334, same API and same databases as Nest; Nest still owns the schema) and `eCommerce-react` (pnpm workspace: `packages/{core,data-access,state,ui}`, `apps/{storefront,admin,seller}`). Details in `brds/26-react-and-go-stack.md`, the new repositories' READMEs and `CLAUDE.md` in `eCommerce-react`.
+
+How it works: the Angular data-access code and stores were copied nearly unchanged; `packages/core` supplies stand-ins for `inject()`, `@Injectable`, signals and `HttpClient` (a DI container, signals, a `fetch` client) plus React hooks (`useService`, `useSignal`, `useResource`, `useT`, `useMoney`, `useDate`). Components were rewritten from the Angular templates with the same Tailwind classes. `@shop/ui` has `useForm`/`TextField` (replacing reactive forms) and `@shop/ui/testing` (`settle`, `fill`, `click`, `violations`). Backend choice: `VITE_BACKEND=mock|nest|go` (and `VITE_API_BASE_URL`).
+
+Verified: lint, type-check and build clean; tests storefront 101, admin 37, seller 5, packages 346 (core 12, data-access 244, ui 90); Angular flow specs ported with the same steps and messages, plus axe. Live against the Go API and real databases: guest cash-on-delivery order from the React storefront, staff sign-in and `packed` transition from the React admin (both confirmed in PostgreSQL). The storefront Docker image was built and run (health check, SPA fallback, CSP, service-worker caching).
+
+Errors met: a `require()` of the service worker failed because the React package is an ES module (the spec now runs the script as CommonJS); the empty-cart guard re-ran after an order emptied the cart and bounced the shopper (it now decides once on entry); nginx with a read-only root needs tmpfs for `/etc/nginx/conf.d` and `/var/cache/nginx`; heredocs with apostrophes break the shell tool.
+
+Not done / next: run the same live check against the Nest API; real Razorpay test payment; run both new CI workflows on GitHub (nothing in the three new/changed repositories is pushed, and `eCommerce-go` / `eCommerce-react` have no remote yet); no server-side rendering for the React storefront; the Angular `__ui` showcase route was not ported.
+
+Commands: `cd ../eCommerce-react && pnpm install && pnpm verify`; `VITE_BACKEND=go pnpm start:storefront|admin|seller`; Go API: `cd ../eCommerce-go && go build -o bin/api.exe ./cmd/api`, run with the Nest `.env` values, `PORT=3334` and the React ports in `CORS_ORIGINS`.
