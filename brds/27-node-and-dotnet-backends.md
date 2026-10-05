@@ -28,6 +28,7 @@ token or a cart created on one server works on the others.
 - Node keeps the typed Prisma client for the database (generated from a verbatim copy of the schema, never migrated) and uses the shared
   `@ecom/contracts` package directly, so the business rules are the very same code. .NET has no TypeScript, so it carries a C# port of the
   rules, held to the same golden output as Go (400 generated carts, coupons, money, serviceability, summaries, sort orders).
+- The OpenAPI document and Swagger UI pages are generated once by the Nest app (`test/export-openapi.spec.ts`) and copied into each repository, so they cannot disagree about the routes.
 - The spec harness in `eCommerce-api` runs any server: `API_BIN` (and `API_ARGS`) replace the older `GO_API_BIN`, which still works.
 
 ## 3. What was built
@@ -39,6 +40,7 @@ token or a cart created on one server works on the others.
 | Catalog, search, cache | mongodb, Meilisearch SDK, ioredis | MongoDB.Driver, Meilisearch REST, StackExchange.Redis |
 | Messaging | amqplib: outbox relay, notification consumer with retry and dead-letter queues, scheduler with Redis locks | RabbitMQ.Client 7: the same topology and flows |
 | Operations | Prometheus metrics, circuit breakers, health probes, Docker image, CI | The same, with `prometheus-net` |
+| API documentation | `/docs` (Swagger UI) and `/docs/openapi.json` like Nest (on outside production or with `API_DOCS=on`) | The same, assets from `Swashbuckle.AspNetCore.SwaggerUI` |
 
 ## 4. Verification
 - The 8 integration spec files of the Nest API (65 tests; 64 run, the one that calls a Nest internal is replaced by a test in each new repository) pass
@@ -50,10 +52,10 @@ token or a cart created on one server works on the others.
   accepted by the others, a refresh cookie rotates across servers and a rotated one is refused (reuse detection), and a cart filled on one is read on the others.
 - .NET unit tests (21): golden rules from the TypeScript original, a hash and a token made by Node verified here, configuration, circuit breaker, the
   abandoned-cart job. Node unit tests (24): validator, configuration, breaker, Razorpay signatures, the abandoned-cart job.
-- The Node image was built, started read-only as a non-root user, reached `healthy`, answered `/readyz` against the real stores and placed and cancelled a cash-on-delivery order.
-- The React apps choose the server with `VITE_BACKEND=nest|go|node|dotnet`.
-- **Not done:** a run on GitHub Actions; the .NET Docker image was not run end to end (see the project log for its state); the React apps were not clicked through
-  against Node or .NET (they use the same adapters and only the port differs); real Razorpay payments; an OpenAPI page for the new servers.
+- The Node and .NET images were built, started read-only without capabilities, reached `healthy`, answered `/readyz` against the real stores, placed and cancelled a cash-on-delivery order, and served `/docs` where Nest does.
+- The React apps choose the server with `VITE_BACKEND=nest|go|node|dotnet`. In a real browser, the React storefront was run once against Node and once against .NET on the development stores: the Node-backed home page showed 79 products over CORS; a refresh cookie minted earlier by the Go server kept the shopper signed in on Node, the cookie Node rotated was accepted by .NET, and signing out, then in again as the seeded demo customer (a password hashed by Nest) worked on .NET; on .NET a product was added to the cart, the cart page priced it with free shipping, and removing it emptied the cart.
+- **Not done:** a run on GitHub Actions; checkout and admin screens were not clicked through
+  against Node or .NET (only the storefront browse, session, sign-in and cart paths above); real Razorpay payments.
 
 ## 5. Business rules
 1. A change to behaviour, an error message or a route is made in `eCommerce-api` first, then repeated in the other three; the specs say whether it matches.

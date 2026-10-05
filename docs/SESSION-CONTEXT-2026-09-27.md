@@ -442,4 +442,8 @@ Environment: the .NET 10 SDK is in `%USERPROFILE%\.dotnet` (installed with Micro
 
 Errors met: .NET read an empty catalog from the native MongoDB (see `steering/memory.md`); EF Core made a new service provider per request; Mongo `Id` mapped to `_id`; raw SQL timestamps had the wrong kind; heredocs with apostrophes break the shell tool (use the editor tools).
 
-Not done / next: run the three new/changed CI workflows on GitHub (nothing is pushed; the new repositories have no remote); click through the React apps against Node and .NET; OpenAPI pages for the new servers; real Razorpay payment.
+Browser check: the React storefront (`VITE_BACKEND=node` on a throwaway dev port, then `dotnet`) browsed, kept a session minted by Go, signed in as the seeded demo customer, added to and emptied the cart.
+
+Docs: `/docs` and `/docs/openapi.json` are served by both new servers from files the Nest app exports (`OPENAPI_OUT=<dir> pnpm exec vitest run test/export-openapi.spec.ts` in `eCommerce-api/apps/api`; Node copies into `docs/`, .NET into `src/EcomApi/docs/`). Both Docker images were built and run read-only against the dev stores.
+
+Not done / next: run the three new/changed CI workflows on GitHub (nothing is pushed; the new repositories have no remote); click through checkout and the admin console against Node and .NET; real Razorpay payment. The Go server still has no `/docs`.
