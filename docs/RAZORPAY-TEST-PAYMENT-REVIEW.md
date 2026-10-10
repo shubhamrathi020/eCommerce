@@ -127,3 +127,25 @@ Then: add a product, checkout as a guest, choose online payment, pay with the do
 | `eCommerce-api` | `apps/api/test/test-app.ts` blanks Razorpay keys for spawned servers |
 | `eCommerce-react` | `payment.tsx`, `CheckoutPage.tsx`, `razorpay-launcher.spec.ts`, `nginx/default.conf.template`, `Dockerfile`, `packages/data-access/src/index.ts` |
 | `eCommerce` | this document and `PROJECT-LOG.md` |
+
+## 9. Update 2026-10-11
+
+- **Production image checked in a browser (item 2 above: done).** The storefront image (nginx, read-only, hardened compose settings)
+  took a real test payment end to end (`pay_TmJUY5RWBmKdNo`, order `ORD-MV2RD2Y437EE00` confirmed). It exposed one CSP gap:
+  Checkout.js loads Razorpay's fraud-check script from `cdn.razorpay.com`, which `script-src` blocked (the payment still worked).
+  Fixed in `eCommerce-react` commit "storefront image: allow Razorpay's second script"; after the rebuild there was no violation.
+- **COOP `same-origin` and `Permissions-Policy: payment=()` (item 3)** did not get in the way of the card flow. Wallet/UPI/Google Pay
+  flows are still untested.
+- **Phone prefill (item 6): still unresolved.** The bundle sends `+919876543210`, Razorpay fills the email but leaves the mobile field
+  empty. Cosmetic; the shopper types it once.
+- **Service worker error in the console** ("An unknown error occurred when fetching the script") is the embedded test browser's
+  limitation: in real Edge the service worker registers fine.
+- **New finding, not fixed (webhook).** `POST /webhooks/razorpay` (Nest; the other three backends copy it) gives the stock hold back on
+  every `payment.failed` event. Razorpay sends that event for each failed attempt, even while its window stays open, so a failure
+  followed by a successful retry inside the window would release the stock, and `payment.captured` (or `confirm`) would then confirm
+  the order without taking it again: possible overselling once a webhook is configured. The captured branch also skips the
+  confirmation email (outbox) and the live order event. Suggested fix, in all four backends: on `payment.failed` only record the
+  attempt (leave the hold to the payment-deadline sweep), and make the captured branch do what `confirm` does. Needs signed test
+  events (HMAC with `RAZORPAY_WEBHOOK_SECRET`) in the shared specs.
+- **Still open:** the item above, the Angular storefront adapter, a real webhook delivery (needs a public URL), and refunds
+  (cancel a paid order from the admin with the keys set; captured test payments `pay_TmG4ocBD4g3OtH` and `pay_TmJUY5RWBmKdNo` exist).
