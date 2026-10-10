@@ -59,6 +59,9 @@ app.get('/sitemap.xml', async (req, res, next) => {
  * Content-Security-Policy. Scripts run only from our own files, from Angular's static inline bootstrap script
  * (allowed by hash, computed from the built HTML) or from inline scripts carrying this request's random nonce.
  * In development the built HTML does not exist, so the policy is skipped there.
+ *
+ * Razorpay's checkout (BRD 21) needs its script (checkout.razorpay.com, which loads a fraud-check script from cdn.razorpay.com),
+ * its payment frame (api.razorpay.com, checkout.razorpay.com), its API and logging hosts and its images; nothing else is opened up.
  */
 function staticScriptHashes(): string[] | undefined {
   try {
@@ -76,15 +79,23 @@ const scriptHashes = staticScriptHashes();
  */
 const apiOrigin = /^https?:\/\/[a-z0-9.-]+(:\d+)?$/i.test(process.env['API_ORIGIN'] ?? '') ? process.env['API_ORIGIN'] : undefined;
 
+const RAZORPAY = {
+  script: 'https://checkout.razorpay.com https://cdn.razorpay.com',
+  img: 'https://cdn.razorpay.com',
+  connect: 'https://api.razorpay.com https://lumberjack.razorpay.com',
+  frame: 'https://api.razorpay.com https://checkout.razorpay.com',
+};
+
 function buildCsp(nonce: string): string {
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' ${(scriptHashes ?? []).join(' ')}`.trim(),
+    `script-src 'self' 'nonce-${nonce}' ${RAZORPAY.script} ${(scriptHashes ?? []).join(' ')}`.trim(),
     // Angular adds component styles at runtime; styles are lower risk than scripts.
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data:",
+    `img-src 'self' data: ${RAZORPAY.img}`,
     "font-src 'self'",
-    `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''}`,
+    `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''} ${RAZORPAY.connect}`,
+    `frame-src 'self' ${RAZORPAY.frame}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

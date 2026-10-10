@@ -10,7 +10,7 @@ import { AuthStore, CartStore } from '@ecom/shared/state';
 import { ButtonComponent, CartLineComponent, FormFieldComponent, InputDirective, OrderSummaryComponent, SkeletonComponent, StepperComponent } from '@ecom/shared/ui';
 import { MoneyPipe } from '@ecom/shared/util';
 import { MockRazorpayComponent } from '../payment/mock-razorpay';
-import { MockPaymentLauncher, PaymentLauncher } from '../payment/payment-launcher';
+import { AutoPaymentLauncher, PaymentLauncher } from '../payment/payment-launcher';
 
 const STEPS = ['Address', 'Delivery', 'Payment', 'Review'];
 const nonEmpty = [Validators.required, Validators.pattern(/\S/)];
@@ -21,7 +21,7 @@ const INVALID_MESSAGES: Partial<Record<FieldName, string>> = { email: 'Enter a v
 @Component({
   selector: 'app-checkout-page',
   imports: [LocaleDatePipe, ReactiveFormsModule, RouterLink, MoneyPipe, ButtonComponent, CartLineComponent, FormFieldComponent, InputDirective, OrderSummaryComponent, SkeletonComponent, StepperComponent, MockRazorpayComponent],
-  providers: [{ provide: PaymentLauncher, useExisting: MockPaymentLauncher }],
+  providers: [{ provide: PaymentLauncher, useExisting: AutoPaymentLauncher }],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="mb-3 text-2xl font-bold md:text-3xl">Checkout</h1>
@@ -363,7 +363,8 @@ export class CheckoutPageComponent {
   private async pay(orderId: string): Promise<void> {
     this.analytics.track({ name: 'payment_start' });
     const session = await firstValueFrom(this.payments.initiate(orderId));
-    const outcome = await this.launcher.open(session);
+    const f = this.form.getRawValue();
+    const outcome = await this.launcher.open(session, { name: f.name.trim(), email: f.email.trim(), phone: f.phone });
     if (outcome.status === 'success') {
       await this.finish(await firstValueFrom(this.payments.confirm(orderId, outcome.result)));
     } else if (outcome.status === 'failed') {
