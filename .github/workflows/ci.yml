@@ -63,11 +63,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Install browser
-        run: pnpm exec playwright install --with-deps chromium
+      # The config runs six projects (Chromium, Firefox, WebKit, a phone and a tablet each), so every engine is needed.
+      # Installing only Chromium made the Firefox and WebKit projects fail with "executable doesn't exist".
+      - name: Install browsers
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
 
+      # No --project flag: nx does not pass it on to Playwright, so it would only look like a Chromium-only run.
       - name: Run smoke tests against the dev servers
-        run: pnpm exec nx e2e storefront-e2e --project=chromium
+        run: pnpm exec nx e2e storefront-e2e
         env:
           CI: "true"
 
@@ -77,6 +80,7 @@ jobs:
         with:
           name: playwright-report
           path: dist/.playwright
+          include-hidden-files: true # the folder name starts with a dot, which upload-artifact skips by default
           retention-days: 3
 
   images:
