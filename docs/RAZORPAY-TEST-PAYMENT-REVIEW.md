@@ -149,3 +149,19 @@ Then: add a product, checkout as a guest, choose online payment, pay with the do
   events (HMAC with `RAZORPAY_WEBHOOK_SECRET`) in the shared specs.
 - **Still open:** the item above, the Angular storefront adapter, a real webhook delivery (needs a public URL), and refunds
   (cancel a paid order from the admin with the keys set; captured test payments `pay_TmG4ocBD4g3OtH` and `pay_TmJUY5RWBmKdNo` exist).
+
+## 10. Update 2026-10-11 (later): open items worked through
+
+| Item | Result |
+|---|---|
+| **Webhook stock bug** (section 9) | **Fixed in all four backends** (`eCommerce-api`, `-go`, `-node`, `-dotnet`, commit "payments: Razorpay webhook no longer releases stock on a failed attempt"). `payment.failed` no longer changes anything; `payment.captured` takes the stock again if the browser had already reported a failure, then confirms through the same once-only path as the browser's confirm (so the confirmation email and the live order event are sent, exactly once even if the browser and the webhook race). A captured payment whose stock can no longer be reserved still confirms the order and leaves a staff note to check stock or refund. New shared spec `test/payment-webhook.spec.ts` (3 tests, signed events) failed on the old code and passes on all four servers: Nest 68, Go/Node/.NET 67 + the in-process-only skips. |
+| **Angular storefront adapter** | **Built** (`libs/storefront/checkout`, same design as React, 7 unit tests) and the SSR server's CSP allows Razorpay. Paid for real in test mode on the production SSR build against Nest: order `ORD-MV2W42D49E4717` confirmed, no CSP violation. The flags `realAuth`/`realCatalog`/`realCommerce` in `apps/storefront/src/app/app-config.values.ts` were switched on only for that run and are committed as `false`. |
+| **Refunds** | **Work on Nest and Go.** Cancelling a paid order from the admin refunded it at Razorpay: `ORD-MV2K7O46EE2833` through Nest (`rfnd_TmLZ2rjfaDYSZi`), `ORD-MV2W42D49E4717` through Go (`rfnd_TmLkboU6hH3v2D`), both for the full amount. Node and .NET refunds were not run (same Razorpay call, covered by the shared contract). |
+| **One payment cannot be refunded** | `pay_TmJUY5RWBmKdNo` (order `ORD-MV2RD2Y437EE00`, cancelled, `refund_pending`) is refused by Razorpay itself with a generic `BAD_REQUEST_ERROR "invalid request sent"`, also when called directly with no amount. Not our code (Go refunded a different payment fine). **Check it in the Razorpay dashboard** and refund it there if needed. |
+| **Order says `refund_pending` after a successful refund** | By design of the contracts: `PaymentStatus` is `pending \| paid \| failed \| cod \| refund_pending`, there is no `refunded`. The success is recorded as a staff note and a `payment.refunded` email. Adding a `refunded` state needs a contracts release and changes in all backends and both frontends: a product decision. |
+| **Real webhook delivery** | Not done. Needs a public URL to this machine (a tunnel such as cloudflared or ngrok) and the webhook configured in the Razorpay dashboard with a secret in `RAZORPAY_WEBHOOK_SECRET`. The handler itself is now covered by the signed-event spec. |
+| **Phone prefill** | Still unresolved (cosmetic). |
+
+Other gaps noticed while fixing the webhook, not changed:
+- A payment captured after the order was already **cancelled** by the payment-deadline sweep is ignored by the webhook (money taken, order cancelled); it would need a manual refund. Worth a staff alert later.
+- The webhook confirmation does not empty the shopper's cart (the webhook does not know the guest's cart token); the browser's confirm still does.
